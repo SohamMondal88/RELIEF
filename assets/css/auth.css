@@ -100,7 +100,7 @@ a:hover {
 
 .logo {
     position: absolute;
-    top: 25px;
+    top: 35px;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: var(--white);
@@ -419,6 +419,55 @@ a:hover {
 
 
 
+  .healthcare-quote {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.healthcare-quote::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+    .healthcare-quote {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -452,92 +501,7 @@ body {
     overflow-x: hidden;
 }
 
-/* 3D Navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 5%;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-    position: relative;
-    z-index: 100;
-    transform-style: preserve-3d;
-    transform: translateZ(20px);
-}
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    perspective: 1000px;
-}
-
-.logo img {
-    height: 2.5rem;
-    transition: var(--transition);
-    transform-style: preserve-3d;
-}
-
-.logo:hover img {
-    transform: rotateY(180deg);
-}
-
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    list-style: none;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--dark-color);
-    font-weight: 500;
-    position: relative;
-    padding: 0.5rem 0;
-    transition: var(--transition);
-}
-
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--primary-color);
-    transition: var(--transition);
-}
-
-.nav-links a:hover {
-    color: var(--primary-color);
-}
-
-.nav-links a:hover::after {
-    width: 100%;
-}
-
-.hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 0.35rem;
-    cursor: pointer;
-}
-
-.hamburger span {
-    display: block;
-    width: 1.75rem;
-    height: 3px;
-    background: var(--dark-color);
-    transition: var(--transition);
-    transform-origin: left center;
-}
 
 /* 3D Auth Container */
 .auth-container {
