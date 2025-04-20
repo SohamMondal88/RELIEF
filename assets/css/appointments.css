@@ -100,7 +100,7 @@ a:hover {
 
 .logo {
     position: absolute;
-    top: 25px;
+    top: 35px;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: var(--white);
@@ -419,6 +419,45 @@ a:hover {
 
 
 
+  .healthcare-quote {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.healthcare-quote::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+    .healthcare-quote {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -731,5 +770,578 @@ a:hover {
     
     .date-picker {
         flex-wrap: wrap;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Footer */
+.footer {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 80px 20px 40px;
+    animation: fadeInUp 0.8s ease-in-out both;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.footer-section {
+    animation: fadeInUp 1s ease-in-out both;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.footer-section:hover {
+    transform: translateY(-5px);
+    opacity: 1;
+}
+
+.footer-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    position: relative;
+    color: white;
+}
+
+.footer-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 5px;
+}
+
+.footer-section.about p {
+    margin-bottom: 15px;
+    opacity: 0.85;
+    line-height: 1.7;
+}
+
+.social-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: var(--primary-color);
+    transform: scale(1.1) translateY(-3px);
+}
+
+/* Links Section */
+.footer-section.links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section.links li {
+    margin-bottom: 10px;
+}
+
+.footer-section.links a {
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer-section.links a:hover {
+    color: white;
+    transform: translateX(6px);
+}
+
+/* Contact Info */
+.contact-info {
+    list-style: none;
+    padding: 0;
+}
+
+.contact-info li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.contact-info i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-top: 3px;
+}
+
+.contact-info a {
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.contact-info a:hover {
+    color: white;
+}
+
+/* Bottom Section */
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 25px;
+    margin-top: 40px;
+}
+
+.footer-legal {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.footer-legal p {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.legal-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legal-links a {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.legal-links a:hover {
+    color: white;
+}
+
+/* Badges */
+.footer-badges {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.footer-badges img {
+    height: 40px;
+    width: auto;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.footer-badges img:hover {
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .footer-section h3::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+
+    .contact-info {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .footer-legal {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .legal-links {
+        justify-content: center;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .hero .container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero-content {
+        padding-right: 0;
+        margin-bottom: 50px;
+        max-width: 100%;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+    
+    .app-download .container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .app-content {
+        padding-right: 0;
+        margin-bottom: 50px;
+        max-width: 100%;
+    }
+    
+    .download-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 15px 0;
+    }
+    
+    .nav-links {
+        position: fixed;
+        top: 80px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 80px);
+        background-color: white;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+        transition: all 0.4s ease;
+        z-index: 999;
+    }
+    
+    .nav-links.active {
+        left: 0;
+    }
+    
+    .nav-links li {
+        margin: 15px 0;
+    }
+    
+    .hamburger {
+        display: block;
+    }
+    
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+    
+    .hero {
+        padding: 120px 0 60px;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 2.2rem;
+    }
+    
+    .steps-container {
+        flex-direction: column;
+        gap: 60px;
+    }
+    
+    .steps-container::before {
+        display: none;
+    }
+    
+    .step {
+        width: 100%;
+    }
+    
+    .step-number {
+        margin-bottom: 20px;
+    }
+    
+    .emergency-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .footer-section {
+        text-align: center;
+    }
+    
+    .footer-section h3::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+    
+    .contact-info li {
+        justify-content: center;
+    }
+    
+    .footer-legal {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .legal-links {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .hero-stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        border-radius: 10px;
+    }
+    
+    .newsletter-form input {
+        width: 100%;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .newsletter-form button {
+        width: 100%;
+        border-radius: 0 0 10px 10px;
+    }
+}
+
+
+@media (max-width: 360px) {
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .hero-content .lead {
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.6rem;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .step-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .step-content p {
+        font-size: 0.9rem;
+    }
+    
+    .app-content h2 {
+        font-size: 2rem;
+    }
+    
+    .app-content p {
+        font-size: 1rem;
+    }
+}
+@media (max-width: 320px) {
+    .hero-content h1 {
+        font-size: 1.6rem;
+    }
+    
+    .hero-content .lead {
+        font-size: 0.9rem;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .step-content h3 {
+        font-size: 1rem;
+    }
+    
+    .step-content p {
+        font-size: 0.8rem;
+    }
+    
+    .app-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .app-content p {
+        font-size: 0.9rem;
     }
 }

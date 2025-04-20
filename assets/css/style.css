@@ -731,6 +731,42 @@ a:hover {
 
 
 
+
+  .healthcare-quote {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.healthcare-quote::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+    .healthcare-quote {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+    }
+}
+
+
+
+
+
+
 /* Hero Section */
 .hero {
     position: relative;

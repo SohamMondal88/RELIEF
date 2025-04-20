@@ -6,18 +6,24 @@
     <title>Ambulance Services | Relief</title>
     <link rel="stylesheet" href="../assets/css/ambulances.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/jpg" href="../assets/images/favicon.jpg">
 </head>
 <body>
      <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
-        <a href="#" class="skip-link">Skip to main content</a>
+        <div class="healthcare-quote">
+            <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
+        </div>
     
     <nav class="navbar" aria-label="Main navigation">
         <div class="container">
             <div class="navbar-left">
                 <ul class="nav-links">
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="../index.html">Home</a></li>
                     <li><a href="../pages/about.html">About Us</a></li>
                     <li><a href="../pages/contact.html">Contact</a></li>
                     <li class="dropdown"><a href="#" class="dropdown-toggle">Services <i class="fas fa-chevron-down"></i></a>
@@ -102,30 +108,73 @@
         </div>
     </section>
 
+    
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section about">
-                <h3>About Relief</h3>
-                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+    <footer class="footer" aria-label="Footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section about">
+                    <h3>About Relief</h3>
+                    <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information to everyone, everywhere.</p>
+                    
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="pages/home.html">Home</a></li>
+                        <li><a href="pages/symptoms.html">Symptom Checker</a></li>
+                        <li><a href="pages/doctors.html">Find Doctors</a></li>
+                        <li><a href="pages/hospitals.html">Find Hospitals</a></li>
+                        <li><a href="pages/pharmacies.html">Find Pharmacies</a></li>
+                        <li><a href="pages/emergency.html">Emergency Services</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section links">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="pages/about.html">About Us</a></li>
+                        <li><a href="pages/team.html">Our Team</a></li>
+                        <li><a href="pages/careers.html">Careers</a></li>
+                        <li><a href="pages/blog.html">Blog</a></li>
+                        <li><a href="pages/press.html">Press</a></li>
+                        <li><a href="pages/contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section contact">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Healthcare Ave, Medical City, MC 12345</li>
+                        <li><i class="fas fa-phone"></i> <a href="tel:+18005551234">+1 (800) 555-1234</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:support@relief.com">support@relief.com</a></li>
+                        <li><i class="fas fa-clock"></i> 24/7 Support Available</li>
+                    </ul>
+                </div>
             </div>
-            <div class="footer-section links">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="../index.html">Home</a></li>
-                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
-                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
-                    <li><a href="../pages/hospitals.html">Find Hospitals</a></li>
-                </ul>
+            
+            <div class="footer-bottom">
+                <div class="footer-legal">
+                    <p>&copy; 2025 Relief. All rights reserved.</p>
+                    <div class="legal-links">
+                        <a href="pages/privacy-policy.html">Privacy Policy</a>
+                        <a href="pages/terms-of-service.html">Terms of Service</a>
+                        <a href="pages/cookie-policy.html">Cookie Policy</a>
+                    </div>
+                </div>
+                
+                <div class="footer-badges">
+                    <img src="assets/images/hipaa-badge.webp" alt="HIPAA Compliant" width="80" height="40">
+                    <img src="assets/images/ssl-badge.jpg" alt="SSL Secured" width="80" height="40">
+                </div>
             </div>
-            <div class="footer-section contact">
-                <h3>Contact Us</h3>
-                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
-                <p><i class="fas fa-envelope"></i> support@relief.com</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2023 Relief. All rights reserved.</p>
         </div>
     </footer>
 

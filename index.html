@@ -8,25 +8,15 @@
     <title>Relief - Your Complete Healthcare Companion | Symptom Checker & Doctor Finder</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="assets/images/favicon.png">
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
-
-    <!-- Daily.co for video calls -->
-    <script src="https://unpkg.com/@daily-co/daily-js"></script>
+    <link rel="icon" type="image/jpg" href="./assets/images/favicon.jpg">
 </head>
 <body>
     <!-- Splash Screen -->
     <div class="splash-screen" aria-hidden="true">
         <div class="splash-content">
-            <img src="assets/images/logo.jpg" alt="Relief Logo">
+            <img src="./assets/images/logo.jpg" alt="Relief Logo">
             <h1>Relief</h1>
             <p>Your complete healthcare solution</p>
             <div class="loader" role="status" aria-label="Loading">
@@ -36,9 +26,11 @@
     </div>
 
     <!-- Main Content -->
-   <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
-    <!-- Skip to Content Link for Accessibility -->
-    <a href="#" class="skip-link">Skip to main content</a>
+    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+        <!-- Skip to Content Link for Accessibility -->
+        <div class="healthcare-quote">
+            <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
+        </div>
 
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
@@ -495,10 +487,7 @@
         </footer>
     </div>
 
-    <!-- Back to Top Button -->
-    <button class="back-to-top" aria-label="Back to top">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+   
 
     <script src="assets/js/main.js"></script>
 </body>

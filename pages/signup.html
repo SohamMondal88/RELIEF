@@ -9,22 +9,42 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="logo">
-            <img src="../assets/images/logo.png" alt="Relief Logo">
-            <span>Relief</span>
+    <!-- Main Content -->
+    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+        <!-- Skip to Content Link for Accessibility -->
+        <div class="healthcare-quote">
+            <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
-        <ul class="nav-links">
-            <li><a href="../index.html">Home</a></li>
-            <li><a href="../pages/login.html">Login</a></li>
-        </ul>
-        <div class="hamburger">
-            <span></span>
-            <span></span>
-            <span></span>
+
+<nav class="navbar" aria-label="Main navigation">
+    <div class="container">
+        <div class="navbar-left">
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                
+            </ul>
         </div>
-    </nav>
+        
+        <div class="navbar-center">
+            <div class="logo">
+                <img src="../assets/images/logo.jpg" alt="Relief Logo">
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <ul class="nav-links">
+                <li><a href="../pages/login.html" class="btn-login">Login</a></li>
+            </ul>
+            
+            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+</nav>
+</div>
 
     <!-- Signup Form -->
     <section class="auth-container">
