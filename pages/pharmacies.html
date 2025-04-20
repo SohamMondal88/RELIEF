@@ -12,42 +12,46 @@
    <!-- Main Content -->
    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
     <!-- Skip to Content Link for Accessibility -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <a href="#" class="skip-link">Skip to main content</a>
 
-    <nav class="navbar" aria-label="Main navigation">
-        <div class="container">
-            <div class="navbar-left">
-                <ul class="nav-links" role="menubar">
-                    <li role="none"><a href="#features" role="menuitem">Features</a></li>
-                    <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
-                    <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
-                </ul>
-            </div>
-    
-            <div class="navbar-center">
-                <div class="logo">
-                    <img src="../assets/images/logo.jpg" alt="Relief Logo">
-                </div>
-            </div>
-    
-            <div class="navbar-right">
-                <ul class="nav-links" role="menubar">
-                    <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
-                    <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
-                </ul>
-                
-                
-                <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+<nav class="navbar" aria-label="Main navigation">
+    <div class="container">
+        <div class="navbar-left">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="../pages/about.html">About Us</a></li>
+                <li><a href="../pages/contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle">Services <i class="fas fa-chevron-down"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../pages/doctors.html">Doctors</a></li>
+                        <li><a href="../pages/symptoms.html">Symptom-checker</a></li>
+                        <li><a href="../pages/hospitals.html">Hospitals</a></li>
+                        <li><a href="../pages/pharmacies.html">Pharmacies</a></li>
+                        <li><a href="../pages/ambulances.html">Ambulances</a></li></ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="navbar-center">
+            <div class="logo">
+                <img src="../assets/images/logo.jpg" alt="Relief Logo">
             </div>
         </div>
-    </nav>
-    
-
-    
+        
+        <div class="navbar-right">
+            <ul class="nav-links">
+                <li><a href="../pages/login.html" class="btn-login">Login</a></li>
+                <li><a href="../pages/signup.html" class="btn-signup">Sign Up</a></li>
+            </ul>
+            
+            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+</nav>
 </div>
 
     <!-- Pharmacy Finder Section -->
