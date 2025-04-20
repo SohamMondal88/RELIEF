@@ -1,0 +1,56 @@
+/* Patient-specific styles */
+.health-status {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-indicator.good {
+    background-color: #2ecc71;
+}
+
+.upcoming-appointments .appointment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.health-metrics .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.metric-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-status {
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.metric-status.good {
+    color: #2ecc71;
+}
+
+.emergency-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.emergency-btn:hover {
+    background-color: #c0392b;
+}

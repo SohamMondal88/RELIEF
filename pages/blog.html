@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health News & Blog | ReliefConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/blog.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="ReliefConnect Logo">
+                <span>ReliefConnect</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="health-news.html" class="active">Health News</a></li>
+                <li><a href="resources.html">Resources</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="donate.html" class="btn btn-primary">Donate Now</a></li>
+            </ul>
+            <div class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="health-news.html" class="active">Health News</a></li>
+            <li><a href="resources.html">Resources</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="donate.html" class="btn btn-primary">Donate Now</a></li>
+        </ul>
+    </div>
+
+<!-- Main Content -->
+<div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+    <!-- Skip to Content Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="navbar" aria-label="Main navigation">
+        <div class="container">
+            <div class="navbar-left">
+                <ul class="nav-links" role="menubar">
+                    <li class="dropdown">
+                        <a href="">Services <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="hospitals.html" role="menuitem">Hospitals</a></li>
+                            <li><a href="pharmacies.html" role="menuitem">Pharmacies</a></li>
+                            <li><a href="ambulances.html" role="menuitem">Ambulances</a></li>
+                        </ul>
+                    </li>
+                    <li role="none"><a href="#features" role="menuitem">Doctors</a></li>
+                    <li role="none"><a href="#testimonials" role="menuitem">Symptom-checker</a></li>
+                </ul>
+            </div>
+    
+            <div class="navbar-center">
+                <div class="logo">
+                    <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                </div>
+            </div>
+    
+            <div class="navbar-right">
+                <ul class="nav-links" role="menubar">
+                    <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                    <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                </ul>
+                
+                
+                <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+
+    
+</div>
+
+    <!-- Hero Section -->
+    <section class="health-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Health News & Resources</h1>
+                <p>Stay informed with the latest health updates, disease prevention tips, and wellness guidance for crisis situations.</p>
+                <div class="search-bar">
+                    <input type="text" placeholder="Search health topics...">
+                    <button class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Health Alerts Section -->
+    <section class="health-alerts">
+        <div class="container">
+            <div class="section-header">
+                <h2>Current Health Alerts</h2>
+                <p>Important updates about disease outbreaks and health risks</p>
+            </div>
+            <div class="alert-slider">
+                <div class="alert-card critical">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Cholera Outbreak Reported</h3>
+                        <p>Multiple cases confirmed in flood-affected regions. Learn prevention measures.</p>
+                        <a href="#" class="alert-link">View Advisory <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="alert-card warning">
+                    <div class="alert-icon">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Heat Wave Warning</h3>
+                        <p>Extreme temperatures expected in drought areas. Heat stroke prevention tips.</p>
+                        <a href="#" class="alert-link">Read More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="alert-card info">
+                    <div class="alert-icon">
+                        <i class="fas fa-syringe"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Vaccination Campaign</h3>
+                        <p>Free measles vaccination clinics available in refugee camps this week.</p>
+                        <a href="#" class="alert-link">Find Locations <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Articles Section -->
+    <section class="featured-articles">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Health Articles</h2>
+                <p>Expert advice and important health information</p>
+            </div>
+            <div class="articles-grid">
+                <article class="article-card featured">
+                    <div class="article-image">
+                        <img src="images/health-article1.jpg" alt="Clean Water Access">
+                        <div class="category-badge water">Water Safety</div>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span class="date"><i class="far fa-calendar-alt"></i> June 15, 2023</span>
+                            <span class="author"><i class="far fa-user"></i> Dr. Sarah Johnson</span>
+                        </div>
+                        <h3><a href="#">How to Purify Water in Emergency Situations</a></h3>
+                        <p>Learn effective methods to ensure safe drinking water when infrastructure is compromised during disasters.</p>
+                        <a href="#" class="read-more">Continue Reading <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </article>
+                <article class="article-card">
+                    <div class="article-image">
+                        <img src="images/health-article2.jpg" alt="Mental Health">
+                        <div class="category-badge mental">Mental Health</div>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span class="date"><i class="far fa-calendar-alt"></i> June 8, 2023</span>
+                            <span class="author"><i class="far fa-user"></i> Dr. Michael Chen</span>
+                        </div>
+                        <h3><a href="#">Coping with Trauma After Natural Disasters</a></h3>
+                        <p>Psychological first aid techniques to help survivors process trauma and begin recovery.</p>
+                        <a href="#" class="read-more">Continue Reading <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </article>
+                <article class="article-card">
+                    <div class="article-image">
+                        <img src="images/health-article3.jpg" alt="Nutrition">
+                        <div class="category-badge nutrition">Nutrition</div>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span class="date"><i class="far fa-calendar-alt"></i> May 30, 2023</span>
+                            <span class="author"><i class="far fa-user"></i> Nutritionist Amina Diallo</span>
+                        </div>
+                        <h3><a href="#">Maintaining Nutrition During Food Shortages</a></h3>
+                        <p>Essential strategies to prevent malnutrition when food supplies are limited.</p>
+                        <a href="#" class="read-more">Continue Reading <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Health Topics Section -->
+    <section class="health-topics">
+        <div class="container">
+            <div class="section-header">
+                <h2>Browse by Health Topic</h2>
+                <p>Find information on specific health concerns</p>
+            </div>
+            <div class="topics-grid">
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-virus"></i>
+                    </div>
+                    <h3>Infectious Diseases</h3>
+                    <p>Prevention and treatment of communicable diseases in crisis situations</p>
+                    <span class="topic-count">24 Articles</span>
+                </a>
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Chronic Conditions</h3>
+                    <p>Managing diabetes, hypertension and other conditions during disasters</p>
+                    <span class="topic-count">18 Articles</span>
+                </a>
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Mental Health</h3>
+                    <p>Coping with trauma, stress and anxiety after catastrophic events</p>
+                    <span class="topic-count">32 Articles</span>
+                </a>
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <h3>Maternal & Child Health</h3>
+                    <p>Care for pregnant women and children in emergency settings</p>
+                    <span class="topic-count">15 Articles</span>
+                </a>
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-burn"></i>
+                    </div>
+                    <h3>Wound Care</h3>
+                    <p>Basic first aid and preventing infection for injuries</p>
+                    <span class="topic-count">21 Articles</span>
+                </a>
+                <a href="#" class="topic-card">
+                    <div class="topic-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <h3>Water & Sanitation</h3>
+                    <p>Maintaining hygiene and preventing waterborne illnesses</p>
+                    <span class="topic-count">27 Articles</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Latest News Section -->
+    <section class="latest-news">
+        <div class="container">
+            <div class="section-header">
+                <div class="header-content">
+                    <h2>Latest Health News</h2>
+                    <p>Recent updates from global health organizations</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline active">All</button>
+                    <button class="btn btn-outline">WHO</button>
+                    <button class="btn btn-outline">CDC</button>
+                    <button class="btn btn-outline">Local</button>
+                </div>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-source who">
+                        <img src="images/who-logo.png" alt="WHO">
+                        <span>World Health Organization</span>
+                    </div>
+                    <div class="news-content">
+                        <h3><a href="#">Malaria Prevention in Flood Zones</a></h3>
+                        <p class="news-excerpt">New guidelines released for preventing malaria outbreaks in areas affected by seasonal flooding...</p>
+                        <div class="news-meta">
+                            <span class="date">June 12, 2023</span>
+                            <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-source cdc">
+                        <img src="images/cdc-logo.png" alt="CDC">
+                        <span>Centers for Disease Control</span>
+                    </div>
+                    <div class="news-content">
+                        <h3><a href="#">Field Guide for Cholera Treatment</a></h3>
+                        <p class="news-excerpt">Updated protocols for cholera case management in resource-limited settings now available...</p>
+                        <div class="news-meta">
+                            <span class="date">June 8, 2023</span>
+                            <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-source local">
+                        <img src="images/local-health-logo.png" alt="Local Health">
+                        <span>Regional Health Authority</span>
+                    </div>
+                    <div class="news-content">
+                        <h3><a href="#">Mobile Clinics Deployed to Affected Areas</a></h3>
+                        <p class="news-excerpt">Temporary health centers established to provide essential services in communities impacted by...</p>
+                        <div class="news-meta">
+                            <span class="date">June 5, 2023</span>
+                            <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-source who">
+                        <img src="images/who-logo.png" alt="WHO">
+                        <span>World Health Organization</span>
+                    </div>
+                    <div class="news-content">
+                        <h3><a href="#">Mental Health Support for First Responders</a></h3>
+                        <p class="news-excerpt">New training program launched to help humanitarian workers manage stress and prevent burnout...</p>
+                        <div class="news-meta">
+                            <span class="date">May 29, 2023</span>
+                            <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="news-cta">
+                <a href="#" class="btn btn-primary">View All News Updates</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="container">
+            <div class="newsletter-content">
+                <div class="newsletter-text">
+                    <h2>Stay Updated on Health Alerts</h2>
+                    <p>Subscribe to our monthly health bulletin for the latest disease prevention tips and crisis health information.</p>
+                </div>
+                <div class="newsletter-form">
+                    <input type="email" placeholder="Enter your email address">
+                    <button class="btn btn-accent">Subscribe</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a href="index.html" class="logo">
+                        <img src="images/logo-white.png" alt="ReliefConnect Logo">
+                        <span>ReliefConnect</span>
+                    </a>
+                    <p>Connecting compassion with crisis through innovative technology solutions for disaster response.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Health Resources</h3>
+                    <ul>
+                        <li><a href="#">Disease Prevention</a></li>
+                        <li><a href="#">First Aid Guides</a></li>
+                        <li><a href="#">Mental Health Support</a></li>
+                        <li><a href="#">Nutrition Advice</a></li>
+                        <li><a href="#">Water Sanitation</a></li>
+                        <li><a href="#">Vaccination Info</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Our Services</a></li>
+                        <li><a href="health-news.html">Health News</a></li>
+                        <li><a href="resources.html">Resources</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Emergency Contacts</h3>
+                    <ul>
+                        <li><i class="fas fa-phone-alt"></i> Local Health Authority: 911</li>
+                        <li><i class="fas fa-phone-alt"></i> Poison Control: 1-800-222-1222</li>
+                        <li><i class="fas fa-phone-alt"></i> Mental Health Crisis: 988</li>
+                        <li><i class="fas fa-globe"></i> WHO Emergency: +41 22 791 2111</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 ReliefConnect. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a></p>
+                <p class="disclaimer">The information provided on this website is for general informational purposes only and should not be considered medical advice.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/blog.js"></script>
+</body>
+</html>

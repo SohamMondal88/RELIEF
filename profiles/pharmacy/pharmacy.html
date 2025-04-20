@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relief - Pharmacy Dashboard</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link rel="stylesheet" href="pharmacy.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile-summary">
+                <img src="../assets/pharmacist-avatar.jpg" alt="Pharmacist" class="avatar">
+                <h2>Meena Sharma</h2>
+                <p>MedLife Pharmacy, Kolkata</p>
+                <div class="pharmacy-status">
+                    <span class="status-indicator open"></span>
+                    <span>Open (9AM-9PM)</span>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-prescription"></i> Prescriptions</a></li>
+                    <li><a href="#"><i class="fas fa-pills"></i> Inventory</a></li>
+                    <li><a href="#"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Pharmacy Management</h1>
+                <div class="quick-actions">
+                    <button class="btn primary-btn">
+                        <i class="fas fa-plus"></i> New Order
+                    </button>
+                    <button class="btn outline-btn">
+                        <i class="fas fa-sync-alt"></i> Refresh Stock
+                    </button>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <section class="card pending-orders">
+                    <h2><i class="fas fa-clipboard-list"></i> Pending Orders (3)</h2>
+                    <div class="order-list">
+                        <div class="order-item">
+                            <div class="order-header">
+                                <h3>#ORD-78945</h3>
+                                <span class="status ready">Ready for Pickup</span>
+                            </div>
+                            <div class="order-details">
+                                <p><i class="fas fa-user"></i> Patient: Ramesh Patel</p>
+                                <p><i class="fas fa-clock"></i> Placed: 30 min ago</p>
+                                <p><i class="fas fa-pills"></i> 3 items</p>
+                            </div>
+                            <div class="order-actions">
+                                <button class="btn small-btn">
+                                    <i class="fas fa-print"></i> Print Label
+                                </button>
+                                <button class="btn small-btn outline-btn">
+                                    <i class="fas fa-check"></i> Mark Collected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card inventory-alerts">
+                    <h2><i class="fas fa-exclamation-triangle"></i> Inventory Alerts</h2>
+                    <div class="alert-list">
+                        <div class="alert-item low-stock">
+                            <div class="alert-details">
+                                <h3>Metformin 500mg</h3>
+                                <p>Only 5 strips remaining</p>
+                            </div>
+                            <button class="btn small-btn">
+                                <i class="fas fa-cart-plus"></i> Reorder
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card quick-stats">
+                    <h2><i class="fas fa-chart-pie"></i> Today's Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h3>Orders Processed</h3>
+                            <p class="stat-value">24</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>Prescriptions Filled</h3>
+                            <p class="stat-value">18</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="../shared/utilities.js"></script>
+    <script src="pharmacy.js"></script>
+</body>
+</html>

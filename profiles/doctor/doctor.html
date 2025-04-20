@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relief - Doctor Dashboard</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link rel="stylesheet" href="doctor.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile-summary">
+                <img src="../assets/doctor-avatar.jpg" alt="Doctor" class="avatar">
+                <h2>Dr. Ayesha Khan</h2>
+                <p>Cardiologist | MBBS, MD</p>
+                <div class="availability-status">
+                    <span class="status-indicator available"></span>
+                    <span>Available for Consultations</span>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                    <li><a href="#"><i class="fas fa-user-friends"></i> Patients</a></li>
+                    <li><a href="#"><i class="fas fa-prescription"></i> E-Prescriptions</a></li>
+                    <li><a href="#"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Doctor Dashboard</h1>
+                <div class="quick-actions">
+                    <button class="btn primary-btn" id="toggle-availability">
+                        <i class="fas fa-power-off"></i> Set as Busy
+                    </button>
+                    <button class="btn outline-btn">
+                        <i class="fas fa-calendar-plus"></i> Add Availability
+                    </button>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <section class="card today-schedule">
+                    <h2><i class="fas fa-calendar-day"></i> Today's Schedule</h2>
+                    <div class="schedule-list">
+                        <div class="schedule-item">
+                            <div class="schedule-time">10:00 AM</div>
+                            <div class="schedule-details">
+                                <h3>Rajesh Kumar</h3>
+                                <p>Follow-up Consultation</p>
+                            </div>
+                            <button class="btn outline-btn">Start</button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card patient-queue">
+                    <h2><i class="fas fa-user-clock"></i> Patient Queue</h2>
+                    <div class="queue-list">
+                        <div class="queue-item">
+                            <div class="patient-info">
+                                <img src="../assets/patient-avatar2.jpg" alt="Patient" class="patient-avatar">
+                                <div>
+                                    <h3>Priya Patel</h3>
+                                    <p>Blood Pressure Check</p>
+                                </div>
+                            </div>
+                            <div class="wait-time">5 min wait</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card quick-actions-card">
+                    <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn">
+                            <i class="fas fa-prescription"></i>
+                            <span>New Prescription</span>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Add Medical Note</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="../shared/utilities.js"></script>
+    <script src="doctor.js"></script>
+</body>
+</html>

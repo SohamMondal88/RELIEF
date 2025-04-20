@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Aid Guide | Relief</title>
+    <link rel="stylesheet" href="../assets/css/firstaid.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+   <!-- Main Content -->
+   <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+    <!-- Skip to Content Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="navbar" aria-label="Main navigation">
+        <div class="container">
+            <div class="navbar-left">
+                <ul class="nav-links" role="menubar">
+                    <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                    <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
+                    <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
+                </ul>
+            </div>
+    
+            <div class="navbar-center">
+                <div class="logo">
+                    <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                </div>
+            </div>
+    
+            <div class="navbar-right">
+                <ul class="nav-links" role="menubar">
+                    <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                    <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                </ul>
+                
+                
+                <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+
+    
+</div>
+
+    <!-- First Aid Guide Section -->
+    <section class="firstaid-guide">
+        <div class="container">
+            <h1>First Aid Guide</h1>
+            <p>Emergency procedures and first aid information</p>
+            
+            <div class="emergency-banner">
+                <div class="emergency-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>In case of emergency, call 911 or your local emergency number immediately</h3>
+                </div>
+            </div>
+            
+            <div class="search-guides">
+                <input type="text" placeholder="Search first aid guides...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="guide-categories">
+                <h3>Browse by Category</h3>
+                <div class="categories-grid">
+                    <div class="category-card" data-category="burns">
+                        <div class="category-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <h4>Burns</h4>
+                    </div>
+                    <div class="category-card" data-category="cuts">
+                        <div class="category-icon">
+                            <i class="fas fa-cut"></i>
+                        </div>
+                        <h4>Cuts & Scrapes</h4>
+                    </div>
+                    <div class="category-card" data-category="choking">
+                        <div class="category-icon">
+                            <i class="fas fa-lungs"></i>
+                        </div>
+                        <h4>Choking</h4>
+                    </div>
+                    <div class="category-card" data-category="fractures">
+                        <div class="category-icon">
+                            <i class="fas fa-bone"></i>
+                        </div>
+                        <h4>Fractures</h4>
+                    </div>
+                    <div class="category-card" data-category="bites">
+                        <div class="category-icon">
+                            <i class="fas fa-teeth"></i>
+                        </div>
+                        <h4>Bites & Stings</h4>
+                    </div>
+                    <div class="category-card" data-category="poisoning">
+                        <div class="category-icon">
+                            <i class="fas fa-skull-crossbones"></i>
+                        </div>
+                        <h4>Poisoning</h4>
+                    </div>
+                    <div class="category-card" data-category="allergic">
+                        <div class="category-icon">
+                            <i class="fas fa-allergies"></i>
+                        </div>
+                        <h4>Allergic Reactions</h4>
+                    </div>
+                    <div class="category-card" data-category="cpr">
+                        <div class="category-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h4>CPR</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="popular-guides">
+                <h3>Popular First Aid Guides</h3>
+                <div class="guides-accordion">
+                    <!-- Guides will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Relief</h3>
+                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                    <li><a href="../pages/hospitals.html">Find Hospitals</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> support@relief.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Relief. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/firstaid.js"></script>
+</body>
+</html>

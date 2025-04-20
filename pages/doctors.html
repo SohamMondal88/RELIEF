@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Doctors | Relief</title>
+    <link rel="stylesheet" href="../assets/css/doctors.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+        <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="container">
+                <div class="navbar-left">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                        <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
+                        <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
+                    </ul>
+                </div>
+        
+                <div class="navbar-center">
+                    <div class="logo">
+                        <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                    </div>
+                </div>
+        
+                <div class="navbar-right">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                        <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                    </ul>
+                    
+                    
+                    <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+
+        
+    </div>
+
+    
+    <!-- Doctor Finder Section -->
+    <section class="doctor-finder">
+        <div class="container">
+            <h1>Find Doctors Near You</h1>
+            <p>Search for healthcare professionals in your area</p>
+            
+            <div class="search-filters">
+                <div class="search-box">
+                    <input type="text" placeholder="Search by specialty, doctor name, or condition">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="specialty">Specialty</label>
+                        <select id="specialty">
+                            <option value="">All Specialties</option>
+                            <option value="cardiologist">Cardiologist</option>
+                            <option value="dentist">Dentist</option>
+                            <option value="dermatologist">Dermatologist</option>
+                            <option value="gp">General Practitioner</option>
+                            <option value="neurologist">Neurologist</option>
+                            <option value="pediatrician">Pediatrician</option>
+                            <option value="psychiatrist">Psychiatrist</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="location">Location</label>
+                        <select id="location">
+                            <option value="">Near Me</option>
+                            <option value="downtown">Downtown</option>
+                            <option value="suburb">Suburb</option>
+                            <option value="north">North Area</option>
+                            <option value="south">South Area</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="availability">Availability</label>
+                        <select id="availability">
+                            <option value="">Any Time</option>
+                            <option value="today">Today</option>
+                            <option value="tomorrow">Tomorrow</option>
+                            <option value="week">This Week</option>
+                        </select>
+                    </div>
+                    <button class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
+                </div>
+            </div>
+            
+            <div class="doctor-results">
+                <div class="results-header">
+                    <h3>Available Doctors</h3>
+                    <div class="sort-options">
+                        <span>Sort by:</span>
+                        <select>
+                            <option value="distance">Distance</option>
+                            <option value="rating">Rating</option>
+                            <option value="availability">Availability</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="doctors-list">
+                    <!-- Doctor cards will be populated by JavaScript -->
+                </div>
+                
+                <div class="pagination">
+                    <button disabled><i class="fas fa-chevron-left"></i></button>
+                    <span class="active">1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <button><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Relief</h3>
+                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                    <li><a href="../pages/hospitals.html">Find Hospitals</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> support@relief.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Relief. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/doctors.js"></script>
+</body>
+</html>

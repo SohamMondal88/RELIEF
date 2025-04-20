@@ -1,0 +1,869 @@
+/* Global Styles with Modern Color Palette */
+:root {
+    --primary-color: #00b894;
+    --primary-dark: #00997b;
+    --secondary-color: #0984e3;
+    --secondary-dark: #0767b1;
+    --accent-color: #fd79a8;
+    --accent-dark: #e84393;
+    --dark-color: #2d3436;
+    --dark-light: #636e72;
+    --light-color: #f5f6fa;
+    --light-dark: #dfe6e9;
+    --danger-color: #d63031;
+    --success-color: #00b894;
+    --warning-color: #fdcb6e;
+    --info-color: #74b9ff;
+
+
+    
+    --primary-light: #55efc4;
+    
+    --text-color: #2d3436;
+    --white: #ffffff;
+    --transition: all 0.3s ease;
+
+
+
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Poppins', 'Open Sans', sans-serif;
+    background-color: #fff;
+    color: var(--dark-color);
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    transition: var(--transition);
+}
+
+a:hover {
+    color: white;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+
+/* Navigation Bar with Glass Morphism */
+
+.navbar {
+    background-color: var(--white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+  height: 70px;
+  margin-left: auto;
+  margin-right: auto;
+    position: relative;
+  margin-top: 55px;
+    z-index: 1000;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    max-width: 80%;
+    margin: 0 auto;
+    padding: 25px 20px;
+}
+
+.logo {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--white);
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.logo img {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    margin: 0 10px;
+}
+
+.nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 10px 15px;
+    transition: var(--transition);
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.btn-login,
+.btn-signup {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-right: 5px;
+    transition: var(--transition);
+}
+
+.btn-login {
+    border: 2px solid var(--primary-color);
+    background: #ffffff;
+    color: var(--primary-color);
+}
+
+.btn-login:hover {
+    background: var(--white);
+    color: var(--primary-color);
+}
+
+.btn-signup {
+    background: var(--primary-color);
+    color: var(--white);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-signup:hover {
+    background: var(--white);
+    color: var(--primary-color);
+}
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.hamburger span {
+    background: var(--text-color);
+    height: 3px;
+    border-radius: 3px;
+    transition: var(--transition);
+}
+
+@media (max-width: 992px) {
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        width: 250px;
+        background: var(--white);
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 100px 20px;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .nav-links.active {
+        right: 0;
+    }
+
+    .hamburger {
+        display: flex;
+        align-content: initial;
+    }
+
+    .logo {
+        transform: translate(-50%, -40%);
+    }
+}
+
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    top: 100%;
+    left: 65px;
+    list-style: none;
+    padding: 10px;
+    border-radius: 5px;
+    width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  }
+  .dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+  .dropdown-menu li {
+    padding: 8px 0;
+  }
+  .dropdown-menu a {
+    padding: 8px 12px;
+    display: block;
+    transition: background 0.3s, color 0.3s ease-in-out;
+  }
+  .dropdown-menu a:hover {
+    background: #f1f1f1;
+    color: #0073e6;
+  }
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Health News Page Specific Styles */
+.health-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/health-hero-bg.jpg') no-repeat center center/cover;
+    color: white;
+    padding: 180px 0 100px;
+    text-align: center;
+    position: relative;
+}
+
+.health-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.health-hero p {
+    font-size: 1.2rem;
+    max-width: 700px;
+    margin: 0 auto 30px;
+}
+
+.search-bar {
+    max-width: 600px;
+    margin: 30px auto 0;
+    display: flex;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 1rem;
+}
+
+.search-bar button {
+    border-radius: 0 4px 4px 0;
+    padding: 15px 25px;
+}
+
+/* Health Alerts Section */
+.health-alerts {
+    padding: 80px 0;
+    background-color: var(--light-color);
+}
+
+.alert-slider {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 20px 0;
+    scrollbar-width: none; /* Firefox */
+}
+
+.alert-slider::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.alert-card {
+    min-width: 300px;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.alert-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.alert-card.critical {
+    background-color: rgba(214, 48, 49, 0.1);
+    border-left: 4px solid var(--danger-color);
+}
+
+.alert-card.warning {
+    background-color: rgba(253, 203, 110, 0.1);
+    border-left: 4px solid var(--warning-color);
+}
+
+.alert-card.info {
+    background-color: rgba(116, 185, 255, 0.1);
+    border-left: 4px solid var(--info-color);
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+    margin-top: 5px;
+}
+
+.alert-card.critical .alert-icon {
+    color: var(--danger-color);
+}
+
+.alert-card.warning .alert-icon {
+    color: var(--warning-color);
+}
+
+.alert-card.info .alert-icon {
+    color: var(--info-color);
+}
+
+.alert-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.alert-content p {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    color: var(--dark-light);
+}
+
+.alert-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.alert-card.critical .alert-link {
+    color: var(--danger-color);
+}
+
+.alert-card.warning .alert-link {
+    color: var(--warning-color);
+}
+
+.alert-card.info .alert-link {
+    color: var(--info-color);
+}
+
+/* Featured Articles Section */
+.featured-articles {
+    padding: 80px 0;
+    background-color: white;
+}
+
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.article-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.article-card.featured {
+    grid-column: span 2;
+    display: flex;
+}
+
+.article-card.featured .article-image {
+    flex: 1;
+}
+
+.article-card.featured .article-content {
+    flex: 1;
+}
+
+.article-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.article-card.featured .article-image {
+    height: auto;
+}
+
+.article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.article-card:hover .article-image img {
+    transform: scale(1.05);
+}
+
+.category-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: white;
+}
+
+.category-badge.water {
+    background-color: var(--secondary-color);
+}
+
+.category-badge.mental {
+    background-color: var(--accent-color);
+}
+
+.category-badge.nutrition {
+    background-color: var(--success-color);
+}
+
+.article-content {
+    padding: 20px;
+}
+
+.article-meta {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--dark-light);
+}
+
+.article-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.article-content h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.article-content h3 a {
+    color: var(--dark-color);
+    transition: var(--transition);
+}
+
+.article-content h3 a:hover {
+    color: var(--primary-color);
+}
+
+.article-content p {
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    color: var(--dark-light);
+}
+
+.read-more {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.read-more:hover {
+    color: var(--primary-dark);
+}
+
+/* Health Topics Section */
+.health-topics {
+    padding: 80px 0;
+    background-color: var(--light-color);
+}
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.topic-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px 25px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-icon {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.5rem;
+}
+
+.topic-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+
+.topic-card p {
+    font-size: 0.9rem;
+    color: var(--dark-light);
+    margin-bottom: 15px;
+}
+
+.topic-count {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    background-color: rgba(0, 184, 148, 0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+/* Latest News Section */
+.latest-news {
+    padding: 80px 0;
+    background-color: white;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--light-dark);
+    color: var(--dark-light);
+    padding: 8px 15px;
+    font-size: 0.9rem;
+}
+
+.btn-outline.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: rgba(0, 184, 148, 0.1);
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.news-card {
+    border: 1px solid var(--light-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.news-card:hover {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-3px);
+}
+
+.news-source {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--light-dark);
+}
+
+.news-source img {
+    height: 25px;
+    width: auto;
+}
+
+.news-source span {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--dark-light);
+}
+
+.news-source.who {
+    background-color: rgba(0, 120, 215, 0.05);
+}
+
+.news-source.cdc {
+    background-color: rgba(0, 184, 148, 0.05);
+}
+
+.news-source.local {
+    background-color: rgba(253, 121, 168, 0.05);
+}
+
+.news-content {
+    padding: 20px;
+}
+
+.news-content h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.news-content h3 a {
+    color: var(--dark-color);
+}
+
+.news-content h3 a:hover {
+    color: var(--primary-color);
+}
+
+.news-excerpt {
+    font-size: 0.9rem;
+    color: var(--dark-light);
+    margin-bottom: 15px;
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.news-meta .date {
+    color: var(--dark-light);
+}
+
+.news-meta .read-more {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.news-cta {
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* Newsletter Section */
+.newsletter {
+    padding: 60px 0;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.newsletter-content {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.newsletter-text h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.newsletter-text p {
+    opacity: 0.9;
+}
+
+.newsletter-form {
+    flex: 1;
+    display: flex;
+}
+
+.newsletter-form input {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 1rem;
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 0 4px 4px 0;
+}
+
+.btn-accent:hover {
+    background-color: var(--accent-dark);
+}
+
+/* Footer Adjustments */
+.footer-contact h3 {
+    color: white;
+}
+
+.footer-contact li i {
+    color: var(--accent-color);
+}
+
+.disclaimer {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-top: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .article-card.featured {
+        grid-column: span 1;
+        flex-direction: column;
+    }
+    
+    .newsletter-content {
+        flex-direction: column;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .newsletter-form {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .health-hero {
+        padding: 150px 0 80px;
+    }
+    
+    .health-hero h1 {
+        font-size: 2.2rem;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .search-bar input,
+    .search-bar button {
+        width: 100%;
+        border-radius: 4px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-actions {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 576px) {
+    .health-hero {
+        padding: 130px 0 60px;
+    }
+    
+    .article-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
