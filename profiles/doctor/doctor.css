@@ -1,0 +1,86 @@
+/* Doctor-specific styles */
+.availability-status {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.status-indicator.available {
+    background-color: #2ecc71;
+}
+
+.status-indicator.busy {
+    background-color: #e74c3c;
+}
+
+.today-schedule .schedule-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.schedule-time {
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.schedule-details {
+    flex-grow: 1;
+    margin: 0 15px;
+}
+
+.patient-queue .queue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.patient-info {
+    display: flex;
+    align-items: center;
+}
+
+.patient-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.wait-time {
+    color: #e67e22;
+    font-weight: bold;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: #e9ecef;
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+}

@@ -1,0 +1,101 @@
+/* Pharmacy-specific styles */
+.pharmacy-status {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.status-indicator.open {
+    background-color: #2ecc71;
+}
+
+.status-indicator.closed {
+    background-color: #e74c3c;
+}
+
+.order-item {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status.ready {
+    background-color: #3498db;
+    color: white;
+}
+
+.status.pending {
+    background-color: #f39c12;
+    color: white;
+}
+
+.order-details p {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.small-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+.alert-list {
+    margin-top: 15px;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.alert-item.low-stock {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.stat-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-top: 5px;
+}

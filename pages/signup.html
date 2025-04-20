@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Relief</title>
+    
+    <link rel="stylesheet" href="../assets/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="../assets/images/logo.png" alt="Relief Logo">
+            <span>Relief</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../pages/login.html">Login</a></li>
+        </ul>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Signup Form -->
+    <section class="auth-container">
+        <div class="auth-form">
+            <h2>Create Your Account</h2>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" placeholder="Confirm your password" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                </div>
+                <button type="submit" class="btn-primary">Sign Up</button>
+            </form>
+            <div class="auth-footer">
+                <p>Already have an account? <a href="../pages/login.html">Login</a></p>
+            </div>
+            <div class="social-login">
+                <p>Or sign up with</p>
+                <div class="social-icons">
+                    <a href="#" class="social-btn google"><i class="fab fa-google"></i></a>
+                    <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="auth-image">
+            <img src="../assets/images/signup-image.png" alt="Signup Illustration">
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Relief</h3>
+                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> support@relief.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Relief. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/signup.js"></script>
+</body>
+</html>

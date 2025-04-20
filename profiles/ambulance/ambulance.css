@@ -1,0 +1,76 @@
+/* Ambulance-specific styles */
+.case-details {
+    border: 2px solid #ff6b6b;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.case-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.priority {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.priority.high {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.case-time {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.case-info p {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.case-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.status-item i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.hospital-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.hospital-item p {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

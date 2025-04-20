@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment | Relief</title>
+    <link rel="stylesheet" href="../assets/css/appointments.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+        <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="container">
+                <div class="navbar-left">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                        <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
+                        <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
+                    </ul>
+                </div>
+        
+                <div class="navbar-center">
+                    <div class="logo">
+                        <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                    </div>
+                </div>
+        
+                <div class="navbar-right">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                        <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                    </ul>
+                    
+                    
+                    <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+
+        
+    </div>
+
+    <!-- Appointment Booking Section -->
+    <section class="appointment-booking">
+        <div class="container">
+            <h1>Book Appointment</h1>
+            
+            <div class="booking-steps">
+                <div class="step active" data-step="1">
+                    <span>1</span>
+                    <p>Doctor Info</p>
+                </div>
+                <div class="step" data-step="2">
+                    <span>2</span>
+                    <p>Select Time</p>
+                </div>
+                <div class="step" data-step="3">
+                    <span>3</span>
+                    <p>Confirm</p>
+                </div>
+            </div>
+            
+            <div class="booking-form">
+                <!-- Step 1: Doctor Info -->
+                <div class="form-step active" data-step="1">
+                    <div class="doctor-summary">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-next">Continue</button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Select Time -->
+                <div class="form-step" data-step="2">
+                    <div class="time-selection">
+                        <h3>Select Appointment Date</h3>
+                        <div class="date-picker">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        
+                        <h3>Available Time Slots</h3>
+                        <div class="time-slots">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-prev">Back</button>
+                        <button type="button" class="btn-next">Continue</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Confirm -->
+                <div class="form-step" data-step="3">
+                    <div class="appointment-summary">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="patient-info">
+                        <h3>Your Information</h3>
+                        <form id="patient-form">
+                            <div class="form-group">
+                                <label for="patient-name">Full Name</label>
+                                <input type="text" id="patient-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-email">Email</label>
+                                <input type="email" id="patient-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-phone">Phone Number</label>
+                                <input type="tel" id="patient-phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-notes">Notes (Optional)</label>
+                                <textarea id="patient-notes" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-prev">Back</button>
+                        <button type="button" class="btn-confirm">Confirm Appointment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Relief</h3>
+                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                    <li><a href="../pages/hospitals.html">Find Hospitals</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> support@relief.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Relief. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/appointments.js"></script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | ReliefConnect - Disaster Response Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/contact.css">
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+        <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="container">
+                <div class="navbar-left">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                        <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
+                        <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
+                    </ul>
+                </div>
+        
+                <div class="navbar-center">
+                    <div class="logo">
+                        <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                    </div>
+                </div>
+        
+                <div class="navbar-right">
+                    <ul class="nav-links" role="menubar">
+                        <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                        <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                    </ul>
+                    
+                    
+                    <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+
+        
+    </div>
+
+    <!-- Hero Section -->
+    <section class="contact-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>We're Here to Help</h1>
+                <p>Contact our team for assistance, partnerships, or any questions about our disaster response services.</p>
+                <a href="#contact-form" class="btn btn-secondary">Send a Message</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Info Section -->
+    <section class="contact-info-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>How to Reach Us</h2>
+                <p>Choose the most convenient way to get in touch</p>
+            </div>
+            <div class="contact-methods">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h3>Emergency Hotline</h3>
+                    <p>Available 24/7 for urgent disaster response coordination</p>
+                    <a href="tel:+18005551234" class="contact-link">+1 (800) 555-1234</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>General Inquiries</h3>
+                    <p>For non-urgent questions and partnership opportunities</p>
+                    <a href="mailto:info@reliefconnect.org" class="contact-link">info@reliefconnect.org</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>Headquarters</h3>
+                    <p>123 Humanitarian Plaza, Geneva, Switzerland</p>
+                    <a href="#map" class="contact-link">View on Map</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section id="contact-form" class="contact-form-section">
+        <div class="container">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Send Us a Message</h2>
+                    <p>We typically respond within 24 hours</p>
+                </div>
+                <form id="contactForm" class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Full Name*</label>
+                        <input type="text" id="name" name="name" required>
+                        <span class="error-message"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address*</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-message"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <select id="subject" name="subject">
+                            <option value="">Select a topic</option>
+                            <option value="partnership">Partnership Inquiry</option>
+                            <option value="volunteer">Volunteer Opportunity</option>
+                            <option value="donation">Donation Question</option>
+                            <option value="media">Media Inquiry</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your Message*</label>
+                        <textarea id="message" name="message" rows="6" required></textarea>
+                        <span class="error-message"></span>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="consent" name="consent" required>
+                        <label for="consent">I agree to ReliefConnect's <a href="privacy.html">Privacy Policy</a> and consent to my data being processed.*</label>
+                        <span class="error-message"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+            <div class="form-sidebar">
+                <div class="sidebar-card">
+                    <h3>Regional Offices</h3>
+                    <ul class="office-list">
+                        <li>
+                            <h4>North America</h4>
+                            <p>456 Relief Avenue, New York, NY, USA</p>
+                            <p><i class="fas fa-phone"></i> +1 (212) 555-6789</p>
+                        </li>
+                        <li>
+                            <h4>Asia Pacific</h4>
+                            <p>789 Aid Street, Singapore 123456</p>
+                            <p><i class="fas fa-phone"></i> +65 6123 4567</p>
+                        </li>
+                        <li>
+                            <h4>Africa</h4>
+                            <p>321 Humanitarian Lane, Nairobi, Kenya</p>
+                            <p><i class="fas fa-phone"></i> +254 700 123456</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-card">
+                    <h3>Media Contacts</h3>
+                    <p>For press inquiries and interview requests:</p>
+                    <p><i class="fas fa-envelope"></i> press@reliefconnect.org</p>
+                    <p><i class="fas fa-phone"></i> +1 (646) 555-7890</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section id="map" class="map-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Global Presence</h2>
+                <p>Find our offices and operational centers worldwide</p>
+            </div>
+            <div class="map-container">
+                <!-- Embedded Google Map -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.669637537279!2d6.142466415583923!3d46.208390179115575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6521de6a3a21%3A0x30a78e0a9a6b3a1d!2sPalais%20des%20Nations%2C%201211%20Gen%C3%A8ve%2C%20Switzerland!5e0!3m2!1sen!2sus!4v1623256789012!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <div class="map-overlay">
+                    <h3>Geneva Headquarters</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Humanitarian Plaza, Geneva, Switzerland</p>
+                    <p><i class="fas fa-phone"></i> +41 22 123 4567</p>
+                    <p><i class="fas fa-clock"></i> Mon-Fri: 9:00 AM - 6:00 PM CET</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Frequently Asked Questions</h2>
+                <p>Quick answers to common inquiries</p>
+            </div>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How can my organization partner with ReliefConnect?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We welcome partnerships with NGOs, government agencies, and corporate organizations. Please contact our Partnerships team at partnerships@reliefconnect.org with details about your organization and proposed collaboration. Our team will review your inquiry and schedule an introductory call.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What types of donations do you accept?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We accept monetary donations through our secure online platform, which provides the most flexibility for our response efforts. We also accept in-kind donations of specific relief supplies during active disaster responses. Please check our Current Needs page for updated lists of requested items.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How can I volunteer with ReliefConnect?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We have both field and remote volunteer opportunities. Field volunteers require specific qualifications and experience in disaster response. Remote volunteers can assist with translation, data analysis, and other support roles. Visit our Volunteer page to view current opportunities and submit an application.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How is my donation used?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>85% of donations go directly to program services, including disaster response, preparedness programs, and community resilience initiatives. 10% supports organizational operations, and 5% goes to fundraising efforts. We publish annual financial reports with detailed breakdowns on our website.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How do I report a disaster in my area?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>For immediate life-threatening emergencies, please contact your local emergency services first. To report a disaster to our network, call our Emergency Hotline or use the Crisis Reporting tool on our website. Provide as much detail as possible about location, type of disaster, and immediate needs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="faq-cta">
+                <p>Didn't find what you were looking for?</p>
+                <a href="#contact-form" class="btn btn-outline">Ask Your Question</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Make a Difference?</h2>
+                <p>Join our global network of responders, donors, and partners working to save lives in disasters worldwide.</p>
+                <div class="cta-buttons">
+                    <a href="donate.html" class="btn btn-primary">Donate Now</a>
+                    <a href="volunteer.html" class="btn btn-secondary">Become a Volunteer</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a href="index.html" class="logo">
+                        <img src="images/logo-white.png" alt="ReliefConnect Logo">
+                        <span>ReliefConnect</span>
+                    </a>
+                    <p>Connecting compassion with crisis through innovative technology solutions for disaster response.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Our Services</a></li>
+                        <li><a href="resources.html">Resources</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Our Work</h3>
+                    <ul>
+                        <li><a href="projects.html">Current Projects</a></li>
+                        <li><a href="impact.html">Impact Stories</a></li>
+                        <li><a href="partners.html">Partnerships</a></li>
+                        <li><a href="reports.html">Annual Reports</a></li>
+                        <li><a href="volunteer.html">Volunteer</a></li>
+                        <li><a href="careers.html">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Humanitarian Plaza, Geneva, Switzerland</li>
+                        <li><i class="fas fa-phone"></i> +41 22 123 4567</li>
+                        <li><i class="fas fa-envelope"></i> info@reliefconnect.org</li>
+                        <li><i class="fas fa-clock"></i> Mon-Fri: 9:00 AM - 6:00 PM GMT</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 ReliefConnect. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/contact.js"></script>
+</body>
+</html>

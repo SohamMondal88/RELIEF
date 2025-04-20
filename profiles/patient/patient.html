@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relief - Patient Dashboard</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link rel="stylesheet" href="patient.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile-summary">
+                <img src="../assets/patient-avatar.jpg" alt="Patient" class="avatar">
+                <h2>Rajesh Kumar</h2>
+                <p>Patient ID: REL12345</p>
+                <div class="health-status">
+                    <span class="status-indicator good"></span>
+                    <span>Stable Condition</span>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                    <li><a href="#"><i class="fas fa-prescription"></i> Prescriptions</a></li>
+                    <li><a href="#"><i class="fas fa-file-medical"></i> Medical Records</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Patient Dashboard</h1>
+                <div class="quick-actions">
+                    <button class="btn emergency-btn">
+                        <i class="fas fa-ambulance"></i> Emergency
+                    </button>
+                    <button class="btn primary-btn">
+                        <i class="fas fa-video"></i> New Consultation
+                    </button>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <section class="card upcoming-appointments">
+                    <h2><i class="fas fa-calendar-check"></i> Upcoming Appointments</h2>
+                    <div class="appointment-list">
+                        <div class="appointment-item">
+                            <div class="appointment-details">
+                                <h3>Dr. Ayesha Khan</h3>
+                                <p>Cardiology Follow-up</p>
+                                <p><i class="fas fa-clock"></i> Today, 3:00 PM</p>
+                            </div>
+                            <button class="btn outline-btn">Join Call</button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card health-metrics">
+                    <h2><i class="fas fa-heartbeat"></i> Health Metrics</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <h3>Blood Pressure</h3>
+                            <p class="metric-value">120/80</p>
+                            <p class="metric-status good">Normal</p>
+                        </div>
+                        <div class="metric-item">
+                            <h3>Blood Sugar</h3>
+                            <p class="metric-value">98 mg/dL</p>
+                            <p class="metric-status good">Normal</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card recent-prescriptions">
+                    <h2><i class="fas fa-prescription-bottle-alt"></i> Recent Prescriptions</h2>
+                    <div class="prescription-list">
+                        <div class="prescription-item">
+                            <h3>Metformin 500mg</h3>
+                            <p>1 tablet twice daily</p>
+                            <p>Last filled: 2 days ago</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="../shared/utilities.js"></script>
+    <script src="patient.js"></script>
+</body>
+</html>

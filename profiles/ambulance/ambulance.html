@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relief - Ambulance Dashboard</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link rel="stylesheet" href="ambulance.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile-summary">
+                <img src="../assets/driver-avatar.jpg" alt="Driver" class="avatar">
+                <h2>Arjun Singh</h2>
+                <p>Ambulance ID: AMB789</p>
+                <div class="availability-status">
+                    <span class="status-indicator available"></span>
+                    <span>On Duty</span>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-ambulance"></i> Active Cases</a></li>
+                    <li><a href="#"><i class="fas fa-history"></i> Case History</a></li>
+                    <li><a href="#"><i class="fas fa-map-marked-alt"></i> Navigation</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Emergency Response Dashboard</h1>
+                <div class="quick-actions">
+                    <button class="btn emergency-btn" id="toggle-duty">
+                        <i class="fas fa-power-off"></i> Go Offline
+                    </button>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <section class="card active-case">
+                    <h2><i class="fas fa-bell"></i> Current Emergency</h2>
+                    <div class="case-details">
+                        <div class="case-header">
+                            <span class="priority high">HIGH PRIORITY</span>
+                            <span class="case-time">Received: 2 min ago</span>
+                        </div>
+                        <div class="case-info">
+                            <h3>Cardiac Emergency</h3>
+                            <p><i class="fas fa-user"></i> Patient: Ramesh Patel (62 yrs)</p>
+                            <p><i class="fas fa-map-marker-alt"></i> 1.2km away - 24 Park Street</p>
+                            <p><i class="fas fa-phone"></i> Contact: +91 98765 43210</p>
+                        </div>
+                        <div class="case-actions">
+                            <button class="btn primary-btn">
+                                <i class="fas fa-map-marked-alt"></i> Navigate
+                            </button>
+                            <button class="btn outline-btn">
+                                <i class="fas fa-check-circle"></i> Mark En Route
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card vehicle-status">
+                    <h2><i class="fas fa-ambulance"></i> Ambulance Status</h2>
+                    <div class="status-grid">
+                        <div class="status-item fuel">
+                            <i class="fas fa-gas-pump"></i>
+                            <div>
+                                <h3>Fuel Level</h3>
+                                <p>78% - 320km range</p>
+                            </div>
+                        </div>
+                        <div class="status-item equipment">
+                            <i class="fas fa-first-aid"></i>
+                            <div>
+                                <h3>Equipment</h3>
+                                <p>All systems operational</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card hospital-nearby">
+                    <h2><i class="fas fa-hospital"></i> Nearest Facilities</h2>
+                    <div class="hospital-list">
+                        <div class="hospital-item">
+                            <h3>Apollo Hospital</h3>
+                            <p><i class="fas fa-map-marker-alt"></i> 3.2km - 8 min ETA</p>
+                            <p><i class="fas fa-procedures"></i> Cardiac Care Available</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="../shared/utilities.js"></script>
+    <script src="ambulance.js"></script>
+</body>
+</html>

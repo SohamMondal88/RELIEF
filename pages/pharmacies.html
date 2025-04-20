@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Pharmacies | Relief</title>
+    
+    <link rel="stylesheet" href="../assets/css/pharmacies.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+   <!-- Main Content -->
+   <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
+    <!-- Skip to Content Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="navbar" aria-label="Main navigation">
+        <div class="container">
+            <div class="navbar-left">
+                <ul class="nav-links" role="menubar">
+                    <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                    <li role="none"><a href="#how-it-works" role="menuitem">How It Works</a></li>
+                    <li role="none"><a href="#testimonials" role="menuitem">Testimonials</a></li>
+                </ul>
+            </div>
+    
+            <div class="navbar-center">
+                <div class="logo">
+                    <img src="../assets/images/logo.jpg" alt="Relief Logo">
+                </div>
+            </div>
+    
+            <div class="navbar-right">
+                <ul class="nav-links" role="menubar">
+                    <li role="none"><a href="pages/login.html" class="btn-login" role="menuitem">Login</a>
+                    <li role="none"><a href="pages/signup.html" class="btn-signup" role="menuitem">Sign Up</a>
+                </ul>
+                
+                
+                <div class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+
+    
+</div>
+
+    <!-- Pharmacy Finder Section -->
+    <section class="pharmacy-finder">
+        <div class="container">
+            <h1>Find Pharmacies Near You</h1>
+            <p>Search for pharmacies and medicine shops in your area</p>
+            
+            <div class="search-filters">
+                <div class="search-box">
+                    <input type="text" placeholder="Search by pharmacy name or medicine">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="pharmacy-type">Pharmacy Type</label>
+                        <select id="pharmacy-type">
+                            <option value="">All Pharmacies</option>
+                            <option value="24-hour">24-Hour</option>
+                            <option value="chain">Chain Pharmacy</option>
+                            <option value="independent">Independent</option>
+                            <option value="hospital">Hospital Pharmacy</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="location">Location</label>
+                        <select id="location">
+                            <option value="">Near Me</option>
+                            <option value="downtown">Downtown</option>
+                            <option value="suburb">Suburb</option>
+                            <option value="north">North Area</option>
+                            <option value="south">South Area</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="services">Services</label>
+                        <select id="services">
+                            <option value="">All Services</option>
+                            <option value="delivery">Home Delivery</option>
+                            <option value="compounding">Compounding</option>
+                            <option value="vaccines">Vaccines</option>
+                        </select>
+                    </div>
+                    <button class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
+                </div>
+            </div>
+            
+            <div class="pharmacy-results">
+                <div class="results-header">
+                    <h3>Available Pharmacies</h3>
+                    <div class="sort-options">
+                        <span>Sort by:</span>
+                        <select>
+                            <option value="distance">Distance</option>
+                            <option value="rating">Rating</option>
+                            <option value="delivery">Delivery Available</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="pharmacies-list">
+                    <!-- Pharmacy cards will be populated by JavaScript -->
+                </div>
+                
+                <div class="map-container">
+                    <div id="map" style="height: 400px; border-radius: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About Relief</h3>
+                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                    <li><a href="../pages/hospitals.html">Find Hospitals</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-phone"></i> +1 234 567 890</p>
+                <p><i class="fas fa-envelope"></i> support@relief.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Relief. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/pharmacies.js"></script>
+</body>
+</html>
