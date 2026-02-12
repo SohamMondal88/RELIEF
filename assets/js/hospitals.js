@@ -572,13 +572,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use user's location if available, or default to a central location
         const userLocation = JSON.parse(localStorage.getItem('userLocation'));
         let center;
-        
+
         if (userLocation && Array.isArray(userLocation)) {
             center = userLocation;
         } else {
             center = [40.7128, -74.0060]; // Default to New York
         }
-        
+
         map = L.map('map').setView(center, 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const marker = L.marker([hospital.lat, hospital.lng])
                 .addTo(map)
                 .bindPopup(`<b>${hospital.name}</b><br>${hospital.location}`);
-            
+
             markers.push(marker);
         });
 
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="hospital-type">${hospital.type}</p>
                     <p class="hospital-location"><i class="fas fa-map-marker-alt"></i> ${hospital.location}</p>
                     <div class="hospital-services">
-                        ${hospital.services.map(service => 
+                        ${hospital.services.map(service =>
                             `<span class="service-tag">${service}</span>`
                         ).join('')}
                     </div>
@@ -689,16 +689,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const services = servicesFilter.value;
 
         const filteredHospitals = hospitals.filter(hospital => {
-            const matchesSearch = 
+            const matchesSearch =
                 hospital.name.toLowerCase().includes(searchTerm) ||
                 hospital.location.toLowerCase().includes(searchTerm);
-            
-            const matchesFacilityType = !facilityType || 
+
+            const matchesFacilityType = !facilityType ||
                 hospital.type.toLowerCase() === facilityType.toLowerCase().replace('-', ' ');
-            const matchesLocation = !location || 
+            const matchesLocation = !location ||
                 hospital.location.toLowerCase().includes(location.toLowerCase());
-            const matchesServices = !services || 
-                hospital.services.some(s => 
+            const matchesServices = !services ||
+                hospital.services.some(s =>
                     s.toLowerCase().includes(services.toLowerCase().replace('-', ' '))
                 );
 
@@ -738,11 +738,11 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Try CMS API first
             const cmsResponse = await fetch(`https://data.cms.gov/data-api/v1/dataset/9c7c7e7a-3f3e-4f3b-9c3e-3f3e3f3e3f3e/data?latitude=${lat}&longitude=${lng}&radius=${radius}`);
-            
+
             if (!cmsResponse.ok) throw new Error('CMS API failed');
-            
+
             const cmsData = await cmsResponse.json();
-            
+
             if (cmsData && cmsData.length > 0) {
                 return cmsData.map(hospital => ({
                     id: hospital.id,
@@ -757,14 +757,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     image: "../assets/images/hospital-default.jpg"
                 }));
             }
-            
+
             // Fallback to OpenStreetMap if CMS fails
             const osmResponse = await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node[amenity=hospital](around:${radius*1000},${lat},${lng});out;`);
-            
+
             if (!osmResponse.ok) throw new Error('OSM API failed');
-            
+
             const osmData = await osmResponse.json();
-            
+
             return osmData.elements.map(hospital => ({
                 id: hospital.id,
                 name: hospital.tags?.name || 'Hospital',
@@ -799,15 +799,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {

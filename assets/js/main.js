@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only proceed if splash screen exists
     const splashScreen = document.querySelector('.splash-screen');
     const mainContent = document.querySelector('.main-content');
-    
+
     if (splashScreen) {
         // Hide splash screen after 3 seconds
         setTimeout(function() {
             splashScreen.style.opacity = '0';
-            
+
             if (mainContent) {
                 mainContent.style.display = 'block';
             }
@@ -39,17 +39,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             const targetId = this.getAttribute('href');
             if (targetId === '#') return;
-            
+
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
                     behavior: 'smooth'
                 });
-                
+
                 // Close mobile menu if open
                 if (navLinks && navLinks.classList.contains('active')) {
                     hamburger.classList.remove('active');
@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Animation on scroll
     function animateOnScroll() {
         const elements = document.querySelectorAll('.feature-card, .section-title');
-        
+
         elements.forEach(element => {
             const elementPosition = element.getBoundingClientRect().top;
             const screenPosition = window.innerHeight / 1.3;
-            
+
             if (elementPosition < screenPosition) {
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Check authentication status and update UI
 function checkAuthStatus() {
     if (typeof ReliefAPI === 'undefined') return;
-    
+
     ReliefAPI.getCurrentUser().then(user => {
         updateAuthUI(user);
     }).catch(error => {
@@ -111,7 +111,7 @@ function updateAuthUI(user) {
     const loginButtons = document.querySelectorAll('.btn-login');
     const signupButtons = document.querySelectorAll('.btn-signup');
     const userMenuItems = document.querySelectorAll('.user-menu');
-    
+
     if (user) {
         // User is logged in
         loginButtons.forEach(btn => btn.style.display = 'none');
@@ -139,11 +139,11 @@ function updateAuthUI(user) {
 function validateForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
-    
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         let isValid = true;
-        
+
         // Validate email
         const email = form.querySelector('input[type="email"]');
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
@@ -154,7 +154,7 @@ function validateForm(formId) {
         } else if (email && email.nextElementSibling) {
             email.nextElementSibling.textContent = '';
         }
-        
+
         // Validate password (for login/signup)
         const password = form.querySelector('input[type="password"]');
         if (password && password.value.length < 6) {
@@ -165,7 +165,7 @@ function validateForm(formId) {
         } else if (password && password.nextElementSibling) {
             password.nextElementSibling.textContent = '';
         }
-        
+
         // Validate password confirmation (for signup)
         const confirmPassword = form.querySelector('input[name="confirm-password"]');
         if (confirmPassword && confirmPassword.value !== password?.value) {
@@ -176,7 +176,7 @@ function validateForm(formId) {
         } else if (confirmPassword && confirmPassword.nextElementSibling) {
             confirmPassword.nextElementSibling.textContent = '';
         }
-        
+
         // If form is valid, submit it
         if (isValid && typeof ReliefAPI !== 'undefined') {
             if (formId === 'login-form') {
@@ -193,7 +193,7 @@ function validateForm(formId) {
 // Handle login
 function handleLogin(email, password) {
     if (typeof ReliefAPI === 'undefined') return;
-    
+
     ReliefAPI.login(email, password)
         .then(user => {
             alert('Login successful!');
@@ -208,14 +208,14 @@ function handleLogin(email, password) {
 // Handle signup
 function handleSignup(name, email, password) {
     if (typeof ReliefAPI === 'undefined') return;
-    
+
     const userData = {
         name,
         email,
         password,
         joined: new Date().toISOString()
     };
-    
+
     ReliefAPI.signup(userData)
         .then(user => {
             alert('Account created successfully!');
@@ -230,7 +230,7 @@ function handleSignup(name, email, password) {
 // Handle logout
 function handleLogout() {
     if (typeof ReliefAPI === 'undefined') return;
-    
+
     ReliefAPI.logout()
         .then(() => {
             alert('Logged out successfully');
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
     validateForm('login-form');
     validateForm('signup-form');
     validateForm('symptoms-form');
-    
+
     // Add logout event listeners
     document.querySelectorAll('.btn-logout').forEach(btn => {
         btn.addEventListener('click', handleLogout);
@@ -303,15 +303,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {
