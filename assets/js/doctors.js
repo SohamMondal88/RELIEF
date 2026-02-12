@@ -89,18 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const availability = availabilityFilter.value;
 
         const filteredDoctors = doctors.filter(doctor => {
-            const matchesSearch = 
+            const matchesSearch =
                 doctor.name.toLowerCase().includes(searchTerm) ||
                 doctor.specialty.toLowerCase().includes(searchTerm) ||
                 doctor.bio.toLowerCase().includes(searchTerm);
-            
+
             const matchesSpecialty = !specialty || doctor.specialty.toLowerCase() === specialty;
             const matchesLocation = !location || doctor.location.toLowerCase().includes(location);
-            const matchesAvailability = !availability || 
+            const matchesAvailability = !availability ||
                 (availability === 'today' && doctor.availability.toLowerCase().includes('today')) ||
                 (availability === 'tomorrow' && doctor.availability.toLowerCase().includes('tomorrow')) ||
-                (availability === 'week' && (doctor.availability.toLowerCase().includes('week') || 
-                                           doctor.availability.toLowerCase().includes('this week') || 
+                (availability === 'week' && (doctor.availability.toLowerCase().includes('week') ||
+                                           doctor.availability.toLowerCase().includes('this week') ||
                                            doctor.availability.toLowerCase().includes('next week')));
 
             return matchesSearch && matchesSpecialty && matchesLocation && matchesAvailability;
@@ -122,24 +122,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     'this week': 3,
                     'next week': 4
                 };
-                
+
                 const aAvail = a.availability.toLowerCase();
                 const bAvail = b.availability.toLowerCase();
-                
+
                 const aOrder = availabilityOrder[
                     aAvail.includes('today') ? 'today' :
                     aAvail.includes('tomorrow') ? 'tomorrow' :
                     aAvail.includes('this week') ? 'this week' :
                     aAvail.includes('next week') ? 'next week' : 5
                 ];
-                
+
                 const bOrder = availabilityOrder[
                     bAvail.includes('today') ? 'today' :
                     bAvail.includes('tomorrow') ? 'tomorrow' :
                     bAvail.includes('this week') ? 'this week' :
                     bAvail.includes('next week') ? 'next week' : 5
                 ];
-                
+
                 return aOrder - bOrder;
             } else {
                 // Default sort by distance (mock implementation)
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const match = location.match(/(\d+\.?\d*)\s*miles/);
                     return match ? parseFloat(match[1]) : Infinity;
                 };
-                
+
                 const aDistance = extractDistance(a.location);
                 const bDistance = extractDistance(b.location);
                 return aDistance - bDistance;
@@ -210,10 +210,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // In a real app, this would redirect to a booking page or show a modal
         alert(`Booking appointment with ${doctor.name}\nSpecialty: ${doctor.specialty}\nLocation: ${doctor.location}`);
-        
+
         // For demo purposes, we'll store the selected doctor in localStorage
         localStorage.setItem('selectedDoctor', JSON.stringify(doctor));
-        
+
         // Redirect to appointments page
         window.location.href = '../pages/appointments.html';
     }
@@ -222,8 +222,8 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', filterDoctors);
     filterButton.addEventListener('click', filterDoctors);
     sortSelect.addEventListener('change', () => {
-        const currentDoctors = Array.from(document.querySelectorAll('.doctor-card')).length > 0 ? 
-            doctors : 
+        const currentDoctors = Array.from(document.querySelectorAll('.doctor-card')).length > 0 ?
+            doctors :
             JSON.parse(JSON.stringify(doctors));
         displayDoctors(currentDoctors);
     });
@@ -247,15 +247,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {

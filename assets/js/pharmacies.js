@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use user's location if available, or default to a central location
         const userLocation = JSON.parse(localStorage.getItem('userLocation'));
         const center = userLocation ? [userLocation.lat, userLocation.lng] : [40.7128, -74.0060]; // Default to New York
-        
+
         map = L.map('map').setView(center, 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const marker = L.marker([pharmacy.lat, pharmacy.lng])
                 .addTo(map)
                 .bindPopup(`<b>${pharmacy.name}</b><br>${pharmacy.location}`);
-            
+
             markers.push(marker);
         });
 
@@ -167,13 +167,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const services = servicesFilter.value;
 
         const filteredPharmacies = pharmacies.filter(pharmacy => {
-            const matchesSearch = 
+            const matchesSearch =
                 pharmacy.name.toLowerCase().includes(searchTerm) ||
                 pharmacy.location.toLowerCase().includes(searchTerm);
-            
+
             const matchesPharmacyType = !pharmacyType || pharmacy.type.toLowerCase() === pharmacyType.toLowerCase().replace('-', ' ');
             const matchesLocation = !location || pharmacy.location.toLowerCase().includes(location.toLowerCase());
-            const matchesServices = !services || pharmacy.services.some(s => 
+            const matchesServices = !services || pharmacy.services.some(s =>
                 s.toLowerCase().includes(services.toLowerCase().replace('-', ' ')));
 
             return matchesSearch && matchesPharmacyType && matchesLocation && matchesServices;
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="pharmacy-type">${pharmacy.type}</p>
                     <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${pharmacy.location}</p>
                     <div class="pharmacy-services">
-                        ${pharmacy.services.map(service => 
+                        ${pharmacy.services.map(service =>
                             `<span class="service-tag">${service}</span>`
                         ).join('')}
                     </div>
@@ -317,15 +317,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {

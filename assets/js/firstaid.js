@@ -136,14 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Filter guides based on search
     function filterGuides() {
         const searchTerm = searchInput.value.trim().toLowerCase();
-        
+
         if (!searchTerm) {
             displayGuides(firstAidGuides);
             return;
         }
 
-        const filteredGuides = firstAidGuides.filter(guide => 
-            guide.title.toLowerCase().includes(searchTerm) || 
+        const filteredGuides = firstAidGuides.filter(guide =>
+            guide.title.toLowerCase().includes(searchTerm) ||
             guide.content.toLowerCase().includes(searchTerm)
         );
         displayGuides(filteredGuides);
@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
             displayGuides(firstAidGuides);
             return;
         }
-        
-        const filteredGuides = firstAidGuides.filter(guide => 
+
+        const filteredGuides = firstAidGuides.filter(guide =>
             guide.category === category
         );
         displayGuides(filteredGuides);
@@ -194,10 +194,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         openItem.classList.remove('active');
                     }
                 });
-                
+
                 // Toggle current item
                 guideItem.classList.toggle('active');
-                
+
                 // Rotate chevron icon
                 const icon = header.querySelector('i');
                 icon.classList.toggle('fa-chevron-down');
@@ -215,11 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     searchInput.addEventListener('input', filterGuides);
     searchButton.addEventListener('click', filterGuides);
-    
+
     if (resetButton) {
         resetButton.addEventListener('click', resetSearch);
     }
-    
+
     categoryCards.forEach(card => {
         card.addEventListener('click', function() {
             const category = this.getAttribute('data-category');
@@ -257,15 +257,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {

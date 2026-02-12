@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin / Doctor Panel | RELIEF</title>
+  <link rel="stylesheet" href="../assets/css/professional-pages.css">
+  <link rel="stylesheet" href="../assets/css/ui-enhancements.css">
+</head>
+<body>
+<header class="topbar"><div class="wrap nav"><div class="brand"><img src="../assets/images/logo.jpg" alt="Relief"><strong>RELIEF Admin/Doctor Panel</strong></div><nav><a href="../index.html">Home</a><a href="./dashboard.html">Dashboard</a><a href="./contact.html">Contact</a></nav></div></header>
+<main class="wrap"><section class="hero"><h1>Operational Control Center</h1><p class="muted">For hackathon demo: triage queue, provider verification, and response analytics.</p></section>
+<div class="grid"><article class="card"><h2>Triage Queue</h2><table class="table"><tr><th>Patient</th><th>Risk</th><th>Action</th></tr><tr><td>P-1032</td><td>High</td><td><button class="btn btn-danger">Escalate SOS</button></td></tr><tr><td>P-2210</td><td>Moderate</td><td><button class="btn btn-primary">Assign Doctor</button></td></tr></table></article>
+<article class="card"><h2>Provider Verification</h2><p>Review newly onboarded doctors and pharmacies.</p><ul><li>Dr. N. Rao - Documents verified ✅</li><li>LifeCare Pharmacy - Pending license upload ⚠️</li></ul></article>
+<article class="card"><h2>System Metrics</h2><p><strong>Avg triage response:</strong> 2m 10s</p><p><strong>SOS initiation success:</strong> 97%</p><p><strong>Reminder delivery:</strong> 94%</p></article></div>
+<section class="alert" style="margin-top:16px">Data shown is demo-safe and anonymized for hackathon presentation.</section></main>
+<footer class="wrap footer">Access should be role-protected in production using server-side authorization.</footer>
+<script src="../assets/js/auth-session.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/app-enhancements.js"></script>
+<script src="../assets/js/chatbot.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.AuthSession && !AuthSession.requireAuth('./login.html')) return;
+  const user = AuthSession.getCurrentUser();
+  if (user && user.role !== 'admin' && user.role !== 'doctor') {
+    document.body.innerHTML = '<main class="wrap"><h1>Access restricted</h1><p>Admin/Doctor role required.</p><a href="./dashboard.html">Go to dashboard</a></main>';
+  }
+});
+</script>
+</body>
+</html>
