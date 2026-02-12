@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < 7; i++) {
             const date = new Date();
             date.setDate(date.getDate() + i);
-            
+
             const dayName = days[date.getDay()];
             const day = date.getDate();
             const month = months[date.getMonth()];
@@ -70,14 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="month">${month}</div>
                 <div class="day-name">${dayName}</div>
             `;
-            
+
             dateOption.addEventListener('click', function() {
                 document.querySelectorAll('.date-option').forEach(opt => opt.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 // Store selected date
                 appointmentData.date = new Date(date); // Create new Date object to avoid reference issues
-                
+
                 // Generate time slots for selected date
                 generateTimeSlots(appointmentData.date);
             });
@@ -89,17 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate time slots for a selected date
     function generateTimeSlots(date) {
         timeSlots.innerHTML = '';
-        
+
         // Determine if it's today or future date
         const today = new Date();
         const isToday = date.toDateString() === today.toDateString();
         const currentHour = today.getHours();
-        
+
         // Generate time slots (every 30 minutes from 9AM to 5PM)
         for (let hour = 9; hour <= 17; hour++) {
             // Skip past times if it's today
             if (isToday && hour < currentHour) continue;
-            
+
             // Add full hour slot
             const fullHour = document.createElement('div');
             fullHour.className = 'time-slot';
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 appointmentData.time = `${hour}:00`;
             });
             timeSlots.appendChild(fullHour);
-            
+
             // Add half hour slot (except for 5PM)
             if (hour < 17) {
                 const halfHour = document.createElement('div');
@@ -131,13 +131,13 @@ document.addEventListener('DOMContentLoaded', function() {
         steps.forEach((step, index) => {
             step.classList.toggle('active', index === stepIndex);
         });
-        
+
         // Update step indicators
         stepIndicators.forEach((indicator, index) => {
             indicator.classList.toggle('active', index === stepIndex);
             indicator.classList.toggle('completed', index < stepIndex);
         });
-        
+
         // Update summary in step 3
         if (stepIndex === 2) {
             updateAppointmentSummary();
@@ -152,10 +152,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showStep(currentStep);
             return;
         }
-        
+
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const formattedDate = appointmentData.date.toLocaleDateString('en-US', options);
-        
+
         appointmentSummary.innerHTML = `
             <div class="summary-item">
                 <span class="summary-label">Doctor:</span>
@@ -188,14 +188,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please select a date and time for your appointment');
                 return;
             }
-            
+
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 showStep(currentStep);
             }
         });
     });
-    
+
     // Previous button click handler
     document.querySelectorAll('.btn-prev').forEach(button => {
         button.addEventListener('click', function() {
@@ -219,9 +219,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 zIndex: '9999'
             }
         });
-        
+
         callFrame.join({ url: roomUrl });
-        
+
         // Add button to end call
         const endCallBtn = document.createElement('button');
         endCallBtn.textContent = 'End Call';
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endCallBtn.style.border = 'none';
         endCallBtn.style.borderRadius = '5px';
         endCallBtn.style.cursor = 'pointer';
-        
+
         endCallBtn.onclick = () => {
             callFrame.leave();
             document.body.removeChild(endCallBtn);
@@ -244,25 +244,25 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         document.body.appendChild(endCallBtn);
     }
-    
+
     // Combined confirm appointment handler
     document.querySelector('.btn-confirm')?.addEventListener('click', function() {
         // Validate patient form
         const patientName = document.getElementById('patient-name').value.trim();
         const patientEmail = document.getElementById('patient-email').value.trim();
         const patientPhone = document.getElementById('patient-phone').value.trim();
-        
+
         if (!patientName || !patientEmail || !patientPhone) {
             alert('Please fill in all required patient information');
             return;
         }
-        
+
         // Validate email format
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(patientEmail)) {
             alert('Please enter a valid email address');
             return;
         }
-        
+
         // Store patient info
         appointmentData.patientInfo = {
             name: patientName,
@@ -270,22 +270,22 @@ document.addEventListener('DOMContentLoaded', function() {
             phone: patientPhone,
             notes: document.getElementById('patient-notes').value.trim()
         };
-        
+
         // Create video room URL (simulated - in real app you'd call your backend)
         const roomName = `appointment-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
         appointmentData.videoUrl = `https://your-video-service.com/${roomName}`;
-        
+
         // In a real app, you would send this data to your backend
         console.log('Appointment data:', appointmentData);
-        
+
         // Store appointment in localStorage
         let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
         appointments.push(appointmentData);
         localStorage.setItem('appointments', JSON.stringify(appointments));
-        
+
         // Start the video call
         startVideoCall(appointmentData.videoUrl);
-        
+
         // Show confirmation (this won't show if video call starts immediately)
         alert(`Appointment booked successfully with ${appointmentData.doctor.name} on ${appointmentData.date.toDateString()} at ${appointmentData.time}`);
     });
@@ -306,15 +306,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {
