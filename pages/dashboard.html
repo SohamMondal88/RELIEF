@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>User Dashboard | RELIEF</title>
+  <link rel="stylesheet" href="../assets/css/professional-pages.css">
+  <link rel="stylesheet" href="../assets/css/ui-enhancements.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap nav">
+    <div class="brand"><img src="../assets/images/logo.jpg" alt="Relief"><strong>RELIEF Dashboard</strong></div>
+    <nav><a href="../index.html">Home</a><a href="./symptoms.html">Symptom Checker</a><a href="./doctors.html">Doctors</a><a href="./ambulances.html">SOS</a></nav>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <h1>Central Health Hub</h1>
+    <p class="muted" data-i18n="disclaimer">RELIEF provides guidance, not diagnosis.</p>
+    <div class="grid">
+      <div class="card"><div class="kpi" id="kpi-reminders">0</div><div>Medication reminders</div></div>
+      <div class="card"><div class="kpi" id="kpi-appointments">0</div><div>Appointments</div></div>
+      <div class="card"><div class="kpi" id="kpi-ambulance">0</div><div>Ambulance history</div></div>
+      <div class="card"><button id="logout-btn" class="btn btn-danger">Logout</button></div>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top:14px;">
+    <article class="card">
+      <h2>Profile & Health Details</h2>
+      <p><strong>Name:</strong> <span id="profile-name"></span></p>
+      <p><strong>Email:</strong> <span id="profile-email"></span></p>
+      <p><strong>Role:</strong> <span id="profile-role"></span></p>
+      <p><strong>Emergency Contacts:</strong> Add via profile APIs (demo placeholder)</p>
+    </article>
+    <article class="card">
+      <h2>Medication Reminders</h2>
+      <form id="reminder-form">
+        <label for="medicine">Medicine</label><input id="medicine" required>
+        <label for="time">Time</label><input id="time" type="time" required>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px">Save Reminder</button>
+      </form>
+      <ul id="reminder-list"></ul>
+    </article>
+  </section>
+
+  <section class="grid" style="margin-top:14px;">
+    <article class="card"><h2>Symptom/Activity Timeline</h2><table class="table"><thead><tr><th>Date</th><th>Event</th><th>Status</th></tr></thead><tbody id="timeline-body"></tbody></table></article>
+    <article class="card"><h2>Appointments</h2><ul id="appointments-list"></ul></article>
+    <article class="card"><h2>Saved Doctors/Hospitals</h2><ul id="saved-list"></ul></article>
+    <article class="card"><h2>Ambulance Request History</h2><ul id="ambulance-list"></ul></article>
+
+    <article class="card">
+      <h2>Emergency Contacts</h2>
+      <form id="contact-form">
+        <label for="contact-name">Contact Name</label><input id="contact-name" required>
+        <label for="contact-phone">Phone</label><input id="contact-phone" required placeholder="+91 ...">
+        <button type="submit" class="btn btn-primary" style="margin-top:10px">Add Contact</button>
+      </form>
+      <ul id="contacts-list"></ul>
+    </article>
+    <article class="card"><h2>Symptom Check History</h2><ul id="symptoms-list"></ul></article>
+
+  </section>
+
+  <section class="card" style="margin-top:14px;">
+    <h2>Language & Accessibility Settings</h2>
+    <label><input type="checkbox" id="setting-large-text"> Large text mode</label>
+    <label><input type="checkbox" id="setting-high-contrast"> High contrast mode</label>
+    <button id="save-settings" class="btn btn-primary" style="margin-top:10px">Save Settings</button>
+  </section>
+</main>
+<footer class="wrap footer">Medical disclaimer: not a substitute for doctor diagnosis.</footer>
+<script src="../assets/js/auth-session.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/dashboard.js"></script>
+<script src="../assets/js/app-enhancements.js"></script>
+<script src="../assets/js/chatbot.js"></script>
+</body>
+</html>

@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use user's location if available, or default to a central location
         const userLocation = JSON.parse(localStorage.getItem('userLocation'));
         const center = userLocation ? [userLocation.lat, userLocation.lng] : [24.417, 86.473]; // Default to New York
-        
+
         map = L.map('map').setView(center, 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -71,13 +71,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -32]
             });
-            
+
             L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
                 .addTo(map)
                 .bindPopup('Your Location')
                 .openPopup();
         }
-        
+
         // Add ambulance markers
         updateMapMarkers(ambulanceServices);
     }
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const marker = L.marker([ambulance.lat, ambulance.lng], { icon: ambulanceIcon })
                 .addTo(map)
                 .bindPopup(`<b>${ambulance.name}</b><br>${ambulance.location}<br>Phone: ${ambulance.phone}`);
-            
+
             markers.push(marker);
         });
 
@@ -186,15 +186,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
+
     hamburger.addEventListener('click', function() {
         this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         navLinks.classList.toggle('active');
     });
-    
+
     // Mobile dropdown functionality
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 992) {
@@ -204,4 +204,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+});
+
+
+// SOS SMS fallback
+document.addEventListener('DOMContentLoaded', function(){
+  const copyBtn=document.getElementById('copy-sos-sms');
+  const field=document.getElementById('sos-sms-template');
+  if(!copyBtn||!field) return;
+  const loc=JSON.parse(localStorage.getItem('userLocation')||'null');
+  if(loc){field.value=`SOS | RELIEF USER | ${loc.lat},${loc.lng} | Need urgent assistance`;}
+  copyBtn.addEventListener('click', async ()=>{
+    try{await navigator.clipboard.writeText(field.value); alert('SOS SMS copied. Send via your phone SMS app.');}
+    catch{field.select(); document.execCommand('copy'); alert('SOS SMS copied.');}
+  });
 });
