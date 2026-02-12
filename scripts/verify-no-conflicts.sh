@@ -2,7 +2,9 @@
 set -euo pipefail
 
 TARGETS=(
+  assets/css/ambulances.css
   assets/css/professional-pages.css
+  assets/js/ambulances.js
   assets/js/app-enhancements.js
   assets/js/dashboard.js
   assets/js/login.js
@@ -25,9 +27,14 @@ TARGETS=(
   pages/how-it-works.html
   pages/login.html
   pages/pharmacies.html
-  pages/press.html
-  pages/privacy-policy.html
 )
+
+echo "Checking git unmerged index entries..."
+if [ "$(git ls-files -u | wc -l | tr -d ' ')" != "0" ]; then
+  echo "Unmerged index entries found." >&2
+  git ls-files -u
+  exit 1
+fi
 
 echo "Checking merge conflict markers in listed files..."
 rg -n '^(<<<<<<<|=======|>>>>>>>)' "${TARGETS[@]}" && {
@@ -35,4 +42,4 @@ rg -n '^(<<<<<<<|=======|>>>>>>>)' "${TARGETS[@]}" && {
   exit 1
 }
 
-echo "No merge conflict markers found in listed files."
+echo "No merge conflicts detected in listed files."

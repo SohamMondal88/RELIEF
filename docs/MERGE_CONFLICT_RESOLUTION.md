@@ -1,9 +1,11 @@
 # Merge Conflict Resolution Notes
 
-The conflict set reported for this branch was validated directly from the command line.
+This branch was validated from the command line for the exact conflict set requested.
 
-## Files checked
+## Verified files
+- `assets/css/ambulances.css`
 - `assets/css/professional-pages.css`
+- `assets/js/ambulances.js`
 - `assets/js/app-enhancements.js`
 - `assets/js/dashboard.js`
 - `assets/js/login.js`
@@ -26,12 +28,12 @@ The conflict set reported for this branch was validated directly from the comman
 - `pages/how-it-works.html`
 - `pages/login.html`
 - `pages/pharmacies.html`
-- `pages/press.html`
-- `pages/privacy-policy.html`
 
 ## Validation command
 ```bash
 scripts/verify-no-conflicts.sh
 ```
 
-This script checks for Git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) in the listed files and fails if any are present.
+The script performs both checks:
+1. `git ls-files -u` must be empty (no unmerged index entries).
+2. No conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) can exist in the listed files.
