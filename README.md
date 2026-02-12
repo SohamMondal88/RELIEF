@@ -24,14 +24,19 @@ Relief is a comprehensive healthcare solution designed to provide immediate medi
 2. Open `index.html` in a web browser
 3. Explore the different features
 
+## HackaTropia 2026 Transformation Plan
+
+A full product-grade audit and upgrade blueprint is available in:
+
+- `docs/HACKATROPIA_2026_TRANSFORMATION_PLAN.md`
+
+The blueprint covers:
+- End-to-end UX, architecture, and security audit
+- Required sitemap and rationale for each page
+- Practical feature expansion (AI triage, SOS fallback, reminders, RBAC)
+- Recommended stack migration paths and compliance-minded data strategy
+- Judge-focused demo script and post-hackathon roadmap
+
 ## Hackathon Notes
 
-This app was created for [Hackathon Name] with the goal of providing comprehensive healthcare solutions in one platform. The current version uses mock data and localStorage for demonstration purposes, but can be easily connected to real APIs and databases.
-
-## Future Improvements
-
-- Connect to real healthcare APIs
-- Add video consultation feature
-- Implement real user authentication
-- Add medication reminders
-- Expand first aid guides
+This app was created for hackathon use with the goal of providing comprehensive healthcare solutions in one platform. The current version uses mock data and localStorage for demonstration purposes, but can be connected to real APIs and databases.
