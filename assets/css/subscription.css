@@ -1,0 +1,75 @@
+.subscription-main {
+    display: grid;
+    gap: 16px;
+}
+
+.subscription-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+}
+
+.billing-switch {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.billing-switch .chip {
+    border: 1px solid #bdd3ff;
+    background: #fff;
+    color: #1b4ea3;
+    cursor: pointer;
+}
+
+.billing-switch .chip.active {
+    background: #0f6dff;
+    color: #fff;
+}
+
+.plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+}
+
+.plan-card {
+    position: relative;
+    border: 1px solid #dbe7ff;
+    box-shadow: 0 10px 20px rgba(15, 109, 255, 0.06);
+}
+
+.plan-card ul {
+    list-style: none;
+    padding-left: 0;
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.plan-card .price {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #0f6dff;
+    margin-top: 0;
+}
+
+.recommended {
+    border: 2px solid #0f6dff;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: -11px;
+    right: 12px;
+    border-radius: 999px;
+    background: #0f6dff;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    font-weight: 700;
+}
+
+.faq-card p {
+    margin: 0 0 12px;
+}

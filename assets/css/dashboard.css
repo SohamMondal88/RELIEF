@@ -1,0 +1,160 @@
+.dashboard-main {
+    display: grid;
+    gap: 18px;
+}
+
+.hero-gradient {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    background: linear-gradient(130deg, #ffffff 0%, #f0f6ff 100%);
+}
+
+.hero-cta {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    border: 1px solid #0f6dff;
+    color: #0f6dff;
+    background: #fff;
+}
+
+.hero-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.stat-card {
+    box-shadow: 0 8px 20px rgba(15, 109, 255, 0.08);
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0f6dff;
+    background: #eaf2ff;
+}
+
+.panel-soft {
+    border: 1px solid #dbe7ff;
+    box-shadow: 0 10px 22px rgba(15, 109, 255, 0.06);
+}
+
+.dashboard-grid {
+    margin-top: 0;
+}
+
+.reminder-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 14px;
+}
+
+.reminder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
+}
+
+.benefit-card {
+    background: linear-gradient(140deg, #ffffff, #f5faff);
+}
+
+.benefit-list {
+    margin: 0 0 16px;
+    padding-left: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+
+.chatbot-card {
+    display: grid;
+    gap: 10px;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-window {
+    height: 260px;
+    overflow-y: auto;
+    border: 1px solid #dbe7ff;
+    border-radius: 12px;
+    padding: 10px;
+    background: #f8fbff;
+    display: grid;
+    gap: 8px;
+}
+
+.chat-bubble {
+    max-width: 85%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.chat-bubble.user {
+    justify-self: end;
+    background: #0f6dff;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.bot {
+    justify-self: start;
+    background: #fff;
+    border: 1px solid #dbe7ff;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    border: 1px solid #bdd3ff;
+    background: #eef4ff;
+    color: #134293;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.chat-input-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+@media (max-width: 900px) {
+    .hero-gradient {
+        grid-template-columns: 1fr;
+    }
+
+    .chat-input-row {
+        grid-template-columns: 1fr;
+    }
+}
