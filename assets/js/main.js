@@ -1,4 +1,112 @@
 // Splash Screen
+
+const RELIEF_SESSION_STORAGE_KEY = 'relief_auth_sessions';
+
+function getDeviceType() {
+    const userAgent = navigator.userAgent || '';
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ? 'mobile' : 'desktop';
+}
+
+function loadSessions() {
+    try {
+        return JSON.parse(localStorage.getItem(RELIEF_SESSION_STORAGE_KEY) || '[]');
+    } catch (error) {
+        console.error('Failed to parse stored sessions:', error);
+        return [];
+    }
+}
+
+function saveSessions(sessions) {
+    localStorage.setItem(RELIEF_SESSION_STORAGE_KEY, JSON.stringify(sessions));
+}
+
+function getActiveSession() {
+    const now = Date.now();
+    const validSessions = loadSessions().filter(session => session.expiresAt > now);
+
+    if (validSessions.length === 0) {
+        return null;
+    }
+
+    const mobileSessions = validSessions.filter(session => session.deviceType === 'mobile');
+    const prioritized = mobileSessions.length > 0 ? mobileSessions : validSessions;
+
+    prioritized.sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+    return prioritized[0];
+}
+
+function touchActiveSession() {
+    const activeSession = getActiveSession();
+    if (!activeSession) return null;
+
+    const sessions = loadSessions().map(session => {
+        if (session.token === activeSession.token) {
+            return { ...session, lastActiveAt: Date.now() };
+        }
+
+        return session;
+    });
+
+    saveSessions(sessions);
+    return activeSession;
+}
+
+function clearSessions() {
+    localStorage.removeItem(RELIEF_SESSION_STORAGE_KEY);
+}
+
+function ensureDashboardActions(user) {
+    const navLists = document.querySelectorAll('.navbar-right .nav-links');
+
+    navLists.forEach(nav => {
+        if (!nav.querySelector('.user-menu')) {
+            const menuItem = document.createElement('li');
+            menuItem.className = 'user-menu';
+            menuItem.style.display = 'none';
+            menuItem.innerHTML = `
+                <a href="../pages/dashboard.html" class="btn-dashboard">Dashboard</a>
+                <button type="button" class="btn-logout">Logout</button>
+            `;
+            nav.appendChild(menuItem);
+        }
+
+        const userMenu = nav.querySelector('.user-menu');
+        const dashboardLink = userMenu?.querySelector('.btn-dashboard');
+        if (dashboardLink) {
+            dashboardLink.href = window.location.pathname.includes('/pages/') ? 'dashboard.html' : 'pages/dashboard.html';
+        }
+    });
+
+    document.querySelectorAll('.btn-logout').forEach(btn => {
+        btn.removeEventListener('click', handleLogout);
+        btn.addEventListener('click', handleLogout);
+    });
+}
+
+window.ReliefSession = {
+    createSession(user) {
+        const now = Date.now();
+        const session = {
+            token: `relief_${Math.random().toString(36).slice(2)}_${now}`,
+            user,
+            deviceType: getDeviceType(),
+            createdAt: now,
+            lastActiveAt: now,
+            expiresAt: now + (1000 * 60 * 60 * 24 * 30)
+        };
+
+        const sessions = loadSessions().filter(item => item.expiresAt > now).slice(-9);
+        sessions.push(session);
+        saveSessions(sessions);
+
+        return session;
+    },
+    getCurrentSession() {
+        return touchActiveSession();
+    },
+    clearSessions
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Only proceed if splash screen exists
     const splashScreen = document.querySelector('.splash-screen');
@@ -88,17 +196,102 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('scroll', animateOnScroll);
     }
 
-    // Check if user is logged in
-    if (typeof ReliefAPI !== 'undefined') {
-        checkAuthStatus();
-    }
+    checkAuthStatus();
+    initializeBackToTopButton();
 });
+
+function initializeBackToTopButton() {
+    if (document.querySelector('.back-to-top-btn')) {
+        return;
+    }
+
+    const backToTopButton = document.createElement('button');
+    backToTopButton.type = 'button';
+    backToTopButton.className = 'back-to-top-btn';
+    backToTopButton.setAttribute('aria-label', 'Back to top');
+    backToTopButton.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i>';
+    document.body.appendChild(backToTopButton);
+
+    if (!document.getElementById('back-to-top-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'back-to-top-styles';
+        styles.textContent = `
+            .back-to-top-btn {
+                position: fixed;
+                right: 1.5rem;
+                bottom: 1.5rem;
+                z-index: 1000;
+                width: 3rem;
+                height: 3rem;
+                border: none;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #3498db, #1d6fa5);
+                color: #fff;
+                font-size: 1rem;
+                cursor: pointer;
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(10px);
+                transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+            }
+
+            .back-to-top-btn.is-visible {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .back-to-top-btn:hover,
+            .back-to-top-btn:focus-visible {
+                background: linear-gradient(135deg, #2f89c5, #175f90);
+                transform: translateY(-2px);
+                outline: none;
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    const toggleVisibility = () => {
+        if (window.scrollY > 300) {
+            backToTopButton.classList.add('is-visible');
+        } else {
+            backToTopButton.classList.remove('is-visible');
+        }
+    };
+
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    toggleVisibility();
+
+    backToTopButton.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
 
 // Check authentication status and update UI
 function checkAuthStatus() {
-    if (typeof ReliefAPI === 'undefined') return;
+    const activeSession = window.ReliefSession?.getCurrentSession?.();
+
+    if (activeSession?.user) {
+        updateAuthUI(activeSession.user);
+
+        const isAuthPage = /\/(login|signup)\.html$/.test(window.location.pathname);
+        if (isAuthPage) {
+            window.location.href = 'dashboard.html';
+        }
+
+        return;
+    }
+
+    if (typeof ReliefAPI === 'undefined') {
+        updateAuthUI(null);
+        return;
+    }
 
     ReliefAPI.getCurrentUser().then(user => {
+        if (user) {
+            window.ReliefSession?.createSession?.(user);
+        }
         updateAuthUI(user);
     }).catch(error => {
         console.error('Error checking auth status:', error);
@@ -110,27 +303,23 @@ function checkAuthStatus() {
 function updateAuthUI(user) {
     const loginButtons = document.querySelectorAll('.btn-login');
     const signupButtons = document.querySelectorAll('.btn-signup');
+
+    ensureDashboardActions(user);
+
     const userMenuItems = document.querySelectorAll('.user-menu');
 
     if (user) {
-        // User is logged in
         loginButtons.forEach(btn => btn.style.display = 'none');
         signupButtons.forEach(btn => btn.style.display = 'none');
         userMenuItems.forEach(item => {
-            if (item) {
-                item.style.display = 'block';
-                const userNameElement = item.querySelector('.user-name');
-                if (userNameElement) {
-                    userNameElement.textContent = user.name || 'User';
-                }
-            }
+            item.style.display = 'flex';
+            item.style.gap = '0.5rem';
         });
     } else {
-        // User is not logged in
         loginButtons.forEach(btn => btn.style.display = 'block');
         signupButtons.forEach(btn => btn.style.display = 'block');
         userMenuItems.forEach(item => {
-            if (item) item.style.display = 'none';
+            item.style.display = 'none';
         });
     }
 }
@@ -196,9 +385,9 @@ function handleLogin(email, password) {
 
     ReliefAPI.login(email, password)
         .then(user => {
-            alert('Login successful!');
+            window.ReliefSession?.createSession?.(user);
             updateAuthUI(user);
-            window.location.href = '../index.html';
+            window.location.href = 'dashboard.html';
         })
         .catch(error => {
             alert(error.message || 'Login failed');
@@ -218,9 +407,9 @@ function handleSignup(name, email, password) {
 
     ReliefAPI.signup(userData)
         .then(user => {
-            alert('Account created successfully!');
+            window.ReliefSession?.createSession?.(user);
             updateAuthUI(user);
-            window.location.href = '../index.html';
+            window.location.href = 'dashboard.html';
         })
         .catch(error => {
             alert(error.message || 'Signup failed');
@@ -229,16 +418,22 @@ function handleSignup(name, email, password) {
 
 // Handle logout
 function handleLogout() {
-    if (typeof ReliefAPI === 'undefined') return;
+    const finalizeLogout = () => {
+        window.ReliefSession?.clearSessions?.();
+        updateAuthUI(null);
+        window.location.href = window.location.pathname.includes('/pages/') ? '../index.html' : 'index.html';
+    };
+
+    if (typeof ReliefAPI === 'undefined') {
+        finalizeLogout();
+        return;
+    }
 
     ReliefAPI.logout()
-        .then(() => {
-            alert('Logged out successfully');
-            updateAuthUI(null);
-            window.location.href = '../index.html';
-        })
+        .then(finalizeLogout)
         .catch(error => {
-            alert(error.message || 'Logout failed');
+            console.error('Logout failed:', error);
+            finalizeLogout();
         });
 }
 

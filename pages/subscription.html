@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans | RELIEF</title>
+    <link rel="stylesheet" href="../assets/css/professional-pages.css">
+    <link rel="stylesheet" href="../assets/css/subscription.css">
+    <link rel="icon" type="image/jpg" href="../assets/images/favicon.jpg">
+</head>
+<body>
+<header class="topbar">
+    <div class="wrap nav">
+        <div class="brand">
+            <img src="../assets/images/logo.jpg" alt="Relief">
+            <strong>RELIEF Subscription</strong>
+        </div>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="./dashboard.html">Dashboard</a>
+            <a href="./doctors.html">Doctors</a>
+            <a href="./contact.html">Contact</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap subscription-main">
+    <section class="hero subscription-hero">
+        <h1>Choose a plan that keeps your family protected</h1>
+        <p class="muted">From essential support to premium care, RELIEF plans are designed for continuous healthcare confidence.</p>
+        <div class="billing-switch">
+            <button class="chip active" data-billing="monthly" type="button">Monthly Billing</button>
+            <button class="chip" data-billing="yearly" type="button">Yearly Billing (save 20%)</button>
+        </div>
+    </section>
+
+    <section class="plan-grid">
+        <article class="card plan-card">
+            <h2>Basic Care</h2>
+            <p class="price" data-monthly="₹199/mo" data-yearly="₹1,899/yr">₹199/mo</p>
+            <ul>
+                <li>✔ 2 doctor chats / month</li>
+                <li>✔ Symptom checker history</li>
+                <li>✔ Medicine reminders</li>
+            </ul>
+            <button class="btn btn-primary">Get Basic</button>
+        </article>
+
+        <article class="card plan-card recommended">
+            <div class="badge">Most Popular</div>
+            <h2>Plus Care</h2>
+            <p class="price" data-monthly="₹499/mo" data-yearly="₹4,799/yr">₹499/mo</p>
+            <ul>
+                <li>✔ 10 doctor consultations</li>
+                <li>✔ Priority appointment booking</li>
+                <li>✔ Pharmacy discounts up to 15%</li>
+                <li>✔ Emergency callback support</li>
+            </ul>
+            <button class="btn btn-primary">Choose Plus</button>
+        </article>
+
+        <article class="card plan-card">
+            <h2>Family Premium</h2>
+            <p class="price" data-monthly="₹899/mo" data-yearly="₹8,599/yr">₹899/mo</p>
+            <ul>
+                <li>✔ Coverage for up to 5 members</li>
+                <li>✔ Unlimited doctor chats</li>
+                <li>✔ 24/7 nurse helpline</li>
+                <li>✔ Dedicated care coordinator</li>
+            </ul>
+            <button class="btn btn-primary">Start Premium</button>
+        </article>
+    </section>
+
+    <section class="grid" style="margin-top: 16px;">
+        <article class="card">
+            <h2>Secure Checkout</h2>
+            <label for="full-name">Full Name</label>
+            <input id="full-name" placeholder="Enter your full name">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="Enter your email">
+            <label for="coupon">Coupon Code</label>
+            <input id="coupon" placeholder="Optional">
+            <button class="btn btn-primary" style="margin-top: 12px;">Proceed to Payment</button>
+        </article>
+        <article class="card faq-card">
+            <h2>FAQs</h2>
+            <p><strong>Can I cancel anytime?</strong><br>Yes. Plans can be canceled from your dashboard.</p>
+            <p><strong>Do you support refunds?</strong><br>We offer prorated refunds within 7 days.</p>
+            <p><strong>How is my data protected?</strong><br>We follow secure, encrypted storage best practices.</p>
+        </article>
+    </section>
+</main>
+
+<footer class="wrap footer">Need enterprise or clinic plans? Contact RELIEF support for custom pricing.</footer>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/subscription.js"></script>
+<script src="../assets/js/app-enhancements.js"></script>
+</body>
+</html>

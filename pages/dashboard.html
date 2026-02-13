@@ -1,11 +1,108 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>User Dashboard | RELIEF</title><link rel="stylesheet" href="../assets/css/professional-pages.css"><link rel="icon" type="image/jpg" href="../assets/images/favicon.jpg"></head>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard | RELIEF</title>
+    <link rel="stylesheet" href="../assets/css/professional-pages.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="icon" type="image/jpg" href="../assets/images/favicon.jpg">
+</head>
 <body>
-<header class="topbar"><div class="wrap nav"><div class="brand"><img src="../assets/images/logo.jpg" alt="Relief"><strong>RELIEF Dashboard</strong></div><nav><a href="../index.html">Home</a><a href="./symptoms.html">Symptom Checker</a><a href="./ambulances.html">SOS</a><a href="./how-it-works.html">How it Works</a></nav></div></header>
-<main class="wrap">
-<section class="hero"><h1>Your Health Continuity Center</h1><p class="muted">Track history, medicine reminders, bookings and emergency readiness in one place.</p><div class="grid"><div class="card"><div class="kpi">4</div><div>Active reminders</div></div><div class="card"><div class="kpi">2</div><div>Upcoming appointments</div></div><div class="card"><div class="kpi">98%</div><div>Reminder adherence this week</div></div><div class="card"><a class="btn btn-danger" href="./ambulances.html">Emergency SOS</a></div></div></section>
-<section class="grid" style="margin-top:16px"><article class="card"><h2>Add Medication Reminder</h2><form id="reminder-form"><label for="medicine">Medicine</label><input id="medicine" required placeholder="e.g. Metformin 500mg"><label for="time">Time</label><input id="time" type="time" required><button class="btn btn-primary" type="submit" style="margin-top:10px">Save Reminder</button></form><ul id="reminder-list" style="list-style:none;padding:0;margin-top:14px"></ul></article>
-<article class="card"><h2>Health History Timeline</h2><table class="table"><thead><tr><th>Date</th><th>Event</th><th>Status</th></tr></thead><tbody id="timeline"></tbody></table></article></section>
-</main><footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
+<header class="topbar">
+    <div class="wrap nav">
+        <div class="brand">
+            <img src="../assets/images/logo.jpg" alt="Relief">
+            <strong>RELIEF Dashboard</strong>
+        </div>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="./symptoms.html">Symptom Checker</a>
+            <a href="./subscription.html">Subscription</a>
+            <a href="./ambulances.html">SOS</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap dashboard-main">
+    <section class="hero hero-gradient">
+        <div>
+            <h1>Your Health Continuity Center</h1>
+            <p class="muted">Track medicine reminders, appointment history, benefits, and support in one modern control panel.</p>
+            <div class="hero-cta">
+                <a class="btn btn-primary" href="./subscription.html">Upgrade Plan</a>
+                <a class="btn btn-outline" href="./doctors.html">Book Doctor</a>
+            </div>
+        </div>
+        <div class="hero-stat-grid">
+            <div class="card stat-card"><div class="kpi" id="kpi-reminders">0</div><div>Active reminders</div></div>
+            <div class="card stat-card"><div class="kpi" id="kpi-appointments">2</div><div>Upcoming appointments</div></div>
+            <div class="card stat-card"><div class="kpi" id="kpi-adherence">98%</div><div>Weekly adherence</div></div>
+            <div class="card stat-card"><div class="pill">Health Score</div><div class="kpi">A+</div></div>
+        </div>
+    </section>
+
+    <section class="grid dashboard-grid">
+        <article class="card panel-soft">
+            <h2>Add Medication Reminder</h2>
+            <form id="reminder-form">
+                <label for="medicine">Medicine</label>
+                <input id="medicine" required placeholder="e.g. Metformin 500mg">
+
+                <label for="time">Time</label>
+                <input id="time" type="time" required>
+
+                <button class="btn btn-primary" type="submit" style="margin-top: 10px;">Save Reminder</button>
+            </form>
+            <ul id="reminder-list" class="reminder-list"></ul>
+        </article>
+
+        <article class="card panel-soft">
+            <h2>Health History Timeline</h2>
+            <table class="table">
+                <thead>
+                    <tr><th>Date</th><th>Event</th><th>Status</th></tr>
+                </thead>
+                <tbody id="timeline"></tbody>
+            </table>
+        </article>
+    </section>
+
+    <section class="grid dashboard-grid">
+        <article class="card benefit-card">
+            <h2>Current Plan Benefits</h2>
+            <ul class="benefit-list">
+                <li>✔ Priority appointment slots</li>
+                <li>✔ 24/7 nurse assistance</li>
+                <li>✔ Discounted pharmacy deliveries</li>
+                <li>✔ AI symptom tracking insights</li>
+            </ul>
+            <a href="./subscription.html" class="btn btn-primary">Manage Subscription</a>
+        </article>
+
+        <article class="card chatbot-card">
+            <div class="chat-header">
+                <h2>Relief Assistant</h2>
+                <span class="pill">Online</span>
+            </div>
+            <div id="chatbot-messages" class="chat-window" aria-live="polite"></div>
+            <div class="chat-quick-actions">
+                <button type="button" class="chip" data-chat="Find nearby hospitals">Nearby hospitals</button>
+                <button type="button" class="chip" data-chat="Book doctor appointment">Book doctor</button>
+                <button type="button" class="chip" data-chat="First aid tips">First aid tips</button>
+            </div>
+            <form id="chatbot-form" class="chat-input-row">
+                <input id="chatbot-input" type="text" placeholder="Ask about symptoms, hospitals, medicines..." required>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </article>
+    </section>
+</main>
+
+<footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
+
+<script src="../assets/js/main.js"></script>
 <script src="../assets/js/dashboard.js"></script>
-    <script src="../assets/js/app-enhancements.js"></script>
-</body></html>
+<script src="../assets/js/app-enhancements.js"></script>
+</body>
+</html>
