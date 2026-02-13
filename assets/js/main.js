@@ -92,7 +92,77 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof ReliefAPI !== 'undefined') {
         checkAuthStatus();
     }
+
+    initializeBackToTopButton();
 });
+
+function initializeBackToTopButton() {
+    if (document.querySelector('.back-to-top-btn')) {
+        return;
+    }
+
+    const backToTopButton = document.createElement('button');
+    backToTopButton.type = 'button';
+    backToTopButton.className = 'back-to-top-btn';
+    backToTopButton.setAttribute('aria-label', 'Back to top');
+    backToTopButton.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i>';
+    document.body.appendChild(backToTopButton);
+
+    if (!document.getElementById('back-to-top-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'back-to-top-styles';
+        styles.textContent = `
+            .back-to-top-btn {
+                position: fixed;
+                right: 1.5rem;
+                bottom: 1.5rem;
+                z-index: 1000;
+                width: 3rem;
+                height: 3rem;
+                border: none;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #3498db, #1d6fa5);
+                color: #fff;
+                font-size: 1rem;
+                cursor: pointer;
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(10px);
+                transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+            }
+
+            .back-to-top-btn.is-visible {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .back-to-top-btn:hover,
+            .back-to-top-btn:focus-visible {
+                background: linear-gradient(135deg, #2f89c5, #175f90);
+                transform: translateY(-2px);
+                outline: none;
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    const toggleVisibility = () => {
+        if (window.scrollY > 300) {
+            backToTopButton.classList.add('is-visible');
+        } else {
+            backToTopButton.classList.remove('is-visible');
+        }
+    };
+
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    toggleVisibility();
+
+    backToTopButton.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
 
 // Check authentication status and update UI
 function checkAuthStatus() {
