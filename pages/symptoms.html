@@ -57,8 +57,17 @@
     <!-- Symptom Checker Section -->
     <section class="symptom-checker">
         <div class="container">
-            <h1>Symptom Checker</h1>
-            <p>Enter your symptoms below to get recommendations</p>
+            <h1>Symptom Information & Guidance</h1>
+            <p>Explore general health information, emergency warning signs, and care navigation.</p>
+
+            <!-- Prominent Safety Disclaimer Banner (Visible before starting and throughout) -->
+            <div class="safety-disclaimer-banner" role="region" aria-label="Medical safety notice">
+                <div class="safety-banner-header">
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    <h3>Important Medical Safety Notice</h3>
+                </div>
+                <p>RELIEF provides general health information for educational purposes only. It is <strong>not a medical diagnosis</strong>, does not provide clinical care, and cannot replace assessment by a qualified healthcare professional. If you are experiencing severe pain, shortness of breath, sudden weakness, or any life-threatening symptoms, do not delay—contact your local emergency services immediately.</p>
+            </div>
 
             <div class="checker-steps">
                 <div class="step active" data-step="1">
@@ -71,16 +80,78 @@
                 </div>
                 <div class="step" data-step="3">
                     <span>3</span>
-                    <p>Results</p>
+                    <p>Results & Care</p>
                 </div>
             </div>
 
             <form id="symptoms-form" class="step-form">
                 <!-- Step 1 -->
                 <div class="form-step active" data-step="1">
+                    <!-- Emergency Warning Signs Screening Checklist -->
+                    <div class="emergency-checklist-card">
+                        <div class="checklist-header">
+                            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                            <div>
+                                <h4>Emergency Warning Signs Screening</h4>
+                                <p>Check any warning signs that apply to you right now. If any are present, prioritize immediate emergency care:</p>
+                            </div>
+                        </div>
+                        <div class="checklist-options" role="group" aria-label="Emergency warning signs checklist">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="chest_pain">
+                                <span>Severe chest pain, pressure, tightness, or squeezing</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="breathing_difficulty">
+                                <span>Severe shortness of breath or struggling to breathe</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="stroke_symptoms">
+                                <span>Sudden facial droop, arm weakness, or slurred speech (Signs of stroke)</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="severe_headache_confusion">
+                                <span>Sudden, unusually severe headache or sudden confusion</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="severe_bleeding">
+                                <span>Uncontrollable bleeding or coughing/vomiting blood</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="fainting_unconscious">
+                                <span>Loss of consciousness, fainting, or inability to wake up</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="emergency_sign" value="severe_allergy">
+                                <span>Sudden severe swelling of face, lips, tongue, or throat (Anaphylaxis)</span>
+                            </label>
+                        </div>
+                        <p class="checklist-disclaimer"><i class="fas fa-info-circle"></i> This warning-sign list is not exhaustive. The absence of listed warning signs does not guarantee that you are safe. If you feel very ill or your condition deteriorates, seek emergency care immediately.</p>
+
+                        <!-- Live Alert that appears if an emergency sign is checked or typed -->
+                        <div id="immediate-emergency-alert" class="immediate-emergency-alert" style="display: none;" role="alert">
+                            <div class="alert-icon"><i class="fas fa-ambulance" aria-hidden="true"></i></div>
+                            <div class="alert-text">
+                                <strong>Potential Medical Emergency Identified</strong>
+                                <p>You have indicated symptoms that may require urgent medical evaluation. Do not delay medical attention to complete this questionnaire.</p>
+                                <div class="emergency-calling-panel">
+                                    <p class="emergency-call-label"><strong>Call local emergency services immediately:</strong></p>
+                                    <div class="emergency-action-buttons">
+                                        <a href="tel:112" class="btn-call-emergency" aria-label="Call 112 (India, European Union, International GSM)"><i class="fas fa-phone-alt"></i> Call 112 <small>(India / EU / GSM)</small></a>
+                                        <a href="tel:911" class="btn-call-emergency" aria-label="Call 911 (US and Canada)"><i class="fas fa-phone-alt"></i> Call 911 <small>(US / Canada)</small></a>
+                                        <a href="tel:999" class="btn-call-emergency" aria-label="Call 999 (United Kingdom)"><i class="fas fa-phone-alt"></i> Call 999 <small>(UK)</small></a>
+                                        <button type="button" class="btn-view-emergency" id="btn-skip-to-emergency">View Emergency Guidance Now</button>
+                                    </div>
+                                    <p class="emergency-region-note">If your region uses a different emergency number, dial your local emergency services directly or proceed to the nearest emergency department.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="symptoms">What symptoms are you experiencing?</label>
-                        <textarea id="symptoms" placeholder="Describe your symptoms in detail (e.g., headache, fever, cough)" rows="4" required></textarea>
+                        <p class="field-hint">Use plain, everyday language (e.g. headache, mild fever, cough, stomach pain).</p>
+                        <textarea id="symptoms" placeholder="Describe what you are experiencing in your own words" rows="4"></textarea>
                     </div>
                     <div class="form-group">
                         <label>How long have you had these symptoms?</label>
@@ -89,6 +160,7 @@
                             <label><input type="radio" name="duration" value="1-3-days"> 1-3 days</label>
                             <label><input type="radio" name="duration" value="4-7-days"> 4-7 days</label>
                             <label><input type="radio" name="duration" value="more-than-week"> More than a week</label>
+                            <label><input type="radio" name="duration" value="unspecified"> Prefer to skip / Unsure</label>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -99,25 +171,28 @@
                 <!-- Step 2 -->
                 <div class="form-step" data-step="2">
                     <div class="form-group">
-                        <label for="severity">How severe are your symptoms?</label>
-                        <select id="severity" required>
-                            <option value="">Select severity</option>
-                            <option value="mild">Mild (annoying but doesn't interfere with daily activities)</option>
+                        <label for="severity">How severe are your symptoms? (Optional)</label>
+                        <select id="severity">
+                            <option value="">Select severity (optional)</option>
+                            <option value="mild">Mild (noticeable, but does not interfere with daily activities)</option>
                             <option value="moderate">Moderate (affects daily activities)</option>
-                            <option value="severe">Severe (makes daily activities very difficult)</option>
+                            <option value="severe">Severe (makes normal daily activities very difficult)</option>
+                            <option value="unspecified">Unsure / Prefer to skip</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Any other relevant information?</label>
-                        <textarea placeholder="Other symptoms, medical history, allergies, etc." rows="4"></textarea>
+                        <label for="additional-info">Any other relevant health context? (Optional)</label>
+                        <p class="field-hint">e.g. Existing health conditions, known allergies, or changes over time.</p>
+                        <textarea id="additional-info" placeholder="Optional context to discuss with your doctor" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Have you taken any medication?</label>
-                        <input type="text" placeholder="List any medications you've taken">
+                        <label for="medications">Current medications or treatments (Optional)</label>
+                        <p class="field-hint">Note: RELIEF does not recommend starting, stopping, or changing prescription medications or dosages.</p>
+                        <input type="text" id="medications" placeholder="Optional notes for your doctor's discussion">
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn-prev">Previous</button>
-                        <button type="button" class="btn-next">Next</button>
+                        <button type="button" class="btn-next">View Guidance</button>
                     </div>
                 </div>
 
@@ -125,52 +200,132 @@
                 <div class="form-step results" data-step="3">
                     <div class="loading" style="display: none;">
                         <div class="loader"></div>
-                        <p>Analyzing your symptoms...</p>
+                        <p>Reviewing your symptom information with medical safety guidance...</p>
                     </div>
+
                     <div class="results-content" style="display: none;">
-                        <h3>Possible Conditions</h3>
-                        <div class="conditions-list">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-
-                        <h3>Recommended Actions</h3>
-                        <div class="recommendations">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-
-                        <div class="emergency-warning" style="display: none;">
-                            <div class="warning-box">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <h4>Seek Emergency Care Immediately</h4>
-                                <p>Based on your symptoms, you should seek emergency medical attention right away.</p>
-                                <button class="btn-emergency">Call Emergency Services</button>
+                        <!-- 1. Urgent Emergency Guidance Banner (Top Priority if Emergency) -->
+                        <div id="urgent-emergency-container" class="urgent-emergency-container" style="display: none;" role="alert">
+                            <div class="urgent-box">
+                                <div class="urgent-icon"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></div>
+                                <div class="urgent-body">
+                                    <h3>Immediate Medical Attention Recommended</h3>
+                                    <p class="urgent-lead">Your responses indicate potential emergency warning signs that require prompt evaluation by medical professionals.</p>
+                                    <div id="urgent-reasons" class="urgent-reasons"></div>
+                                    <div class="urgent-callout">
+                                        <p><strong>What to do right now:</strong></p>
+                                        <ul>
+                                            <li>Contact your local emergency number (such as <strong>911</strong> in the US/Canada, <strong>112</strong> in India/Europe, or <strong>999</strong> in the UK) immediately.</li>
+                                            <li>Go to the nearest hospital emergency department or urgent care center.</li>
+                                            <li>Do not drive yourself if you are feeling faint, confused, or in severe distress; call an ambulance or have someone transport you.</li>
+                                            <li>Do not wait or delay emergency care. Routine self-care advice does not apply to potential emergencies.</li>
+                                        </ul>
+                                        <div class="emergency-action-buttons">
+                                            <a href="tel:112" class="btn-emergency" aria-label="Call 112 (India, European Union, International GSM)"><i class="fas fa-phone-alt"></i> Call 112 <small>(India / EU)</small></a>
+                                            <a href="tel:911" class="btn-emergency" aria-label="Call 911 (US and Canada)"><i class="fas fa-phone-alt"></i> Call 911 <small>(US / CA)</small></a>
+                                            <a href="tel:999" class="btn-emergency" aria-label="Call 999 (United Kingdom)"><i class="fas fa-phone-alt"></i> Call 999 <small>(UK)</small></a>
+                                            <a href="../pages/ambulances.html" class="btn-resource-emergency"><i class="fas fa-ambulance"></i> Emergency Services Page</a>
+                                            <a href="../pages/hospitals.html" class="btn-resource-emergency"><i class="fas fa-hospital"></i> Find Nearest Hospital</a>
+                                        </div>
+                                        <p class="emergency-region-note">If calling from another country, dial your local emergency number directly or proceed to the nearest hospital emergency department.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- 2. Prominent Safety Disclaimer & Clinical Limitations Box (Always Visible) -->
+                        <div class="safety-limitations-box" role="region" aria-label="Clinical limitations">
+                            <div class="safety-limitations-header">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                                <h4>Important Medical Understanding & Clinical Limitations</h4>
+                            </div>
+                            <ul>
+                                <li><strong>Not a Medical Diagnosis:</strong> This tool provides general health education only. It does not identify diseases or provide confirmed diagnoses.</li>
+                                <li><strong>Multiple Possible Causes:</strong> Many illnesses share similar symptoms. Only a qualified healthcare professional who examines you in person can determine the cause.</li>
+                                <li><strong>Professional Assessment:</strong> If your symptoms persist, worsen, cause concern, or do not improve, consult a qualified doctor or healthcare provider.</li>
+                                <li><strong>Prescription Safety:</strong> Never start, stop, or adjust prescription medications or dosages without direction from your prescribing physician.</li>
+                                <li><strong>Safety Reassurance Warning:</strong> The absence of listed warning signs does not guarantee you are safe. If you feel very unwell, seek professional medical care promptly.</li>
+                            </ul>
+                        </div>
+
+                        <!-- 3. Missing Information / Incomplete Response Notice -->
+                        <div id="missing-info-notice" class="missing-info-notice" style="display: none;" role="note">
+                            <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            <div>
+                                <strong>Incomplete Responses Noted</strong>
+                                <p id="missing-info-text"></p>
+                            </div>
+                        </div>
+
+                        <!-- 4. General Educational Topics to Discuss with a Doctor -->
+                        <div id="topics-section" class="topics-section">
+                            <h3>General Health Topics to Discuss with Your Doctor</h3>
+                            <p class="section-desc">Based on the symptoms you reported, here is general educational information. These are topics you may wish to discuss during a clinical consultation, not confirmed conclusions.</p>
+                            <div class="conditions-list" id="conditions-list">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- 5. Recommended Next Steps -->
+                        <div id="recommendations-section" class="recommendations-section">
+                            <h3>Recommended Next Steps & Supportive Care</h3>
+                            <div class="recommendations" id="recommendations">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- 6. Healthcare Resources Navigation -->
                         <div class="resources">
                             <h3>Healthcare Resources</h3>
                             <div class="resource-cards">
                                 <div class="resource-card">
-                                    <i class="fas fa-user-md"></i>
+                                    <i class="fas fa-user-md" aria-hidden="true"></i>
                                     <h4>Find a Doctor</h4>
-                                    <p>Book an appointment with a specialist.</p>
+                                    <p>Book an in-person or telemedicine evaluation with a qualified physician.</p>
                                     <a href="../pages/doctors.html" class="btn-resource">View Doctors</a>
                                 </div>
                                 <div class="resource-card">
-                                    <i class="fas fa-hospital"></i>
+                                    <i class="fas fa-hospital" aria-hidden="true"></i>
                                     <h4>Nearby Hospitals</h4>
-                                    <p>Locate hospitals in your area.</p>
+                                    <p>Locate accredited hospitals and urgent care facilities near you.</p>
                                     <a href="../pages/hospitals.html" class="btn-resource">Find Hospitals</a>
                                 </div>
                                 <div class="resource-card">
-                                    <i class="fas fa-prescription-bottle-alt"></i>
+                                    <i class="fas fa-prescription-bottle-alt" aria-hidden="true"></i>
                                     <h4>Pharmacies</h4>
-                                    <p>Find pharmacies and get medicines delivered.</p>
+                                    <p>Find licensed pharmacies to speak with a pharmacist about safe over-the-counter options.</p>
                                     <a href="../pages/pharmacies.html" class="btn-resource">Find Pharmacies</a>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- 7. Reviewed Medical Sources & Clinical Review Transparency -->
+                        <div class="sources-review-card">
+                            <details>
+                                <summary>
+                                    <i class="fas fa-book-medical" aria-hidden="true"></i>
+                                    <strong>Reviewed Medical Sources & Clinical Review Notice</strong>
+                                    <span class="view-details-tag">Click to expand</span>
+                                </summary>
+                                <div class="sources-review-content">
+                                    <p><strong>Guidance Sources:</strong> Safety guidance and emergency warning signs on this page are compiled from public health guidance published by established health organizations:</p>
+                                    <ul class="sources-list">
+                                        <li><strong>Centers for Disease Control and Prevention (CDC):</strong> <em>When to Seek Emergency Medical Attention</em> (Reviewed Oct 2026, Source updated 2024). <a href="https://www.cdc.gov/respiratory-viruses/symptoms/index.html" target="_blank" rel="noopener noreferrer">cdc.gov</a></li>
+                                        <li><strong>Centers for Disease Control and Prevention (CDC):</strong> <em>Signs and Symptoms of Stroke (FAST)</em> (Reviewed Oct 2026, Source updated 2024). <a href="https://www.cdc.gov/stroke/signs-symptoms/index.html" target="_blank" rel="noopener noreferrer">cdc.gov/stroke</a></li>
+                                        <li><strong>National Health Service (NHS):</strong> <em>When to call 999 for emergencies</em> (Reviewed Oct 2026, Source updated 2024). <a href="https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-call-999/" target="_blank" rel="noopener noreferrer">nhs.uk</a></li>
+                                        <li><strong>World Health Organization (WHO):</strong> <em>Clinical Emergency Care and Severe Illness Warning Signs</em> (Reviewed Oct 2026). <a href="https://www.who.int/teams/integrated-health-services/clinical-services-and-systems/emergency-care" target="_blank" rel="noopener noreferrer">who.int/emergency-care</a></li>
+                                        <li><strong>American Heart Association (AHA):</strong> <em>Heart Attack and Stroke Warning Signs</em> (Reviewed Oct 2026). <a href="https://www.heart.org/en/health-topics/heart-attack/warning-signs-of-a-heart-attack" target="_blank" rel="noopener noreferrer">heart.org</a></li>
+                                    </ul>
+                                    <div class="clinical-notice-badge">
+                                        <i class="fas fa-user-shield" aria-hidden="true"></i>
+                                        <p><strong>Clinical Review Notice:</strong> This feature is an educational prototype. Production clinical use requires formal review, validation of escalation rules, and ongoing supervision by qualified healthcare professionals. It has not been approved as a certified medical device.</p>
+                                    </div>
+                                    <p class="docs-link-note"><a href="../docs/MEDICALLY_CAUTIOUS_GUIDANCE.md" target="_blank">View complete Medical Sources and Clinical Review Documentation</a></p>
+                                </div>
+                            </details>
+                        </div>
                     </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn-prev">Previous</button>
                         <button type="button" class="btn-restart">Start Over</button>
