@@ -146,7 +146,7 @@ This is a representative structure, not an exhaustive file listing. Refer to the
 
 ## 🚀 Getting Started
 
-Follow these steps to set up RELIEF locally.
+Follow these steps to set up RELIEF locally. For a comprehensive walkthrough covering local preview options, service configuration, and deployment details, see the [Contributor Setup and Deployment Guide](docs/CONTRIBUTING_SETUP.md).
 
 ### Prerequisites
 
