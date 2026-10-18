@@ -253,6 +253,41 @@ Before submitting your work:
 - Check keyboard accessibility and visible focus states.
 - Confirm that your changes do not introduce broken links or obvious regressions.
 
+#### Automated Local Verification
+
+Run the same quality checks executed by CI before submitting a pull request:
+
+**Linux / macOS / Git Bash:**
+
+```bash
+# 1. Validate local HTML links and asset references
+python .github/scripts/check-links.py
+
+# 2. Check JavaScript syntax across project scripts
+for f in $(find assets/js profiles -name "*.js"); do node --check "$f" || exit 1; done
+
+# 3. Check for whitespace and formatting issues
+git diff --check
+```
+
+**Windows PowerShell:**
+
+```powershell
+# 1. Validate local HTML links and asset references
+python .github/scripts/check-links.py
+
+# 2. Check JavaScript syntax across project scripts
+$failed = $false
+Get-ChildItem -Recurse -Include *.js -Path assets/js, profiles | ForEach-Object {
+    node --check $_.FullName
+    if ($LASTEXITCODE -ne 0) { $failed = $true }
+}
+if ($failed) { exit 1 }
+
+# 3. Check for whitespace and formatting issues
+git diff --check
+```
+
 ### Step 5: Commit Your Changes
 
 Use a clear, descriptive commit message.
