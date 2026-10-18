@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint, Syntax & Link Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check git diff formatting
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Checking PR diff for whitespace and formatting issues against target branch..."
+            git diff --check origin/${{ github.base_ref }}...HEAD
+          else
+            echo "Push event: checking commit formatting..."
+            if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+              BEFORE="${{ github.event.before }}"
+              if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE" 2>/dev/null; then
+                git diff --check "$BEFORE"...HEAD
+              else
+                git diff --check HEAD~1...HEAD
+              fi
+            else
+              # Initial commit comparison against Git's empty tree object
+              git diff --check 4b825dc642cb6eb9a060e54bf8d69288fbee4904...HEAD
+            fi
+          fi
+
+      - name: Validate JavaScript syntax
+        run: |
+          echo "Checking JavaScript syntax across all project scripts..."
+          status=0
+          count=0
+          for file in $(find assets/js profiles -type f -name "*.js" | sort); do
+            count=$((count + 1))
+            if ! node --check "$file"; then
+              echo "::error file=$file::JavaScript syntax error in $file"
+              status=1
+            fi
+          done
+          echo "Validated $count JavaScript files."
+          if [ $status -ne 0 ]; then
+            echo "JavaScript syntax check failed."
+            exit 1
+          fi
+          echo "All JavaScript files passed syntax verification."
+
+      - name: Validate HTML references and local assets
+        run: |
+          echo "Running HTML reference and link validator..."
+          python .github/scripts/check-links.py
+
+      - name: Automated tests status
+        run: |
+          echo "No automated unit or end-to-end test suite is currently configured in this static repository."
+          echo "Skipping test execution until test suites are added (see Issue #23)."
