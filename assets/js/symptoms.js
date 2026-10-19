@@ -689,9 +689,13 @@ if (typeof document !== 'undefined') {
     // Mobile Menu & Navigation functionality
     document.addEventListener('DOMContentLoaded', function() {
         const hamburger = document.querySelector('.hamburger');
-        const navLinks = document.querySelector('.nav-links');
+        if (!hamburger || hamburger.dataset.navInitialized === 'true') {
+            return;
+        }
 
+        const navLinks = document.querySelector('.nav-links');
         if (hamburger && navLinks) {
+            hamburger.dataset.navInitialized = 'true';
             hamburger.addEventListener('click', function() {
                 const expanded = this.getAttribute('aria-expanded') === 'true';
                 this.setAttribute('aria-expanded', expanded ? 'false' : 'true');

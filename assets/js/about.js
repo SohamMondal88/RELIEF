@@ -76,25 +76,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
 
-    hamburger.addEventListener('click', function() {
-        this.classList.toggle('active');
-        navLinks.classList.toggle('active');
+    if (hamburger && hamburger.dataset.navInitialized !== 'true') {
+        hamburger.dataset.navInitialized = 'true';
+        hamburger.addEventListener('click', function() {
+            this.classList.toggle('active');
+            if (navLinks) navLinks.classList.toggle('active');
 
-        // Update aria-expanded attribute
-        const isExpanded = this.getAttribute('aria-expanded') === 'true';
-        this.setAttribute('aria-expanded', !isExpanded);
-    });
-
-    // Close mobile menu when clicking on a link
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 992) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-                hamburger.setAttribute('aria-expanded', 'false');
-            }
+            // Update aria-expanded attribute
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !isExpanded);
         });
-    });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 992) {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    }
 
     // Add animation to timeline items when they come into view
     const timelineItems = document.querySelectorAll('.timeline-item');
@@ -139,25 +142,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
+    // Secondary safety check: ensure hamburger exists and is not already initialized
     const hamburger = document.querySelector('.hamburger');
+    if (!hamburger || hamburger.dataset.navInitialized === 'true') {
+        return;
+    }
     const navLinks = document.querySelector('.nav-links');
-
-    hamburger.addEventListener('click', function() {
-        this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
-        navLinks.classList.toggle('active');
-    });
-
-    // Mobile dropdown functionality
-    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-
-    dropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            if (window.innerWidth <= 992) {
-                e.preventDefault();
-                const dropdown = this.closest('.dropdown');
-                dropdown.classList.toggle('active');
-            }
+    if (navLinks) {
+        hamburger.addEventListener('click', function() {
+            this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+            navLinks.classList.toggle('active');
         });
-    });
+    }
 });

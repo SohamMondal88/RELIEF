@@ -12,6 +12,7 @@
     <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
         <div class="healthcare-quote">
             <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
@@ -19,7 +20,7 @@
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
         <div class="navbar-left">
-            <ul class="nav-links">
+            <ul class="nav-links" id="main-nav-links">
                 <li><a href="../index.html">Home</a></li>
 
             </ul>
@@ -36,7 +37,7 @@
                 <li><a href="../pages/login.html" class="btn-login">Login</a></li>
             </ul>
 
-            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -46,6 +47,7 @@
 </nav>
 </div>
 
+    <main id="main-content">
     <!-- Signup Form -->
     <section class="auth-container">
         <div class="auth-form">
@@ -73,7 +75,7 @@
                 </div>
                 <div class="form-group checkbox">
                     <input type="checkbox" id="terms" required>
-                    <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I agree to the <a href="terms-of-service.html">Terms of Service</a> and <a href="privacy-policy.html">Privacy Policy</a></label>
                 </div>
                 <button type="submit" class="btn-primary">Sign Up</button>
             </form>
@@ -83,9 +85,9 @@
             <div class="social-login">
                 <p>Or sign up with</p>
                 <div class="social-icons">
-                    <a href="#" class="social-btn google"><i class="fab fa-google"></i></a>
-                    <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-btn google" aria-label="Sign up with Google"><i class="fab fa-google" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn facebook" aria-label="Sign up with Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn twitter" aria-label="Sign up with Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
@@ -93,6 +95,7 @@
             <img src="../assets/images/hero-image.jpeg" alt="Signup Illustration">
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
