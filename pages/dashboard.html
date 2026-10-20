@@ -9,13 +9,14 @@
     <link rel="icon" type="image/jpg" href="../assets/images/favicon.jpg">
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <header class="topbar">
     <div class="wrap nav">
         <div class="brand">
             <img src="../assets/images/logo.jpg" alt="Relief">
             <strong>RELIEF Dashboard</strong>
         </div>
-        <nav>
+        <nav aria-label="Dashboard navigation">
             <a href="../index.html">Home</a>
             <a href="./symptoms.html">Symptom Checker</a>
             <a href="./subscription.html">Subscription</a>
@@ -24,7 +25,7 @@
     </div>
 </header>
 
-<main class="wrap dashboard-main">
+<main class="wrap dashboard-main" id="main-content">
     <section class="hero hero-gradient">
         <div>
             <h1>Your Health Continuity Center</h1>
@@ -92,7 +93,7 @@
                 <button type="button" class="chip" data-chat="First aid tips">First aid tips</button>
             </div>
             <form id="chatbot-form" class="chat-input-row">
-                <input id="chatbot-input" type="text" placeholder="Ask about symptoms, hospitals, medicines..." required>
+                <input id="chatbot-input" type="text" placeholder="Ask about symptoms, hospitals, medicines..." aria-label="Ask Relief Assistant about symptoms, hospitals, medicines" required>
                 <button type="submit" class="btn btn-primary">Send</button>
             </form>
         </article>

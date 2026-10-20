@@ -11,6 +11,7 @@
    <!-- Main Content -->
    <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
     <!-- Skip to Content Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="healthcare-quote">
         <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
     </div>
@@ -18,11 +19,11 @@
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
         <div class="navbar-left">
-            <ul class="nav-links">
+            <ul class="nav-links" id="main-nav-links">
                 <li><a href="../index.html">Home</a></li>
                 <li><a href="../pages/about.html">About Us</a></li>
                 <li><a href="../pages/contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#" class="dropdown-toggle">Services <i class="fas fa-chevron-down"></i></a>
+                <li class="dropdown"><a href="#" class="dropdown-toggle" aria-expanded="false">Services <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
                     <ul class="dropdown-menu">
                         <li><a href="../pages/doctors.html">Doctors</a></li>
                         <li><a href="../pages/symptoms.html">Symptom-checker</a></li>
@@ -45,7 +46,7 @@
                 <li><a href="../pages/signup.html" class="btn-signup">Sign Up</a></li>
             </ul>
 
-            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -54,6 +55,7 @@
     </div>
 </nav>
 </div>
+    <main id="main-content">
     <!-- Symptom Checker Section -->
     <section class="symptom-checker">
         <div class="container">
@@ -334,7 +336,7 @@
             </form>
         </div>
     </section>
-
+    </main>
 
     <!-- Footer -->
     <footer class="footer" aria-label="Footer">

@@ -13,6 +13,7 @@
     <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
         <div class="healthcare-quote">
             <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
@@ -20,11 +21,11 @@
     <nav class="navbar" aria-label="Main navigation">
         <div class="container">
             <div class="navbar-left">
-                <ul class="nav-links">
+                <ul class="nav-links" id="main-nav-links">
                     <li><a href="../index.html">Home</a></li>
                     <li><a href="../pages/about.html">About Us</a></li>
                     <li><a href="../pages/contact.html">Contact</a></li>
-                    <li class="dropdown"><a href="#" class="dropdown-toggle">Services <i class="fas fa-chevron-down"></i></a>
+                    <li class="dropdown"><a href="#" class="dropdown-toggle" aria-expanded="false">Services <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
                         <ul class="dropdown-menu">
                             <li><a href="../pages/doctors.html">Doctors</a></li>
                             <li><a href="../pages/symptoms.html">Symptom-checker</a></li>
@@ -47,7 +48,7 @@
                     <li><a href="../pages/signup.html" class="btn-signup">Sign Up</a></li>
                 </ul>
 
-                <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+                <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -57,6 +58,7 @@
     </nav>
     </div>
 
+    <main id="main-content">
     <!-- Hero Section -->
     <section class="contact-hero">
         <div class="container">
@@ -187,7 +189,7 @@
             </div>
             <div class="map-container">
                 <!-- Embedded Google Map -->
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.669637537279!2d6.142466415583923!3d46.208390179115575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6521de6a3a21%3A0x30a78e0a9a6b3a1d!2sPalais%20des%20Nations%2C%201211%20Gen%C3%A8ve%2C%20Switzerland!5e0!3m2!1sen!2sus!4v1623256789012!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.669637537279!2d6.142466415583923!3d46.208390179115575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6521de6a3a21%3A0x30a78e0a9a6b3a1d!2sPalais%20des%20Nations%2C%201211%20Gen%C3%A8ve%2C%20Switzerland!5e0!3m2!1sen!2sus!4v1623256789012!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" title="Relief Global Headquarters Map"></iframe>
                 <div class="map-overlay">
                     <h3>Geneva Headquarters</h3>
                     <p><i class="fas fa-map-marker-alt"></i> 123 Humanitarian Plaza, Geneva, Switzerland</p>
@@ -272,6 +274,7 @@
             </div>
         </div>
     </section>
+    </main>
 
 
     <!-- Footer -->

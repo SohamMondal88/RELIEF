@@ -12,6 +12,7 @@
     <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
         <div class="healthcare-quote">
             <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
@@ -19,7 +20,7 @@
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
         <div class="navbar-left">
-            <ul class="nav-links">
+            <ul class="nav-links" id="main-nav-links">
                 <li><a href="../index.html">Home</a></li>
 
             </ul>
@@ -36,7 +37,7 @@
                 <li><a href="../pages/signup.html" class="btn-signup">Sign Up</a></li>
             </ul>
 
-            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -46,6 +47,7 @@
 </nav>
 </div>
 
+    <main id="main-content">
     <!-- Login Form -->
     <section class="auth-container">
         <div class="auth-form">
@@ -62,8 +64,8 @@
                     <span class="error-message"></span>
                 </div>
                 <div class="form-options">
-                    <label>
-                        <input type="checkbox"> Remember me
+                    <label for="remember-me">
+                        <input type="checkbox" id="remember-me" name="remember-me"> Remember me
                     </label>
                     <a href="#">Forgot password?</a>
                 </div>
@@ -75,9 +77,9 @@
             <div class="social-login">
                 <p>Or login with</p>
                 <div class="social-icons">
-                    <a href="#" class="social-btn google"><i class="fab fa-google"></i></a>
-                    <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-btn google" aria-label="Login with Google"><i class="fab fa-google" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn facebook" aria-label="Login with Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn twitter" aria-label="Login with Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
@@ -85,6 +87,7 @@
             <img src="../assets/images/hero-image.jpeg" alt="Login Illustration">
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">

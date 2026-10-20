@@ -314,25 +314,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
+    // Secondary safety check: ensure hamburger exists and is not already initialized
     const hamburger = document.querySelector('.hamburger');
+    if (!hamburger || hamburger.dataset.navInitialized === 'true') {
+        return;
+    }
     const navLinks = document.querySelector('.nav-links');
-
-    hamburger.addEventListener('click', function() {
-        this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
-        navLinks.classList.toggle('active');
-    });
-
-    // Mobile dropdown functionality
-    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-
-    dropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            if (window.innerWidth <= 992) {
-                e.preventDefault();
-                const dropdown = this.closest('.dropdown');
-                dropdown.classList.toggle('active');
-            }
+    if (navLinks) {
+        hamburger.addEventListener('click', function() {
+            this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+            navLinks.classList.toggle('active');
         });
-    });
+    }
 });
