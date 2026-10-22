@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ambulance Services | Relief</title>
     <link rel="stylesheet" href="../assets/css/ambulances.css">
+    <link rel="stylesheet" href="../assets/css/emergency-sos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,10 +65,34 @@
             <h1>Ambulance Services</h1>
             <p>Emergency medical transportation when you need it most</p>
 
+            <!-- Emergency SOS Flow Section -->
+            <section class="relief-sos-section" aria-label="One-tap Emergency SOS Flow" id="emergency-sos">
+                <div class="relief-sos-promo-card">
+                    <div class="relief-sos-promo-header">
+                        <span class="relief-sos-badge-urgent">URGENT</span>
+                        <h2>One-Tap Emergency SOS</h2>
+                    </div>
+                    <div class="relief-sos-promo-body">
+                        <p>Need urgent emergency assistance? Tap below to initiate an emergency SOS request with GPS location coordinates, verified emergency contacts, and cellular SMS fallback for low-connectivity conditions.</p>
+                        <div class="relief-sos-disclaimer-inline" role="note">
+                            <strong>Critical Notice:</strong> Relief is an assistive healthcare web tool and does not replace official local emergency dispatch. In a life-threatening crisis, immediately call <strong>112</strong> (National Helpline in India) or your local emergency number.
+                        </div>
+                    </div>
+                    <div class="relief-sos-promo-actions">
+                        <button type="button" class="relief-sos-trigger-btn" id="relief-emergency-sos-trigger" aria-haspopup="dialog" aria-controls="relief-sos-dialog" aria-expanded="false">
+                            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Emergency SOS
+                        </button>
+                        <a href="tel:112" class="relief-sos-quick-dial" aria-label="Direct dial national emergency helpline 112 in India">
+                            <i class="fas fa-phone-alt" aria-hidden="true"></i> Direct Call 112 (India ERSS)
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <div class="emergency-banner">
                 <div class="emergency-content">
                     <i class="fas fa-ambulance"></i>
-                    <h3>In case of emergency, call 911 or your local emergency number immediately</h3>
+                    <h3>In case of immediate emergency, call 112 (India), 911 (US), or your local emergency number</h3>
                 </div>
             </div>
 
@@ -184,6 +209,17 @@
 
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/ambulances.js"></script>
+    <script src="../assets/js/emergency-sos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.EmergencySOS && typeof window.EmergencySOS.init === 'function') {
+                window.EmergencySOS.init({
+                    triggerId: 'relief-emergency-sos-trigger',
+                    defaultRegion: 'IN'
+                });
+            }
+        });
+    </script>
 
     <script src="../assets/js/app-enhancements.js"></script>
 </body>
