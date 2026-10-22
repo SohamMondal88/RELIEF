@@ -1,9 +1,9 @@
 /**
  * Automated Test Suite for Relief Emergency SOS Flow (Issue #14)
- * 
+ *
  * Executed via Node.js built-in test runner:
  * node --test tests/emergency-sos.test.js
- * 
+ *
  * Tests cover:
  * A. Confirmation & Cancellation tests
  * B. Request Delivery & Honest States tests

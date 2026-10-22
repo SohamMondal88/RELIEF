@@ -1,6 +1,6 @@
 /**
  * Relief Healthcare Platform - Emergency SOS Flow
- * 
+ *
  * Provides a prominent, accessible, one-tap emergency SOS flow with confirmation,
  * cancellation, safe geolocation handling, weak connectivity/offline detection,
  * honest request delivery states, verified regional emergency guidance, and
@@ -251,7 +251,7 @@
 
   /**
    * Dispatches the SOS request to the backend or handles the absence of one truthfully.
-   * 
+   *
    * Strict Safety & Delivery Rules:
    * 1. Never report success when no real delivery took place.
    * 2. If no backend endpoint is configured, clearly report NO_BACKEND_CONFIGURED
