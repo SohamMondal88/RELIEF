@@ -73,56 +73,80 @@ function initializeChatbot() {
     const input = document.getElementById('chatbot-input');
     const messages = document.getElementById('chatbot-messages');
     const chips = document.querySelectorAll('.chip[data-chat]');
+    const clearBtn = document.getElementById('chatbot-clear');
 
     if (!form || !input || !messages) return;
 
-    appendMessage('bot', 'Hi! I’m Relief Assistant. I can help with doctors, hospitals, first aid, and subscriptions.');
+    function appendBubble(sender, text, options) {
+        const opts = options || {};
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble ' + sender + (opts.alert ? ' urgent' : '');
+        if (opts.alert) bubble.setAttribute('role', 'alert');
+        const p = document.createElement('p');
+        p.textContent = text;
+        bubble.appendChild(p);
+        (opts.links || []).forEach(function (link) {
+            const a = document.createElement('a');
+            a.href = link.href;
+            a.textContent = link.label;
+            a.className = 'chat-link';
+            bubble.appendChild(a);
+        });
+        if (opts.retry) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'chip';
+            btn.textContent = 'Retry';
+            btn.addEventListener('click', function () {
+                bubble.remove();
+                send(opts.retry);
+            });
+            bubble.appendChild(btn);
+        }
+        messages.appendChild(bubble);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function send(text) {
+        const assistant = window.ReliefAssistant;
+        const result = assistant
+            ? assistant.safeRoute(text)
+            : { text: 'The assistant could not load. Please reload the page. If this is an emergency, call local emergency services now.', links: [] };
+        appendBubble('bot', result.text, {
+            alert: result.alert,
+            links: result.links,
+            retry: result.retry ? text : null
+        });
+    }
+
+    function ask(text) {
+        appendBubble('user', text);
+        send(text);
+    }
+
+    function greet() {
+        appendBubble('bot', 'Hi, I’m Relief Assistant. I can point you to doctors, hospitals, first aid and plans. I can’t give medical advice.');
+    }
+
+    greet();
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         const text = input.value.trim();
         if (!text) return;
-
-        appendMessage('user', text);
-        appendMessage('bot', getBotResponse(text));
+        ask(text);
         input.value = '';
     });
 
     chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            const prompt = chip.dataset.chat;
-            appendMessage('user', prompt);
-            appendMessage('bot', getBotResponse(prompt));
-        });
+        chip.addEventListener('click', () => ask(chip.dataset.chat));
     });
 
-    function appendMessage(sender, text) {
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${sender}`;
-        bubble.textContent = text;
-        messages.appendChild(bubble);
-        messages.scrollTop = messages.scrollHeight;
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            messages.textContent = '';
+            greet();
+            input.focus();
+        });
     }
-}
-
-function getBotResponse(input) {
-    const q = input.toLowerCase();
-
-    if (q.includes('hospital')) {
-        return 'Use the Hospitals page to find nearest facilities. Keep location enabled for best results.';
-    }
-
-    if (q.includes('doctor') || q.includes('appointment')) {
-        return 'Go to Find Doctors to filter by specialty and book a consultation in minutes.';
-    }
-
-    if (q.includes('first aid')) {
-        return 'For immediate support, open First Aid guides. For severe symptoms, call emergency services right away.';
-    }
-
-    if (q.includes('subscription') || q.includes('plan')) {
-        return 'You can compare plans on the Subscription page and upgrade instantly.';
-    }
-
-    return 'I can help with doctors, hospitals, first aid, and subscriptions. Try asking: “Find nearby hospitals”.';
 }

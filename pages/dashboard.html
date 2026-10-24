@@ -84,9 +84,10 @@
         <article class="card chatbot-card">
             <div class="chat-header">
                 <h2>Relief Assistant</h2>
-                <span class="pill">Online</span>
+                <span class="pill">Guide (offline)</span>
             </div>
             <div id="chatbot-messages" class="chat-window" aria-live="polite"></div>
+            <p class="chat-note">This guide is not a doctor and cannot give medical advice. What you type stays on this page: it is not saved, sent or logged. In an emergency call your local emergency services.</p>
             <div class="chat-quick-actions">
                 <button type="button" class="chip" data-chat="Find nearby hospitals">Nearby hospitals</button>
                 <button type="button" class="chip" data-chat="Book doctor appointment">Book doctor</button>
@@ -95,6 +96,7 @@
             <form id="chatbot-form" class="chat-input-row">
                 <input id="chatbot-input" type="text" placeholder="Ask about symptoms, hospitals, medicines..." aria-label="Ask Relief Assistant about symptoms, hospitals, medicines" required>
                 <button type="submit" class="btn btn-primary">Send</button>
+                <button type="button" id="chatbot-clear" class="btn">Clear chat</button>
             </form>
         </article>
     </section>
@@ -103,6 +105,8 @@
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
 <script src="../assets/js/main.js"></script>
+<script src="../assets/js/symptoms.js"></script>
+<script src="../assets/js/assistant.js"></script>
 <script src="../assets/js/dashboard.js"></script>
 <script src="../assets/js/app-enhancements.js"></script>
 </body>
