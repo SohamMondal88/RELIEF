@@ -77,6 +77,14 @@ To prevent false-alarm escalations while preserving high-sensitivity safety:
 - Missing fields are recorded and presented as **"Incomplete Responses Noted"**, highlighting that clinical uncertainty is increased.
 - If user input is empty, ambiguous, or unparseable, the system communicates high uncertainty, refrains from falsely assuring the user, and reminds them that lack of reported symptoms is not proof of safety.
 
+### 4.4 Medicine Reminders (Dashboard)
+- Reminders are a convenience tool. They only repeat the medicine name, note, time and dates that the user typed in. RELIEF does not suggest medicines, doses or schedules, and the form says so.
+- Reminders are stored in the browser's `localStorage` (key `relief_reminders_v1`) on one device. They are not synced to an account, not a medical record, and are lost if the user clears site data or switches browser or device.
+- Times are the device's local clock time. A reminder only fires while the dashboard is open in a tab; there is no background or server-side delivery, so it must not be relied on for time-critical medication.
+- If the device time zone changes, reminders follow the new local clock time and the reminder card shows the zone it was created in.
+- Browser notifications are explained before the permission prompt and only requested when the user presses the button. If permission is denied or unsupported, due reminders still appear in an in-app banner.
+- Logic lives in `assets/js/reminders.js` and is covered by `tests/reminders.test.js` (run with `node --test`).
+
 ---
 
 ## 5. Clinical Review Requirements Prior to Production Use

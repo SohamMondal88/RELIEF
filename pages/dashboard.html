@@ -45,16 +45,44 @@
 
     <section class="grid dashboard-grid">
         <article class="card panel-soft">
-            <h2>Add Medication Reminder</h2>
-            <form id="reminder-form">
-                <label for="medicine">Medicine</label>
-                <input id="medicine" required placeholder="e.g. Metformin 500mg">
+            <h2>Medication Reminders</h2>
+            <p id="reminder-disclaimer" class="muted reminder-note">These reminders only repeat what you type in. RELIEF does not suggest medicines, doses or schedules, so follow your doctor or pharmacist for that.</p>
 
-                <label for="time">Time</label>
+            <div id="reminder-banner" class="reminder-banner" role="alert" hidden>
+                <div id="reminder-banner-messages"></div>
+                <button type="button" class="btn" data-dismiss>Dismiss</button>
+            </div>
+
+            <div class="notify-panel">
+                <strong>Notifications</strong>
+                <p id="notify-status" class="muted" aria-live="polite"></p>
+                <button type="button" class="btn" id="notify-enable" hidden>Allow browser notifications</button>
+            </div>
+
+            <form id="reminder-form" novalidate>
+                <input type="hidden" id="reminder-id">
+
+                <label for="medicine">Medicine or label</label>
+                <input id="medicine" required maxlength="80" placeholder="e.g. Metformin 500mg">
+
+                <label for="instructions">Note for yourself (optional)</label>
+                <input id="instructions" maxlength="300" placeholder="e.g. after breakfast, as written on my prescription">
+
+                <label for="time">Time (every day)</label>
                 <input id="time" type="time" required>
 
-                <button class="btn btn-primary" type="submit" style="margin-top: 10px;">Save Reminder</button>
+                <label for="start-date">Start date (optional)</label>
+                <input id="start-date" type="date">
+
+                <label for="end-date">End date (optional)</label>
+                <input id="end-date" type="date">
+
+                <ul id="reminder-errors" class="reminder-errors" role="alert" hidden></ul>
+
+                <button class="btn btn-primary" id="reminder-submit" type="submit" style="margin-top: 10px;">Save Reminder</button>
+                <button class="btn" id="reminder-cancel" type="button" hidden>Cancel edit</button>
             </form>
+            <p id="reminder-persistence" class="muted reminder-note"></p>
             <ul id="reminder-list" class="reminder-list"></ul>
         </article>
 
@@ -84,9 +112,10 @@
         <article class="card chatbot-card">
             <div class="chat-header">
                 <h2>Relief Assistant</h2>
-                <span class="pill">Online</span>
+                <span class="pill">Guide (offline)</span>
             </div>
             <div id="chatbot-messages" class="chat-window" aria-live="polite"></div>
+            <p class="chat-note">This guide is not a doctor and cannot give medical advice. What you type stays on this page: it is not saved, sent or logged. In an emergency call your local emergency services.</p>
             <div class="chat-quick-actions">
                 <button type="button" class="chip" data-chat="Find nearby hospitals">Nearby hospitals</button>
                 <button type="button" class="chip" data-chat="Book doctor appointment">Book doctor</button>
@@ -95,6 +124,7 @@
             <form id="chatbot-form" class="chat-input-row">
                 <input id="chatbot-input" type="text" placeholder="Ask about symptoms, hospitals, medicines..." aria-label="Ask Relief Assistant about symptoms, hospitals, medicines" required>
                 <button type="submit" class="btn btn-primary">Send</button>
+                <button type="button" id="chatbot-clear" class="btn">Clear chat</button>
             </form>
         </article>
     </section>
@@ -102,7 +132,10 @@
 
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
+<script src="../assets/js/reminders.js"></script>
 <script src="../assets/js/main.js"></script>
+<script src="../assets/js/symptoms.js"></script>
+<script src="../assets/js/assistant.js"></script>
 <script src="../assets/js/dashboard.js"></script>
 <script src="../assets/js/app-enhancements.js"></script>
 </body>

@@ -1,568 +1,120 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Mock hospital data
-    const hospitals = [
-            {
-                id: 1,
-                name: "All India Institute of Hygiene and Public Health",
-                type: "Medical College",
-                location: "Kolkata, Established 1932",
-                services: ["Public Health", "Hygiene Research", "Medical Education"],
-                phone: "+91 33 2241 4239",
-                rating: 4.5,
-                lat: 22.5726,
-                lng: 88.3639,
-                image: "../assets/images/aiihph.jpg"
-            },
-            {
-                id: 2,
-                name: "All India Institute of Medical Sciences, Kalyani",
-                type: "Medical College",
-                location: "Kalyani, Established 2019",
-                services: ["Super Specialty Care", "Medical Research", "Undergraduate Education"],
-                phone: "+91 33 2952 8100",
-                rating: 4.8,
-                lat: 22.9750,
-                lng: 88.4344,
-                image: "../assets/images/aiimskalyani.jpg"
-            },
-            {
-                id: 3,
-                name: "Bankura Sammilani Medical College and Hospital",
-                type: "Medical College",
-                location: "Bankura, Established 1956",
-                services: ["General Medicine", "Surgery", "Pediatrics"],
-                phone: "+91 3242 250 201",
-                rating: 4.2,
-                lat: 23.2329,
-                lng: 87.0755,
-                image: "../assets/images/bankuramc.jpg"
-            },
-            {
-                id: 4,
-                name: "Barasat Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Barasat, Established 2022",
-                services: ["Emergency Care", "General Surgery", "Obstetrics"],
-                phone: "+91 33 2552 1234",
-                rating: 4.0,
-                lat: 22.7225,
-                lng: 88.4886,
-                image: "../assets/images/barasatmc.jpg"
-            },
-            {
-                id: 5,
-                name: "Burdwan Medical College and Hospital",
-                type: "Medical College",
-                location: "Purba Bardhaman, Established 1969",
-                services: ["Cardiology", "Neurology", "Oncology"],
-                phone: "+91 342 255 5401",
-                rating: 4.3,
-                lat: 23.2599,
-                lng: 87.8570,
-                image: "../assets/images/burdwanmc.jpg"
-            },
-            {
-                id: 6,
-                name: "Calcutta National Medical College",
-                type: "Medical College",
-                location: "Kolkata, Established 1948",
-                services: ["Emergency Care", "Orthopedics", "Neurology"],
-                phone: "+91 33 2370 1234",
-                rating: 4.4,
-                lat: 22.5726,
-                lng: 88.3639,
-                image: "../assets/images/cnmc.jpg"
-            },
-            {
-                id: 7,
-                name: "Calcutta School of Tropical Medicine",
-                type: "Medical College",
-                location: "Kolkata, Established 1914",
-                services: ["Tropical Diseases", "Research", "Postgraduate Training"],
-                phone: "+91 33 2241 3441",
-                rating: 4.6,
-                lat: 22.5587,
-                lng: 88.3509,
-                image: "../assets/images/tropicalmed.jpg"
-            },
-            {
-                id: 8,
-                name: "Chittaranjan National Cancer Institute",
-                type: "Medical College",
-                location: "Kolkata, Established 1950",
-                services: ["Oncology", "Cancer Research", "Radiotherapy"],
-                phone: "+91 33 2476 5101",
-                rating: 4.7,
-                lat: 22.5730,
-                lng: 88.3632,
-                image: "../assets/images/cnci.jpg"
-            },
-            {
-                id: 9,
-                name: "College of Medicine and JNM Hospital",
-                type: "Medical College",
-                location: "Kalyani, Established 2009",
-                services: ["General Medicine", "Pediatrics", "Surgery"],
-                phone: "+91 33 2582 1234",
-                rating: 4.1,
-                lat: 22.9750,
-                lng: 88.4344,
-                image: "../assets/images/jnmhospital.jpg"
-            },
-            {
-                id: 10,
-                name: "College of Medicine & Sagore Dutta Hospital",
-                type: "Medical College",
-                location: "Kamarhati, Established 2010",
-                services: ["Emergency Care", "General Surgery", "Obstetrics"],
-                phone: "+91 33 2563 1234",
-                rating: 4.0,
-                lat: 22.6711,
-                lng: 88.3744,
-                image: "../assets/images/sagoredutta.jpg"
-            },
-            {
-                id: 11,
-                name: "Deben Mahata Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Purulia, Established 2020",
-                services: ["General Medicine", "Pediatrics", "Emergency Care"],
-                phone: "+91 3252 250 123",
-                rating: 3.9,
-                lat: 23.3338,
-                lng: 86.3648,
-                image: "../assets/images/debenmahata.jpg"
-            },
-            {
-                id: 12,
-                name: "Diamond Harbour Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Diamond Harbour, Established 2019",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3174 250 123",
-                rating: 4.0,
-                lat: 22.1910,
-                lng: 88.1909,
-                image: "../assets/images/diamondharbourmc.jpg"
-            },
-            {
-                id: 13,
-                name: "Dr B C Roy Institute of Medical Sciences and Research",
-                type: "Medical College",
-                location: "Kharagpur, Established 2018",
-                services: ["Medical Research", "Undergraduate Education", "Pediatrics"],
-                phone: "+91 3222 255 123",
-                rating: 4.2,
-                lat: 22.3460,
-                lng: 87.2320,
-                image: "../assets/images/bcroymc.jpg"
-            },
-            {
-                id: 14,
-                name: "Dr. B C Roy Post Graduate Institute of Paediatric Sciences",
-                type: "Medical College",
-                location: "Kolkata, Established 2010",
-                services: ["Pediatrics", "Neonatology", "Child Health Research"],
-                phone: "+91 33 2456 7890",
-                rating: 4.5,
-                lat: 22.5735,
-                lng: 88.3628,
-                image: "../assets/images/bcroy_pediatric.jpg"
-            },
-            {
-                id: 15,
-                name: "East West Institute of Medical Sciences and Research",
-                type: "Medical College",
-                location: "Burdwan, Established 2024",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 342 250 1234",
-                rating: 3.8,
-                lat: 23.2599,
-                lng: 87.8570,
-                image: "../assets/images/eastwestmc.jpg"
-            },
-            {
-                id: 16,
-                name: "ESIC Medical College",
-                type: "Medical College",
-                location: "Joka, Established 2013",
-                services: ["Employee Health Services", "General Medicine", "Surgery"],
-                phone: "+91 33 2467 1234",
-                rating: 4.0,
-                lat: 22.4485,
-                lng: 88.3045,
-                image: "../assets/images/esicmc.jpg"
-            },
-            {
-                id: 17,
-                name: "Gouri Devi Institute of Medical Sciences and Hospital",
-                type: "Medical College",
-                location: "Durgapur, Established 2016",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 343 250 1234",
-                rating: 3.9,
-                lat: 23.5204,
-                lng: 87.3119,
-                image: "../assets/images/gouridevimc.jpg"
-            },
-            {
-                id: 18,
-                name: "ICARE Institute of Medical Sciences and Research",
-                type: "Medical College",
-                location: "Haldia, Established 2011",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3224 250 123",
-                rating: 4.0,
-                lat: 22.0257,
-                lng: 88.0583,
-                image: "../assets/images/icaremc.jpg"
-            },
-            {
-                id: 19,
-                name: "Institute of Child Health",
-                type: "Medical College",
-                location: "Kolkata, Established 1953",
-                services: ["Pediatrics", "Neonatology", "Child Nutrition"],
-                phone: "+91 33 2241 1234",
-                rating: 4.6,
-                lat: 22.5735,
-                lng: 88.3628,
-                image: "../assets/images/childhealth.jpg"
-            },
-            {
-                id: 20,
-                name: "IPGMER and SSKM Hospital",
-                type: "Medical College",
-                location: "Kolkata, Established 1957",
-                services: ["Super Specialty Care", "Postgraduate Education", "Research"],
-                phone: "+91 33 2204 1234",
-                rating: 4.7,
-                lat: 22.5356,
-                lng: 88.3494,
-                image: "../assets/images/sskm.jpg"
-            },
-            {
-                id: 21,
-                name: "IQ City Medical College",
-                type: "Medical College",
-                location: "Durgapur, Established 2013",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 343 250 5678",
-                rating: 4.1,
-                lat: 23.5204,
-                lng: 87.3119,
-                image: "../assets/images/iqcitymc.jpg"
-            },
-            {
-                id: 22,
-                name: "Jagannath Gupta Institute of Medical Sciences and Hospital",
-                type: "Medical College",
-                location: "Budge Budge, Established 2016",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 33 2490 1234",
-                rating: 3.8,
-                lat: 22.4700,
-                lng: 88.1700,
-                image: "../assets/images/jagannathguptamc.jpg"
-            },
-            {
-                id: 23,
-                name: "Jakir Hossain Medical College and Research Institute",
-                type: "Medical College",
-                location: "Jangipur, Established 2024",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3483 250 123",
-                rating: 3.7,
-                lat: 24.4700,
-                lng: 88.0700,
-                image: "../assets/images/jakirhossainmc.jpg"
-            },
-            {
-                id: 24,
-                name: "Jalpaiguri Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Jalpaiguri, Established 2022",
-                services: ["General Medicine", "Surgery", "Pediatrics"],
-                phone: "+91 3561 250 123",
-                rating: 4.0,
-                lat: 26.5167,
-                lng: 88.7333,
-                image: "../assets/images/jalpaigurimc.jpg"
-            },
-            {
-                id: 25,
-                name: "Jhargram Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Jhargram, Established 2021",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3221 250 123",
-                rating: 3.9,
-                lat: 22.4500,
-                lng: 86.9800,
-                image: "../assets/images/jhargrammc.jpg"
-            },
-            {
-                id: 26,
-                name: "JIS School of Medical Science & Research",
-                type: "Medical College",
-                location: "Howrah, Established 2023",
-                services: ["General Medicine", "Surgery", "Research"],
-                phone: "+91 33 2637 1234",
-                rating: 3.8,
-                lat: 22.5958,
-                lng: 88.2636,
-                image: "../assets/images/jismc.jpg"
-            },
-            {
-                id: 27,
-                name: "JMN Medical College and Hospital",
-                type: "Medical College",
-                location: "Chakdaha, Established 2023",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 33 2550 1234",
-                rating: 3.7,
-                lat: 23.0800,
-                lng: 88.5200,
-                image: "../assets/images/jmnmc.jpg"
-            },
-            {
-                id: 28,
-                name: "Krishnanagar Institute of Medical Science",
-                type: "Medical College",
-                location: "Krishnanagar, Established 2024",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3472 250 123",
-                rating: 3.8,
-                lat: 23.4000,
-                lng: 88.5000,
-                image: "../assets/images/krishnanagarmc.jpg"
-            },
-            {
-                id: 29,
-                name: "KPC Medical College and Hospital",
-                type: "Medical College",
-                location: "Kolkata, Established 2006",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 33 2441 1234",
-                rating: 4.0,
-                lat: 22.5726,
-                lng: 88.3639,
-                image: "../assets/images/kpcmc.jpg"
-            },
-            {
-                id: 30,
-                name: "Maharaja Jitendra Narayan Medical College and Hospital",
-                type: "Medical College",
-                location: "Cooch Behar, Established 2018",
-                services: ["General Medicine", "Surgery", "Pediatrics"],
-                phone: "+91 3582 250 123",
-                rating: 4.0,
-                lat: 26.3167,
-                lng: 89.4333,
-                image: "../assets/images/coochbeharmc.jpg"
-            },
-            {
-                id: 31,
-                name: "Malda Medical College and Hospital",
-                type: "Medical College",
-                location: "Malda, Established 2011",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3512 250 123",
-                rating: 4.1,
-                lat: 25.0000,
-                lng: 88.1500,
-                image: "../assets/images/maldamc.jpg"
-            },
-            {
-                id: 32,
-                name: "Medical College and Hospital, Kolkata",
-                type: "Medical College",
-                location: "Kolkata, Established 1835",
-                services: ["All Specialties", "Oldest Medical College", "Research"],
-                phone: "+91 33 2204 1101",
-                rating: 4.8,
-                lat: 22.5738,
-                lng: 88.3611,
-                image: "../assets/images/mchkolkata.jpg"
-            },
-            {
-                id: 33,
-                name: "Midnapore Medical College and Hospital",
-                type: "Medical College",
-                location: "Midnapore, Established 2004",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3222 250 123",
-                rating: 4.2,
-                lat: 22.4250,
-                lng: 87.3200,
-                image: "../assets/images/midnaporemc.jpg"
-            },
-            {
-                id: 34,
-                name: "Murshidabad Medical College and Hospital",
-                type: "Medical College",
-                location: "Berhampore, Established 2012",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3482 250 123",
-                rating: 4.0,
-                lat: 24.1000,
-                lng: 88.2500,
-                image: "../assets/images/murshidabadmc.jpg"
-            },
-            {
-                id: 35,
-                name: "Nil Ratan Sircar Medical College and Hospital",
-                type: "Medical College",
-                location: "Kolkata, Established 1873",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 33 2223 5181",
-                rating: 4.5,
-                lat: 22.5745,
-                lng: 88.3622,
-                image: "../assets/images/nrsmc.jpg"
-            },
-            {
-                id: 36,
-                name: "North Bengal Medical College and Hospital",
-                type: "Medical College",
-                location: "Siliguri, Established 1968",
-                services: ["Emergency Care", "Pediatrics", "General Medicine"],
-                phone: "+91 353 250 1234",
-                rating: 4.3,
-                lat: 26.7271,
-                lng: 88.3953,
-                image: "../assets/images/nbmc.jpg"
-            },
-            {
-                id: 37,
-                name: "Prafulla Chandra Sen Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Arambagh, Established 2022",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3212 250 123",
-                rating: 3.9,
-                lat: 22.8800,
-                lng: 87.7800,
-                image: "../assets/images/arambaghmc.jpg"
-            },
-            {
-                id: 38,
-                name: "PKG Medical College and Hospital",
-                type: "Medical College",
-                location: "New Town, Established 2024",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 33 2567 1234",
-                rating: 3.8,
-                lat: 22.5800,
-                lng: 88.4500,
-                image: "../assets/images/pkgmc.jpg"
-            },
-            {
-                id: 39,
-                name: "R. G. Kar Medical College and Hospital",
-                type: "Medical College",
-                location: "Kolkata, Established 1886",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 33 2555 1234",
-                rating: 4.4,
-                lat: 22.5950,
-                lng: 88.3700,
-                image: "../assets/images/rgkar.jpg"
-            },
-            {
-                id: 40,
-                name: "Raiganj Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Raiganj, Established 2018",
-                services: ["General Medicine", "Surgery", "Pediatrics"],
-                phone: "+91 3523 250 123",
-                rating: 4.0,
-                lat: 25.6200,
-                lng: 88.1200,
-                image: "../assets/images/raiganjmc.jpg"
-            },
-            {
-                id: 41,
-                name: "Rampurhat Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Rampurhat, Established 2018",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 3461 250 123",
-                rating: 3.9,
-                lat: 24.1700,
-                lng: 87.7800,
-                image: "../assets/images/rampurhatmc.jpg"
-            },
-            {
-                id: 42,
-                name: "Santiniketan Medical College",
-                type: "Medical College",
-                location: "Bolpur, Established 2021",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3463 250 123",
-                rating: 3.8,
-                lat: 23.6700,
-                lng: 87.7200,
-                image: "../assets/images/santiniketanmc.jpg"
-            },
-            {
-                id: 43,
-                name: "Sarat Chandra Chattopadhyay Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Uluberia, Established 2022",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 33 2661 1234",
-                rating: 3.9,
-                lat: 22.4700,
-                lng: 88.1100,
-                image: "../assets/images/uluberiamc.jpg"
-            },
-            {
-                id: 44,
-                name: "Shri Ramkrishna Institute of Medical Sciences and Sanaka Hospital",
-                type: "Medical College",
-                location: "Durgapur, Established 2019",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 343 250 5678",
-                rating: 4.0,
-                lat: 23.5204,
-                lng: 87.3119,
-                image: "../assets/images/srimc.jpg"
-            },
-            {
-                id: 45,
-                name: "Tamralipto Government Medical College and Hospital",
-                type: "Medical College",
-                location: "Tamluk, Established 2022",
-                services: ["General Medicine", "Surgery", "Obstetrics"],
-                phone: "+91 3228 250 123",
-                rating: 3.9,
-                lat: 22.3000,
-                lng: 87.9200,
-                image: "../assets/images/tamraliptomc.jpg"
-            },
-            {
-                id: 46,
-                name: "Vivekananda Institute of Medical Sciences",
-                type: "Medical College",
-                location: "Kolkata, Established 1963",
-                services: ["General Medicine", "Surgery", "Emergency Care"],
-                phone: "+91 33 2456 1234",
-                rating: 4.2,
-                lat: 22.5726,
-                lng: 88.3639,
-                image: "../assets/images/vivekanandamc.jpg"
-            }
-        ];
+    const U = window.FacilityUtils;
+    const DATA_URL = '../assets/data/facilities.json';
+    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal
 
-    // DOM elements
     const hospitalsList = document.querySelector('.hospitals-list');
     const searchInput = document.querySelector('.search-box input');
+    const searchForm = document.querySelector('.search-box');
     const facilityTypeFilter = document.getElementById('facility-type');
-    const locationFilter = document.getElementById('location');
+    const districtFilter = document.getElementById('location');
     const servicesFilter = document.getElementById('services');
+    const verifiedOnly = document.getElementById('verified-only');
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
+    const statusEl = document.getElementById('directory-status');
+    const locateButton = document.getElementById('use-my-location');
+
+    // Saved facilities live in localStorage so they work offline
+    const SAVED_KEY = 'relief_saved_facilities';
+    const savedList = document.getElementById('saved-facilities-list');
+
+    function getSavedFacilities() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function setSavedFacilities(items) {
+        try {
+            localStorage.setItem(SAVED_KEY, JSON.stringify(items));
+        } catch (error) {
+            console.error('Could not save facility:', error);
+        }
+    }
+
+    function renderSavedFacilities() {
+        if (!savedList) return;
+        const items = getSavedFacilities();
+        savedList.textContent = '';
+
+        if (items.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'saved-empty';
+            empty.textContent = 'No saved facilities yet. Use Save on a hospital below.';
+            savedList.appendChild(empty);
+            return;
+        }
+
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'saved-item';
+
+            const name = document.createElement('strong');
+            name.textContent = item.name;
+            const location = document.createElement('div');
+            location.textContent = item.location;
+            const meta = document.createElement('div');
+            meta.className = 'saved-meta';
+            meta.textContent = 'Saved copy, added ' + new Date(item.savedAt).toLocaleDateString();
+
+            row.appendChild(name);
+            row.appendChild(location);
+            row.appendChild(meta);
+
+            if (item.phone) {
+                const call = document.createElement('a');
+                call.href = 'tel:' + item.phone;
+                call.textContent = 'Call ' + item.phone;
+                row.appendChild(call);
+            }
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn-save is-saved';
+            remove.textContent = 'Remove';
+            remove.addEventListener('click', () => toggleSaved(item.id));
+            row.appendChild(remove);
+
+            savedList.appendChild(row);
+        });
+    }
+
+    function toggleSaved(id) {
+        const items = getSavedFacilities();
+        const exists = items.some(item => item.id === id);
+        if (exists) {
+            setSavedFacilities(items.filter(item => item.id !== id));
+        } else {
+            const hospital = hospitals.find(h => h.id === id);
+            if (!hospital) return;
+            items.push({
+                id: hospital.id,
+                name: hospital.name,
+                location: hospital.location,
+                phone: hospital.phone,
+                lat: hospital.lat,
+                lng: hospital.lng,
+                savedAt: Date.now()
+            });
+            setSavedFacilities(items);
+        }
+        renderSavedFacilities();
+        updateSaveButtons();
+    }
+
+    function updateSaveButtons() {
+        const savedIds = new Set(getSavedFacilities().map(item => item.id));
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            const saved = savedIds.has(Number(button.getAttribute('data-id')));
+            button.classList.toggle('is-saved', saved);
+            button.textContent = saved ? 'Saved' : 'Save';
+            button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+        });
+    }
 
     // Initialize map
     let map;
@@ -600,6 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         map = L.map('map').setView(center, userLocation ? 13 : 7);
 
+    function initMap() {
+        if (typeof L === 'undefined' || !document.getElementById('map')) return;
+        const saved = readSavedLocation();
+        const center = saved ? [saved.lat, saved.lng] : DEFAULT_CENTER;
+        map = L.map('map').setView(center, saved ? 11 : 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
@@ -609,16 +166,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMapMarkers(hospitalsToShow) {
+        if (!map) return;
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
-
-        // Add new markers
-        hospitalsToShow.forEach(hospital => {
-            const marker = L.marker([hospital.lat, hospital.lng])
+        list.forEach(f => {
+            if (!U.isValidCoord(f.lat, f.lng)) return;
+            const marker = L.marker([f.lat, f.lng])
                 .addTo(map)
-                .bindPopup(`<b>${hospital.name}</b><br>${hospital.location}`);
-
+                .bindPopup('<b>' + U.escapeHtml(f.name) + '</b><br>' + U.escapeHtml(f.district));
             markers.push(marker);
         });
 
@@ -667,6 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn-call" data-phone="${hospital.phone}">
                             <i class="fas fa-phone"></i> Call
                         </button>
+                        <button class="btn-save" data-id="${hospital.id}" aria-pressed="false">Save</button>
                     </div>
                 </div>
             `;
@@ -691,50 +248,97 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            button.addEventListener('click', function() {
+                toggleSaved(Number(this.getAttribute('data-id')));
+            });
+        });
+        updateSaveButtons();
+
         updateMapMarkers(sortedHospitals);
     }
 
-    // Filter hospitals based on search and filters
-    function filterHospitals() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const facilityType = facilityTypeFilter.value;
-        const location = locationFilter.value;
-        const services = servicesFilter.value;
-
-        const filteredHospitals = hospitals.filter(hospital => {
-            const matchesSearch =
-                hospital.name.toLowerCase().includes(searchTerm) ||
-                hospital.location.toLowerCase().includes(searchTerm);
-
-            const matchesFacilityType = !facilityType ||
-                hospital.type.toLowerCase() === facilityType.toLowerCase().replace('-', ' ');
-            const matchesLocation = !location ||
-                hospital.location.toLowerCase().includes(location.toLowerCase());
-            const matchesServices = !services ||
-                hospital.services.some(s =>
-                    s.toLowerCase().includes(services.toLowerCase().replace('-', ' '))
-                );
-
-            return matchesSearch && matchesFacilityType && matchesLocation && matchesServices;
-        });
-
-        displayHospitals(filteredHospitals);
+    function populateFilters() {
+        const options = U.getFilterOptions(facilities);
+        fillSelect(facilityTypeFilter, 'All Facilities', options.types, t => U.FACILITY_TYPES[t] || t);
+        fillSelect(districtFilter, 'All Areas', options.districts);
+        fillSelect(servicesFilter, 'All Services', options.services);
     }
 
-    // Sort hospitals
-    function sortHospitals(hospitalsList, sortBy) {
-        return [...hospitalsList].sort((a, b) => {
-            if (sortBy === 'rating') {
-                return b.rating - a.rating;
-            } else {
-                // Sort by distance (extract distance from location string)
-                const extractDistance = (location) => {
-                    const match = location.match(/(\d+\.?\d*) miles away/);
-                    return match ? parseFloat(match[1]) : Infinity;
-                };
-                return extractDistance(a.location) - extractDistance(b.location);
-            }
+    function cardHtml(f) {
+        const notAvailable = '<span class="not-available">Not available</span>';
+        const phoneHref = f.phone ? String(f.phone).replace(/[^\d+]/g, '') : '';
+        const hasCoords = U.isValidCoord(f.lat, f.lng);
+        const services = f.services.length
+            ? f.services.map(s => '<span class="service-tag">' + U.escapeHtml(s) + '</span>').join('')
+            : notAvailable;
+        const distance = f.distanceKm != null
+            ? '<p class="hospital-distance">' + U.escapeHtml(U.formatDistance(f.distanceKm)) + '</p>'
+            : '';
+        const badgeClass = f.verified ? 'badge-verified' : 'badge-unverified';
+        const badgeText = f.verified ? 'Verified' : 'Not verified';
+        const detail = f.verified ? U.verificationLabel(f).replace(/^Verified - /, '') : 'no source recorded yet';
+        return '' +
+            '<div class="hospital-info">' +
+                '<h4 class="hospital-name">' + U.escapeHtml(f.name) + '</h4>' +
+                '<p class="hospital-type">' + U.escapeHtml(U.FACILITY_TYPES[f.type] || f.type || 'Not available') + '</p>' +
+                '<p><span class="verify-badge ' + badgeClass + '">' + badgeText + '</span> ' +
+                    '<span class="verify-detail">' + U.escapeHtml(detail) + '</span></p>' +
+                '<p class="hospital-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ' +
+                    (f.district ? U.escapeHtml(f.district) : notAvailable) + '</p>' +
+                distance +
+                '<p class="hospital-detail"><strong>Address:</strong> ' + (f.address ? U.escapeHtml(f.address) : notAvailable) + '</p>' +
+                '<p class="hospital-detail"><strong>Phone:</strong> ' + (f.phone ? U.escapeHtml(f.phone) : notAvailable) + '</p>' +
+                '<p class="hospital-detail"><strong>Hours:</strong> ' + (f.hours ? U.escapeHtml(f.hours) : notAvailable) + '</p>' +
+                '<div class="hospital-services">' + services + '</div>' +
+                '<div class="hospital-actions">' +
+                    (hasCoords
+                        ? '<button type="button" class="btn-directions" data-lat="' + f.lat + '" data-lng="' + f.lng + '" aria-label="Directions to ' + U.escapeHtml(f.name) + '"><i class="fas fa-directions" aria-hidden="true"></i> Directions</button>'
+                        : '') +
+                    (phoneHref
+                        ? '<a class="btn-call" href="tel:' + U.escapeHtml(phoneHref) + '" aria-label="Call ' + U.escapeHtml(f.name) + '"><i class="fas fa-phone" aria-hidden="true"></i> Call</a>'
+                        : '') +
+                '</div>' +
+            '</div>';
+    }
+
+    function render(list, note) {
+        hospitalsList.innerHTML = '';
+        if (list.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'no-results';
+            p.textContent = 'No facilities found matching your criteria. Try clearing a filter or searching for something else.';
+            hospitalsList.appendChild(p);
+            setStatus('No facilities found.');
+            updateMapMarkers([]);
+            return;
+        }
+        list.forEach(f => {
+            const card = document.createElement('div');
+            card.className = 'hospital-card';
+            card.innerHTML = cardHtml(f);
+            hospitalsList.appendChild(card);
         });
+        const count = list.length + (list.length === 1 ? ' facility found.' : ' facilities found.');
+        setStatus(note ? count + ' ' + note : count);
+        updateMapMarkers(list);
+    }
+
+    function applyFilters() {
+        const filtered = U.filterFacilities(facilities, {
+            search: searchInput ? searchInput.value : '',
+            type: facilityTypeFilter ? facilityTypeFilter.value : '',
+            district: districtFilter ? districtFilter.value : '',
+            service: servicesFilter ? servicesFilter.value : '',
+            verifiedOnly: verifiedOnly ? verifiedOnly.checked : false
+        });
+        const sortBy = sortSelect ? sortSelect.value : 'name';
+        const location = readSavedLocation();
+        const sorted = U.sortFacilities(filtered, sortBy, location);
+        const note = (sortBy === 'distance' && !location)
+            ? 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.'
+            : '';
+        render(sorted, note);
     }
 
     // Event listeners
@@ -743,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sortSelect.addEventListener('change', filterHospitals);
 
     // Initialize
+    renderSavedFacilities();
     initMap();
     displayHospitals(hospitals);
 
@@ -794,19 +399,83 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error fetching hospitals:', error);
             return [];
         }
+        setStatus('Finding your location...');
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            try {
+                localStorage.setItem('userLocation', JSON.stringify({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude
+                }));
+            } catch (e) { /* storage unavailable; the location is used only for this visit */ }
+            if (sortSelect) sortSelect.value = 'distance';
+            applyFilters();
+        }, function(err) {
+            const reasons = {
+                1: 'Location permission was denied.',
+                2: 'Your position is unavailable.',
+                3: 'Finding your location took too long.'
+            };
+            setStatus((reasons[err && err.code] || 'Could not get your location.') + ' Showing facilities sorted by name.');
+        }, { timeout: 10000, maximumAge: 300000 });
     }
+
+    function showLoading() {
+        hospitalsList.innerHTML = '<p class="loading-state">Loading facilities...</p>';
+        setStatus('Loading facilities...');
+    }
+
+    function showError() {
+        hospitalsList.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.className = 'error-state';
+        wrap.setAttribute('role', 'alert');
+        wrap.innerHTML = '<p>The facility list could not be loaded. Check your connection and try again.</p>';
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'btn-filter';
+        retry.textContent = 'Retry';
+        retry.addEventListener('click', loadFacilities);
+        wrap.appendChild(retry);
+        hospitalsList.appendChild(wrap);
+        setStatus('The facility list could not be loaded.');
+    }
+
+    function loadFacilities() {
+        showLoading();
+        fetch(DATA_URL)
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                facilities = U.normalizeFacilities(data);
+                populateFilters();
+                applyFilters();
+            })
+            .catch(() => showError());
+    }
+
+    hospitalsList.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-directions');
+        if (!btn) return;
+        const lat = parseFloat(btn.getAttribute('data-lat'));
+        const lng = parseFloat(btn.getAttribute('data-lng'));
+        if (U.isValidCoord(lat, lng)) {
+            window.open('https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng, '_blank', 'noopener');
+        }
+    });
+
+    if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); applyFilters(); });
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (filterButton) filterButton.addEventListener('click', applyFilters);
+    [facilityTypeFilter, districtFilter, servicesFilter, verifiedOnly, sortSelect].forEach(el => {
+        if (el) el.addEventListener('change', applyFilters);
+    });
+    if (locateButton) locateButton.addEventListener('click', locateUser);
+
+    initMap();
+    loadFacilities();
 });
-
-
-
-
-
-
-
-
-
-
-
 
 document.addEventListener('DOMContentLoaded', function() {
     // Secondary safety check: ensure hamburger exists and is not already initialized

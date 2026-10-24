@@ -63,60 +63,62 @@
         <div class="container">
             <h1>Find Hospitals Near You</h1>
             <p>Search for healthcare facilities in your area</p>
+            <p class="data-note">Listings are being checked against official sources. Records marked "Not verified" may be out of date, so please call ahead. In an emergency, call 112 or 108.</p>
 
             <div id="location-panel" class="location-panel"></div>
 
             <div class="search-filters">
-                <div class="search-box">
-                    <input type="text" placeholder="Search by hospital name or specialty" aria-label="Search by hospital name or specialty">
+                <form class="search-box" role="search">
+                    <input type="search" placeholder="Search by name, area or service" aria-label="Search by name, area or service">
                     <button type="submit" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></button>
-                </div>
+                </form>
                 <div class="filters">
                     <div class="filter-group">
                         <label for="facility-type">Facility Type</label>
                         <select id="facility-type">
                             <option value="">All Facilities</option>
-                            <option value="hospital">Hospital</option>
-                            <option value="clinic">Clinic</option>
-                            <option value="urgent-care">Urgent Care</option>
-                            <option value="specialty">Specialty Center</option>
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label for="location">Location</label>
+                        <label for="location">Area</label>
                         <select id="location">
-                            <option value="">Near Me</option>
-                            <option value="downtown">Downtown</option>
-                            <option value="suburb">Suburb</option>
-                            <option value="north">North Area</option>
-                            <option value="south">South Area</option>
+                            <option value="">All Areas</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="services">Services</label>
                         <select id="services">
                             <option value="">All Services</option>
-                            <option value="emergency">Emergency Care</option>
-                            <option value="surgery">Surgery</option>
-                            <option value="maternity">Maternity</option>
-                            <option value="pediatrics">Pediatrics</option>
                         </select>
                     </div>
-                    <button class="btn-filter"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
+                    <div class="filter-group filter-checkbox">
+                        <input type="checkbox" id="verified-only">
+                        <label for="verified-only">Verified only</label>
+                    </div>
+                    <button type="button" class="btn-filter"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
+                    <button type="button" class="btn-filter" id="use-my-location"><i class="fas fa-location-crosshairs" aria-hidden="true"></i> Use my location</button>
                 </div>
+            </div>
+
+            <div class="saved-facilities" id="saved-facilities">
+                <h3>Saved Facilities</h3>
+                <p class="saved-note">Saved on this device. These stay available offline.</p>
+                <div id="saved-facilities-list" class="saved-facilities-list"></div>
             </div>
 
             <div class="hospital-results">
                 <div class="results-header">
-                    <h3>Available Hospitals</h3>
+                    <h3>Available Facilities</h3>
                     <div class="sort-options">
-                        <span>Sort by:</span>
-                        <select aria-label="Sort hospitals by">
+                        <label for="sort-by">Sort by:</label>
+                        <select id="sort-by">
+                            <option value="name">Name (A to Z)</option>
                             <option value="distance">Distance</option>
-                            <option value="rating">Rating</option>
                         </select>
                     </div>
                 </div>
+
+                <p id="directory-status" class="directory-status" role="status" aria-live="polite"></p>
 
                 <div class="hospitals-list">
                     <!-- Hospital cards will be populated by JavaScript -->
