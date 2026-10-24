@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment | Relief</title>
+    <title>Request Appointment | Relief</title>
     <link rel="stylesheet" href="../assets/css/appointments.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -60,7 +60,7 @@
     <!-- Appointment Booking Section -->
     <section class="appointment-booking">
         <div class="container">
-            <h1>Book Appointment</h1>
+            <h1>Request an Appointment</h1>
 
             <div class="booking-steps">
                 <div class="step active" data-step="1">
@@ -69,17 +69,18 @@
                 </div>
                 <div class="step" data-step="2">
                     <span>2</span>
-                    <p>Select Time</p>
+                    <p>Preferred Time</p>
                 </div>
                 <div class="step" data-step="3">
                     <span>3</span>
-                    <p>Confirm</p>
+                    <p>Your Details</p>
                 </div>
             </div>
 
             <div class="booking-form">
                 <!-- Step 1: Doctor Info -->
                 <div class="form-step active" data-step="1">
+                    <p class="field-error" id="doctor-error" role="alert" hidden></p>
                     <div class="doctor-summary">
                         <!-- Will be populated by JavaScript -->
                     </div>
@@ -91,15 +92,25 @@
                 <!-- Step 2: Select Time -->
                 <div class="form-step" data-step="2">
                     <div class="time-selection">
-                        <h3>Select Appointment Date</h3>
-                        <div class="date-picker">
-                            <!-- Will be populated by JavaScript -->
+                        <p class="request-note">This is a request, not a booking. Choose when you would like to be seen. The provider confirms the real time with you.</p>
+                        <div class="form-group">
+                            <label for="preferred-date">Preferred date</label>
+                            <input type="date" id="preferred-date" aria-describedby="preferred-date-error">
+                            <p class="field-error" id="preferred-date-error" hidden></p>
                         </div>
-
-                        <h3>Available Time Slots</h3>
-                        <div class="time-slots">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
+                        <fieldset class="window-group" id="time-window-group" aria-describedby="time-window-error">
+                            <legend>Preferred time window</legend>
+                            <label class="window-option" for="window-morning">
+                                <input type="radio" name="time-window" id="window-morning" value="morning"> Morning (8 am to 12 pm)
+                            </label>
+                            <label class="window-option" for="window-afternoon">
+                                <input type="radio" name="time-window" id="window-afternoon" value="afternoon"> Afternoon (12 pm to 5 pm)
+                            </label>
+                            <label class="window-option" for="window-evening">
+                                <input type="radio" name="time-window" id="window-evening" value="evening"> Evening (5 pm to 9 pm)
+                            </label>
+                            <p class="field-error" id="time-window-error" hidden></p>
+                        </fieldset>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn-prev">Back</button>
@@ -114,28 +125,43 @@
                     </div>
                     <div class="patient-info">
                         <h3>Your Information</h3>
-                        <form id="patient-form">
+                        <form id="patient-form" novalidate>
                             <div class="form-group">
                                 <label for="patient-name">Full Name</label>
-                                <input type="text" id="patient-name" required>
+                                <input type="text" id="patient-name" autocomplete="name" required aria-required="true" aria-describedby="patient-name-error">
+                                <p class="field-error" id="patient-name-error" hidden></p>
                             </div>
                             <div class="form-group">
                                 <label for="patient-email">Email</label>
-                                <input type="email" id="patient-email" required>
+                                <input type="email" id="patient-email" autocomplete="email" required aria-required="true" aria-describedby="patient-email-error">
+                                <p class="field-error" id="patient-email-error" hidden></p>
                             </div>
                             <div class="form-group">
                                 <label for="patient-phone">Phone Number</label>
-                                <input type="tel" id="patient-phone" required>
+                                <input type="tel" id="patient-phone" autocomplete="tel" required aria-required="true" aria-describedby="patient-phone-hint patient-phone-error">
+                                <p class="field-hint" id="patient-phone-hint">For example +91 98765 43210</p>
+                                <p class="field-error" id="patient-phone-error" hidden></p>
                             </div>
                             <div class="form-group">
                                 <label for="patient-notes">Notes (Optional)</label>
-                                <textarea id="patient-notes" rows="3"></textarea>
+                                <textarea id="patient-notes" rows="3" maxlength="600" aria-describedby="patient-notes-hint patient-notes-error"></textarea>
+                                <p class="field-hint" id="patient-notes-hint">Up to 500 characters. Only share what you are comfortable with the provider seeing.</p>
+                                <p class="field-error" id="patient-notes-error" hidden></p>
+                            </div>
+                            <div class="form-group consent-group">
+                                <label for="patient-consent" class="consent-label">
+                                    <input type="checkbox" id="patient-consent" required aria-required="true" aria-describedby="patient-consent-error">
+                                    <span>I agree that Relief may share these details with the provider to arrange this appointment, as described in the <a href="../pages/privacy-policy.html" target="_blank" rel="noopener">privacy policy</a>.</span>
+                                </label>
+                                <p class="field-error" id="patient-consent-error" hidden></p>
                             </div>
                         </form>
+                        <p class="request-status" id="request-status" role="status" aria-live="polite" hidden></p>
+                        <div class="request-success" id="request-success" role="status" hidden></div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn-prev">Back</button>
-                        <button type="button" class="btn-confirm">Confirm Appointment</button>
+                        <button type="submit" class="btn-confirm" form="patient-form">Submit Request</button>
                     </div>
                 </div>
             </div>
@@ -213,6 +239,7 @@
     </footer>
 
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/appointment-request.js"></script>
     <script src="../assets/js/appointments.js"></script>
 
     <script src="../assets/js/app-enhancements.js"></script>

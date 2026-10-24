@@ -1387,3 +1387,127 @@ a:hover {
         font-size: 0.9rem;
     }
 }
+
+/* Appointment request form: inline errors, time window and consent */
+.request-note {
+    margin-bottom: 1.5rem;
+    padding: 0.8rem 1rem;
+    background-color: #eef7ff;
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 4px;
+}
+
+.time-selection .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.time-selection label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.time-selection input[type="date"] {
+    padding: 0.8rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.window-group {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.window-group legend {
+    padding: 0 0.4rem;
+    font-weight: 500;
+}
+
+.window-group .window-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.window-group input[type="radio"] {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.field-hint {
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+    color: var(--dark-light);
+}
+
+.field-error {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #b02224;
+}
+
+.field-error[hidden],
+.request-status[hidden],
+.request-success[hidden] {
+    display: none;
+}
+
+.patient-info input[aria-invalid="true"],
+.patient-info textarea[aria-invalid="true"],
+.time-selection input[aria-invalid="true"],
+.window-group[aria-invalid="true"] {
+    border-color: #b02224;
+    outline: 1px solid #b02224;
+}
+
+.patient-info .consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-weight: 400;
+}
+
+.patient-info .consent-label input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-top: 0.1rem;
+}
+
+.request-status {
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+}
+
+.request-status.is-error {
+    background-color: #fdecea;
+    color: #8a1c1e;
+}
+
+.request-success {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 5px;
+    background-color: #eafaf5;
+}
+
+.request-success h3 {
+    margin-bottom: 0.5rem;
+}
+
+.btn-confirm:disabled,
+.btn-next:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
