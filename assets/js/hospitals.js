@@ -564,11 +564,119 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
 
+    // Saved facilities live in localStorage so they work offline
+    const SAVED_KEY = 'relief_saved_facilities';
+    const savedList = document.getElementById('saved-facilities-list');
+
+    function getSavedFacilities() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function setSavedFacilities(items) {
+        try {
+            localStorage.setItem(SAVED_KEY, JSON.stringify(items));
+        } catch (error) {
+            console.error('Could not save facility:', error);
+        }
+    }
+
+    function renderSavedFacilities() {
+        if (!savedList) return;
+        const items = getSavedFacilities();
+        savedList.textContent = '';
+
+        if (items.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'saved-empty';
+            empty.textContent = 'No saved facilities yet. Use Save on a hospital below.';
+            savedList.appendChild(empty);
+            return;
+        }
+
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'saved-item';
+
+            const name = document.createElement('strong');
+            name.textContent = item.name;
+            const location = document.createElement('div');
+            location.textContent = item.location;
+            const meta = document.createElement('div');
+            meta.className = 'saved-meta';
+            meta.textContent = 'Saved copy, added ' + new Date(item.savedAt).toLocaleDateString();
+
+            row.appendChild(name);
+            row.appendChild(location);
+            row.appendChild(meta);
+
+            if (item.phone) {
+                const call = document.createElement('a');
+                call.href = 'tel:' + item.phone;
+                call.textContent = 'Call ' + item.phone;
+                row.appendChild(call);
+            }
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn-save is-saved';
+            remove.textContent = 'Remove';
+            remove.addEventListener('click', () => toggleSaved(item.id));
+            row.appendChild(remove);
+
+            savedList.appendChild(row);
+        });
+    }
+
+    function toggleSaved(id) {
+        const items = getSavedFacilities();
+        const exists = items.some(item => item.id === id);
+        if (exists) {
+            setSavedFacilities(items.filter(item => item.id !== id));
+        } else {
+            const hospital = hospitals.find(h => h.id === id);
+            if (!hospital) return;
+            items.push({
+                id: hospital.id,
+                name: hospital.name,
+                location: hospital.location,
+                phone: hospital.phone,
+                lat: hospital.lat,
+                lng: hospital.lng,
+                savedAt: Date.now()
+            });
+            setSavedFacilities(items);
+        }
+        renderSavedFacilities();
+        updateSaveButtons();
+    }
+
+    function updateSaveButtons() {
+        const savedIds = new Set(getSavedFacilities().map(item => item.id));
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            const saved = savedIds.has(Number(button.getAttribute('data-id')));
+            button.classList.toggle('is-saved', saved);
+            button.textContent = saved ? 'Saved' : 'Save';
+            button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+        });
+    }
+
     // Initialize map
     let map;
     let markers = [];
 
     function initMap() {
+        // Leaflet comes from a CDN, so it is missing when the page is opened offline
+        if (typeof L === 'undefined') {
+            const mapEl = document.getElementById('map');
+            if (mapEl) mapEl.textContent = 'Map unavailable offline. Saved facilities above still work.';
+            return;
+        }
+
         // Use user's location if available, or default to a central location
         const userLocation = JSON.parse(localStorage.getItem('userLocation'));
         let center;
@@ -595,6 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMapMarkers(hospitalsToShow) {
+        if (!map) return;
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
@@ -654,6 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn-call" data-phone="${hospital.phone}">
                             <i class="fas fa-phone"></i> Call
                         </button>
+                        <button class="btn-save" data-id="${hospital.id}" aria-pressed="false">Save</button>
                     </div>
                 </div>
             `;
@@ -677,6 +787,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = `tel:${phone}`;
             });
         });
+
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            button.addEventListener('click', function() {
+                toggleSaved(Number(this.getAttribute('data-id')));
+            });
+        });
+        updateSaveButtons();
 
         updateMapMarkers(sortedHospitals);
     }
@@ -730,6 +847,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sortSelect.addEventListener('change', filterHospitals);
 
     // Initialize
+    renderSavedFacilities();
     initMap();
     displayHospitals(hospitals);
 

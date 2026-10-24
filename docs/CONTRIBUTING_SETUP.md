@@ -100,6 +100,17 @@ A local web server is often more reliable than opening files directly, particula
 
 There is no repository-defined automated test command in the current root setup. Test relevant pages and flows manually in the browser, and check the browser developer console for errors.
 
+### Offline support (service worker)
+
+`sw.js` at the repository root caches the first aid and hospitals pages plus the few css/js files they need, so that guidance and saved facilities still open after one successful online visit. It is registered from `assets/js/main.js`, so it needs `https://` or `http://localhost` (it will not register from `file://`).
+
+- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Pages use network-first (fresh copy when online, saved copy when offline). Css, js and the logo use cache-first.
+- **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
+- **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
+- **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
+- **Saved facilities:** the Save button on `pages/hospitals.html` stores a small copy of the facility (name, location, phone, coordinates, saved date) in `localStorage` under `relief_saved_facilities`. No account is needed and nothing is sent anywhere. The map needs the network, so it shows a short message offline.
+- **Testing:** serve the repo root over localhost, open `pages/firstaid.html` once, then tick **Offline** in DevTools (Application > Service Workers) and reload.
+
 ## 5. Configuration and external services
 
 The current code references several external integrations. A static preview can load without all of them, but features that depend on these services may fail or show demonstration behavior.

@@ -603,6 +603,65 @@ if (typeof document !== 'undefined') {
     });
 }
 
+// Offline support: register the service worker and show an offline banner
+const RELIEF_LAST_SYNC_KEY = 'relief_last_online_sync';
+const RELIEF_SW_URL = (typeof document !== 'undefined' && document.currentScript && document.currentScript.src)
+    ? new URL('../../sw.js', document.currentScript.src).href
+    : null;
+
+function formatReliefSyncTime(timestamp) {
+    const date = new Date(Number(timestamp));
+    return Number.isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
+}
+
+function updateOfflineBanner() {
+    let banner = document.getElementById('relief-offline-banner');
+    if (navigator.onLine) {
+        if (banner) banner.remove();
+        return;
+    }
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'relief-offline-banner';
+        banner.setAttribute('role', 'status');
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#7a4a00;color:#fff;padding:8px 12px;text-align:center;font:600 14px sans-serif';
+        document.body.appendChild(banner);
+    }
+    let lastSync = null;
+    try {
+        lastSync = localStorage.getItem(RELIEF_LAST_SYNC_KEY);
+    } catch (error) {
+        lastSync = null;
+    }
+    banner.textContent = 'You are offline. This is a saved copy' +
+        (lastSync ? ' (last updated ' + formatReliefSyncTime(lastSync) + ')' : '') +
+        '. It may be out of date. In an emergency, call your local emergency number.';
+}
+
+function initOfflineSupport() {
+    if (navigator.onLine) {
+        try {
+            localStorage.setItem(RELIEF_LAST_SYNC_KEY, String(Date.now()));
+        } catch (error) {
+            // storage can be blocked, the banner just won't show a time
+        }
+    }
+    updateOfflineBanner();
+    window.addEventListener('online', updateOfflineBanner);
+    window.addEventListener('offline', updateOfflineBanner);
+
+    if (RELIEF_SW_URL && 'serviceWorker' in navigator &&
+        (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        navigator.serviceWorker.register(RELIEF_SW_URL).catch((error) => {
+            console.error('Service worker registration failed:', error);
+        });
+    }
+}
+
+if (typeof document !== 'undefined' && typeof navigator !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', initOfflineSupport);
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         initMobileNavigation,
