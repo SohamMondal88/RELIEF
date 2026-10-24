@@ -1056,3 +1056,18 @@ body {
         font-size: 1.1rem;
     }
 }
+
+/* Shown only in demo mode (see assets/js/auth-mode.js) */
+.demo-notice {
+    margin: 0 0 1rem;
+    padding: 0.7rem 1rem;
+    border-left: 4px solid #b26a00;
+    border-radius: 4px;
+    background-color: #fff4e0;
+    color: #5c3600;
+    font-size: 0.9rem;
+}
+
+.demo-notice[hidden] {
+    display: none;
+}

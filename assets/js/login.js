@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!loginForm) return;
 
+    window.ReliefAuth.showDemoNotice(document.getElementById('demo-notice'));
+
     const existingSession = window.ReliefSession?.getCurrentSession?.();
     if (existingSession?.user) {
         window.location.href = 'dashboard.html';
@@ -40,26 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function authenticateUser(email, password) {
-    if (typeof ReliefAPI !== 'undefined' && ReliefAPI.login) {
-        try {
-            return await ReliefAPI.login(email, password);
-        } catch (error) {
-            console.warn('API login unavailable, falling back to local auth:', error);
-        }
-    }
-
-    const users = JSON.parse(localStorage.getItem('relief_users') || '[]');
-    const user = users.find(item => item.email === email && item.password === password);
-
-    if (!user) {
-        throw new Error('Invalid email or password.');
-    }
-
-    return {
-        uid: user.id,
-        email: user.email,
-        name: user.name
-    };
+    // ReliefAuth only uses the browser-only demo store in demo mode.
+    return window.ReliefAuth.login(email, password);
 }
 
 function showAlert(type, message) {

@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!signupForm) return;
 
+    window.ReliefAuth.showDemoNotice(document.getElementById('demo-notice'));
+
     const existingSession = window.ReliefSession?.getCurrentSession?.();
     if (existingSession?.user) {
         window.location.href = 'dashboard.html';
@@ -52,35 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function createUser(name, email, password) {
-    if (typeof ReliefAPI !== 'undefined' && ReliefAPI.signup) {
-        try {
-            return await ReliefAPI.signup({ name, email, password, joined: new Date().toISOString() });
-        } catch (error) {
-            console.warn('API signup unavailable, falling back to local auth:', error);
-        }
-    }
-
-    const users = JSON.parse(localStorage.getItem('relief_users') || '[]');
-    if (users.some(item => item.email === email)) {
-        throw new Error('Email already in use. Please login instead.');
-    }
-
-    const localUser = {
-        id: `user_${Date.now()}`,
-        name,
-        email,
-        password,
-        createdAt: new Date().toISOString()
-    };
-
-    users.push(localUser);
-    localStorage.setItem('relief_users', JSON.stringify(users));
-
-    return {
-        uid: localUser.id,
-        email: localUser.email,
-        name: localUser.name
-    };
+    // ReliefAuth only uses the browser-only demo store in demo mode.
+    return window.ReliefAuth.signup(name, email, password);
 }
 
 function showAlert(type, message) {
