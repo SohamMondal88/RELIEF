@@ -15,11 +15,122 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusEl = document.getElementById('directory-status');
     const locateButton = document.getElementById('use-my-location');
 
-    if (!hospitalsList || !U) return;
+    // Saved facilities live in localStorage so they work offline
+    const SAVED_KEY = 'relief_saved_facilities';
+    const savedList = document.getElementById('saved-facilities-list');
 
-    let facilities = [];
-    let map = null;
+    function getSavedFacilities() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function setSavedFacilities(items) {
+        try {
+            localStorage.setItem(SAVED_KEY, JSON.stringify(items));
+        } catch (error) {
+            console.error('Could not save facility:', error);
+        }
+    }
+
+    function renderSavedFacilities() {
+        if (!savedList) return;
+        const items = getSavedFacilities();
+        savedList.textContent = '';
+
+        if (items.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'saved-empty';
+            empty.textContent = 'No saved facilities yet. Use Save on a hospital below.';
+            savedList.appendChild(empty);
+            return;
+        }
+
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'saved-item';
+
+            const name = document.createElement('strong');
+            name.textContent = item.name;
+            const location = document.createElement('div');
+            location.textContent = item.location;
+            const meta = document.createElement('div');
+            meta.className = 'saved-meta';
+            meta.textContent = 'Saved copy, added ' + new Date(item.savedAt).toLocaleDateString();
+
+            row.appendChild(name);
+            row.appendChild(location);
+            row.appendChild(meta);
+
+            if (item.phone) {
+                const call = document.createElement('a');
+                call.href = 'tel:' + item.phone;
+                call.textContent = 'Call ' + item.phone;
+                row.appendChild(call);
+            }
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn-save is-saved';
+            remove.textContent = 'Remove';
+            remove.addEventListener('click', () => toggleSaved(item.id));
+            row.appendChild(remove);
+
+            savedList.appendChild(row);
+        });
+    }
+
+    function toggleSaved(id) {
+        const items = getSavedFacilities();
+        const exists = items.some(item => item.id === id);
+        if (exists) {
+            setSavedFacilities(items.filter(item => item.id !== id));
+        } else {
+            const hospital = hospitals.find(h => h.id === id);
+            if (!hospital) return;
+            items.push({
+                id: hospital.id,
+                name: hospital.name,
+                location: hospital.location,
+                phone: hospital.phone,
+                lat: hospital.lat,
+                lng: hospital.lng,
+                savedAt: Date.now()
+            });
+            setSavedFacilities(items);
+        }
+        renderSavedFacilities();
+        updateSaveButtons();
+    }
+
+    function updateSaveButtons() {
+        const savedIds = new Set(getSavedFacilities().map(item => item.id));
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            const saved = savedIds.has(Number(button.getAttribute('data-id')));
+            button.classList.toggle('is-saved', saved);
+            button.textContent = saved ? 'Saved' : 'Save';
+            button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+        });
+    }
+
+    // Initialize map
+    let map;
     let markers = [];
+
+    function initMap() {
+        // Leaflet comes from a CDN, so it is missing when the page is opened offline
+        if (typeof L === 'undefined') {
+            const mapEl = document.getElementById('map');
+            if (mapEl) mapEl.textContent = 'Map unavailable offline. Saved facilities above still work.';
+            return;
+        }
+
+        // Use user's location if available, or default to a central location
+        const userLocation = JSON.parse(localStorage.getItem('userLocation'));
+        let center;
 
     function readSavedLocation() {
         try {
@@ -46,8 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateMapMarkers(list) {
+    function updateMapMarkers(hospitalsToShow) {
         if (!map) return;
+        // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
         list.forEach(f => {
@@ -62,19 +174,73 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function fillSelect(select, firstLabel, values, labelFor) {
-        if (!select) return;
-        select.innerHTML = '';
-        const first = document.createElement('option');
-        first.value = '';
-        first.textContent = firstLabel;
-        select.appendChild(first);
-        values.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v;
-            opt.textContent = labelFor ? labelFor(v) : v;
-            select.appendChild(opt);
+    // Display all hospitals initially
+    function displayHospitals(hospitalsToDisplay) {
+        hospitalsList.innerHTML = '';
+
+        if (hospitalsToDisplay.length === 0) {
+            hospitalsList.innerHTML = '<p class="no-results">No hospitals found matching your criteria.</p>';
+            updateMapMarkers([]);
+            return;
+        }
+
+        const sortBy = sortSelect.value;
+        const sortedHospitals = sortHospitals(hospitalsToDisplay, sortBy);
+
+        sortedHospitals.forEach(hospital => {
+            const hospitalCard = document.createElement('div');
+            hospitalCard.className = 'hospital-card';
+            hospitalCard.innerHTML = `
+                <div class="hospital-image" style="background-image: url('${hospital.image}')"></div>
+                <div class="hospital-info">
+                    <h4 class="hospital-name">${hospital.name}</h4>
+                    <p class="hospital-type">${hospital.type}</p>
+                    <p class="hospital-location"><i class="fas fa-map-marker-alt"></i> ${hospital.location}</p>
+                    <div class="hospital-services">
+                        ${hospital.services.map(service =>
+                            `<span class="service-tag">${service}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="hospital-actions">
+                        <button class="btn-directions" data-lat="${hospital.lat}" data-lng="${hospital.lng}">
+                            <i class="fas fa-directions"></i> Directions
+                        </button>
+                        <button class="btn-call" data-phone="${hospital.phone}">
+                            <i class="fas fa-phone"></i> Call
+                        </button>
+                        <button class="btn-save" data-id="${hospital.id}" aria-pressed="false">Save</button>
+                    </div>
+                </div>
+            `;
+            hospitalsList.appendChild(hospitalCard);
         });
+
+        // Add event listeners to buttons
+        document.querySelectorAll('.btn-directions').forEach(button => {
+            button.addEventListener('click', function() {
+                const lat = parseFloat(this.getAttribute('data-lat'));
+                const lng = parseFloat(this.getAttribute('data-lng'));
+                // Open directions in new tab
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+            });
+        });
+
+        document.querySelectorAll('.btn-call').forEach(button => {
+            button.addEventListener('click', function() {
+                const phone = this.getAttribute('data-phone');
+                // Initiate phone call
+                window.location.href = `tel:${phone}`;
+            });
+        });
+
+        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
+            button.addEventListener('click', function() {
+                toggleSaved(Number(this.getAttribute('data-id')));
+            });
+        });
+        updateSaveButtons();
+
+        updateMapMarkers(sortedHospitals);
     }
 
     function populateFilters() {
@@ -160,10 +326,63 @@ document.addEventListener('DOMContentLoaded', function() {
         render(sorted, note);
     }
 
-    function locateUser() {
-        if (!navigator.geolocation) {
-            setStatus('Location is not supported by this browser. Sorting by name instead.');
-            return;
+    // Event listeners
+    searchInput.addEventListener('input', filterHospitals);
+    filterButton.addEventListener('click', filterHospitals);
+    sortSelect.addEventListener('change', filterHospitals);
+
+    // Initialize
+    renderSavedFacilities();
+    initMap();
+    displayHospitals(hospitals);
+
+    // API search function (kept for reference)
+    async function searchHospitals(lat, lng, radius = 10) {
+        try {
+            // Try CMS API first
+            const cmsResponse = await fetch(`https://data.cms.gov/data-api/v1/dataset/9c7c7e7a-3f3e-4f3b-9c3e-3f3e3f3e3f3e/data?latitude=${lat}&longitude=${lng}&radius=${radius}`);
+
+            if (!cmsResponse.ok) throw new Error('CMS API failed');
+
+            const cmsData = await cmsResponse.json();
+
+            if (cmsData && cmsData.length > 0) {
+                return cmsData.map(hospital => ({
+                    id: hospital.id,
+                    name: hospital.name,
+                    type: 'Hospital',
+                    location: hospital.address,
+                    services: hospital.services?.split(',') || [],
+                    phone: hospital.phone,
+                    rating: hospital.rating,
+                    lat: hospital.latitude,
+                    lng: hospital.longitude,
+                    image: "../assets/images/hospital-default.jpg"
+                }));
+            }
+
+            // Fallback to OpenStreetMap if CMS fails
+            const osmResponse = await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node[amenity=hospital](around:${radius*1000},${lat},${lng});out;`);
+
+            if (!osmResponse.ok) throw new Error('OSM API failed');
+
+            const osmData = await osmResponse.json();
+
+            return osmData.elements.map(hospital => ({
+                id: hospital.id,
+                name: hospital.tags?.name || 'Hospital',
+                type: 'Hospital',
+                location: hospital.tags?.['addr:full'] || 'Location not available',
+                services: [],
+                phone: hospital.tags?.phone || '',
+                rating: null,
+                lat: hospital.lat,
+                lng: hospital.lon,
+                image: "../assets/images/hospital-default.jpg"
+            }));
+        } catch (error) {
+            console.error('Error fetching hospitals:', error);
+            return [];
         }
         setStatus('Finding your location...');
         navigator.geolocation.getCurrentPosition(function(pos) {

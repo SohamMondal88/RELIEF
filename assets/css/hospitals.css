@@ -751,6 +751,45 @@ transition: all 0.3s;
 background-color: #3e8e41;
 }
 
+.btn-save {
+padding: 0.5rem 1rem;
+background-color: white;
+color: #333;
+border: 1px solid #999;
+border-radius: 5px;
+font-weight: 500;
+cursor: pointer;
+}
+
+.btn-save.is-saved {
+background-color: #fff3cd;
+border-color: #b8860b;
+}
+
+.saved-facilities {
+background-color: white;
+padding: 1.5rem 2rem;
+border-radius: 10px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+margin-bottom: 2rem;
+}
+
+.saved-note,
+.saved-empty,
+.saved-meta {
+color: #555;
+font-size: 0.9rem;
+}
+
+.saved-item {
+padding: 0.75rem 0;
+border-top: 1px solid #eee;
+}
+
+.saved-item a {
+margin-right: 1rem;
+}
+
 .map-container {
 margin-top: 2rem;
 border-radius: 10px;
