@@ -71,6 +71,64 @@
     background: #fff;
 }
 
+.reminder-note {
+    font-size: 0.85rem;
+    margin: 6px 0 10px;
+}
+
+.reminder-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.reminder-paused,
+.reminder-completed,
+.reminder-expired {
+    opacity: 0.75;
+}
+
+.reminder-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 10px 12px;
+    border: 1px solid #f5c26b;
+    border-radius: 10px;
+    background: #fff8e6;
+}
+
+.panel-soft [hidden] {
+    display: none !important;
+}
+
+.reminder-banner p {
+    margin: 0 0 4px;
+}
+
+.notify-panel {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border: 1px solid #dbe7ff;
+    border-radius: 10px;
+    background: #f5faff;
+}
+
+.notify-panel p {
+    margin: 4px 0 8px;
+    font-size: 0.85rem;
+}
+
+.reminder-errors {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #b42318;
+    font-size: 0.9rem;
+}
+
 .benefit-card {
     background: linear-gradient(140deg, #ffffff, #f5faff);
 }

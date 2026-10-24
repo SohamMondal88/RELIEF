@@ -80,7 +80,8 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
   - `firebase-config.js`: Initializes the Firebase web client using configured project parameters.
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.
-  - `dashboard.js`: Manages user appointments and reminder state persisted in browser `localStorage`.
+  - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
+  - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
 
 ## 4. Preview the website locally
