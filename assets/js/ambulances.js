@@ -51,32 +51,51 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
     let map;
     let markers = [];
+    let userMarker = null;
+    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
 
-    function initMap() {
-        // Use user's location if available, or default to a central location
-        const userLocation = JSON.parse(localStorage.getItem('userLocation'));
-        const center = userLocation ? [userLocation.lat, userLocation.lng] : [24.417, 86.473]; // Default to New York
+    // Returns [lat, lng] from the saved location, or null.
+    function getUserLocation() {
+        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
+        return saved ? [saved.lat, saved.lng] : null;
+    }
 
-        map = L.map('map').setView(center, 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Add marker for user's location if available
-        if (userLocation) {
+    function setUserMarker(location) {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+            userMarker = null;
+        }
+        if (location) {
             const userIcon = L.icon({
                 iconUrl: '../assets/images/user-marker.png',
                 iconSize: [32, 32],
                 iconAnchor: [16, 32],
                 popupAnchor: [0, -32]
             });
-
-            L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
-                .addTo(map)
-                .bindPopup('Your Location')
-                .openPopup();
+            userMarker = L.marker(location, { icon: userIcon }).addTo(map).bindPopup('Your Location');
         }
+    }
+
+    document.addEventListener('relief:location-changed', function() {
+        if (!map) return;
+        const location = getUserLocation();
+        setUserMarker(location);
+        if (location) map.setView(location, 13);
+    });
+
+    function initMap() {
+        // Use the saved location if there is one, otherwise a West Bengal overview
+        const userLocation = getUserLocation();
+        const center = userLocation || DEFAULT_CENTER;
+
+        map = L.map('map').setView(center, userLocation ? 13 : 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add marker for user's location if available
+        setUserMarker(userLocation);
 
         // Add ambulance markers
         updateMapMarkers(ambulanceServices);

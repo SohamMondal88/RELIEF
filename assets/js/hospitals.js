@@ -119,30 +119,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
     let map;
     let markers = [];
+    let userMarker = null;
+    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
+
+    // Returns [lat, lng] from the saved location, or null.
+    function getUserLocation() {
+        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
+        return saved ? [saved.lat, saved.lng] : null;
+    }
+
+    function setUserMarker(location) {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+            userMarker = null;
+        }
+        if (location) {
+            userMarker = L.marker(location).addTo(map).bindPopup('Your Location');
+        }
+    }
+
+    document.addEventListener('relief:location-changed', function() {
+        if (!map) return;
+        const location = getUserLocation();
+        setUserMarker(location);
+        map.setView(location || DEFAULT_CENTER, location ? 13 : 7);
+    });
 
     function initMap() {
-        // Leaflet comes from a CDN, so it is missing when the page is opened offline
-        if (typeof L === 'undefined') {
-            const mapEl = document.getElementById('map');
-            if (mapEl) mapEl.textContent = 'Map unavailable offline. Saved facilities above still work.';
-            return;
-        }
-
         // Use user's location if available, or default to a central location
-        const userLocation = JSON.parse(localStorage.getItem('userLocation'));
-        let center;
+        const userLocation = getUserLocation();
+        const center = userLocation || DEFAULT_CENTER;
 
-    function readSavedLocation() {
-        try {
-            return U.parseUserLocation(localStorage.getItem('userLocation'));
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function setStatus(message) {
-        if (statusEl) statusEl.textContent = message;
-    }
+        map = L.map('map').setView(center, userLocation ? 13 : 7);
 
     function initMap() {
         if (typeof L === 'undefined' || !document.getElementById('map')) return;
@@ -152,9 +160,9 @@ document.addEventListener('DOMContentLoaded', function() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
-        if (saved) {
-            L.marker(center).addTo(map).bindPopup('Your Location');
-        }
+
+        // Add marker for user's location if available
+        setUserMarker(userLocation);
     }
 
     function updateMapMarkers(hospitalsToShow) {
@@ -169,8 +177,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 .bindPopup('<b>' + U.escapeHtml(f.name) + '</b><br>' + U.escapeHtml(f.district));
             markers.push(marker);
         });
-        if (markers.length > 0) {
-            map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+
+        // Adjust map view to show all markers if there are any
+        if (hospitalsToShow.length > 0) {
+            const markerGroup = new L.featureGroup(markers);
+            map.fitBounds(markerGroup.getBounds().pad(0.2));
+        } else if (map) {
+            // Reset to default view if no markers
+            const userLocation = getUserLocation();
+            map.setView(userLocation || DEFAULT_CENTER, userLocation ? 13 : 7);
         }
     }
 
