@@ -1,0 +1,879 @@
+{
+  "_note": "Records carried over from the previous hardcoded list. None are verified yet; district holds the place name from that list.",
+  "facilities": [
+    {
+      "id": "fac-001",
+      "name": "All India Institute of Hygiene and Public Health",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2241 4239",
+      "hours": null,
+      "services": [
+        "Public Health",
+        "Hygiene Research",
+        "Medical Education"
+      ],
+      "lat": 22.5726,
+      "lng": 88.3639,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-002",
+      "name": "All India Institute of Medical Sciences, Kalyani",
+      "type": "hospital",
+      "district": "Kalyani",
+      "address": null,
+      "phone": "+91 33 2952 8100",
+      "hours": null,
+      "services": [
+        "Super Specialty Care",
+        "Medical Research",
+        "Undergraduate Education"
+      ],
+      "lat": 22.975,
+      "lng": 88.4344,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-003",
+      "name": "Bankura Sammilani Medical College and Hospital",
+      "type": "hospital",
+      "district": "Bankura",
+      "address": null,
+      "phone": "+91 3242 250 201",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Pediatrics"
+      ],
+      "lat": 23.2329,
+      "lng": 87.0755,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-004",
+      "name": "Barasat Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Barasat",
+      "address": null,
+      "phone": "+91 33 2552 1234",
+      "hours": null,
+      "services": [
+        "Emergency Care",
+        "General Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.7225,
+      "lng": 88.4886,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-005",
+      "name": "Burdwan Medical College and Hospital",
+      "type": "hospital",
+      "district": "Purba Bardhaman",
+      "address": null,
+      "phone": "+91 342 255 5401",
+      "hours": null,
+      "services": [
+        "Cardiology",
+        "Neurology",
+        "Oncology"
+      ],
+      "lat": 23.2599,
+      "lng": 87.857,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-006",
+      "name": "Calcutta National Medical College",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2370 1234",
+      "hours": null,
+      "services": [
+        "Emergency Care",
+        "Orthopedics",
+        "Neurology"
+      ],
+      "lat": 22.5726,
+      "lng": 88.3639,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-007",
+      "name": "Calcutta School of Tropical Medicine",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2241 3441",
+      "hours": null,
+      "services": [
+        "Tropical Diseases",
+        "Research",
+        "Postgraduate Training"
+      ],
+      "lat": 22.5587,
+      "lng": 88.3509,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-008",
+      "name": "Chittaranjan National Cancer Institute",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2476 5101",
+      "hours": null,
+      "services": [
+        "Oncology",
+        "Cancer Research",
+        "Radiotherapy"
+      ],
+      "lat": 22.573,
+      "lng": 88.3632,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-009",
+      "name": "College of Medicine and JNM Hospital",
+      "type": "hospital",
+      "district": "Kalyani",
+      "address": null,
+      "phone": "+91 33 2582 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Pediatrics",
+        "Surgery"
+      ],
+      "lat": 22.975,
+      "lng": 88.4344,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-010",
+      "name": "College of Medicine & Sagore Dutta Hospital",
+      "type": "hospital",
+      "district": "Kamarhati",
+      "address": null,
+      "phone": "+91 33 2563 1234",
+      "hours": null,
+      "services": [
+        "Emergency Care",
+        "General Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.6711,
+      "lng": 88.3744,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-011",
+      "name": "Deben Mahata Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Purulia",
+      "address": null,
+      "phone": "+91 3252 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Pediatrics",
+        "Emergency Care"
+      ],
+      "lat": 23.3338,
+      "lng": 86.3648,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-012",
+      "name": "Diamond Harbour Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Diamond Harbour",
+      "address": null,
+      "phone": "+91 3174 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.191,
+      "lng": 88.1909,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-013",
+      "name": "Dr B C Roy Institute of Medical Sciences and Research",
+      "type": "hospital",
+      "district": "Kharagpur",
+      "address": null,
+      "phone": "+91 3222 255 123",
+      "hours": null,
+      "services": [
+        "Medical Research",
+        "Undergraduate Education",
+        "Pediatrics"
+      ],
+      "lat": 22.346,
+      "lng": 87.232,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-014",
+      "name": "Dr. B C Roy Post Graduate Institute of Paediatric Sciences",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2456 7890",
+      "hours": null,
+      "services": [
+        "Pediatrics",
+        "Neonatology",
+        "Child Health Research"
+      ],
+      "lat": 22.5735,
+      "lng": 88.3628,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-015",
+      "name": "East West Institute of Medical Sciences and Research",
+      "type": "hospital",
+      "district": "Burdwan",
+      "address": null,
+      "phone": "+91 342 250 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 23.2599,
+      "lng": 87.857,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-016",
+      "name": "ESIC Medical College",
+      "type": "hospital",
+      "district": "Joka",
+      "address": null,
+      "phone": "+91 33 2467 1234",
+      "hours": null,
+      "services": [
+        "Employee Health Services",
+        "General Medicine",
+        "Surgery"
+      ],
+      "lat": 22.4485,
+      "lng": 88.3045,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-017",
+      "name": "Gouri Devi Institute of Medical Sciences and Hospital",
+      "type": "hospital",
+      "district": "Durgapur",
+      "address": null,
+      "phone": "+91 343 250 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 23.5204,
+      "lng": 87.3119,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-018",
+      "name": "ICARE Institute of Medical Sciences and Research",
+      "type": "hospital",
+      "district": "Haldia",
+      "address": null,
+      "phone": "+91 3224 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.0257,
+      "lng": 88.0583,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-019",
+      "name": "Institute of Child Health",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2241 1234",
+      "hours": null,
+      "services": [
+        "Pediatrics",
+        "Neonatology",
+        "Child Nutrition"
+      ],
+      "lat": 22.5735,
+      "lng": 88.3628,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-020",
+      "name": "IPGMER and SSKM Hospital",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2204 1234",
+      "hours": null,
+      "services": [
+        "Super Specialty Care",
+        "Postgraduate Education",
+        "Research"
+      ],
+      "lat": 22.5356,
+      "lng": 88.3494,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-021",
+      "name": "IQ City Medical College",
+      "type": "hospital",
+      "district": "Durgapur",
+      "address": null,
+      "phone": "+91 343 250 5678",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 23.5204,
+      "lng": 87.3119,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-022",
+      "name": "Jagannath Gupta Institute of Medical Sciences and Hospital",
+      "type": "hospital",
+      "district": "Budge Budge",
+      "address": null,
+      "phone": "+91 33 2490 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.47,
+      "lng": 88.17,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-023",
+      "name": "Jakir Hossain Medical College and Research Institute",
+      "type": "hospital",
+      "district": "Jangipur",
+      "address": null,
+      "phone": "+91 3483 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 24.47,
+      "lng": 88.07,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-024",
+      "name": "Jalpaiguri Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Jalpaiguri",
+      "address": null,
+      "phone": "+91 3561 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Pediatrics"
+      ],
+      "lat": 26.5167,
+      "lng": 88.7333,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-025",
+      "name": "Jhargram Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Jhargram",
+      "address": null,
+      "phone": "+91 3221 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.45,
+      "lng": 86.98,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-026",
+      "name": "JIS School of Medical Science & Research",
+      "type": "hospital",
+      "district": "Howrah",
+      "address": null,
+      "phone": "+91 33 2637 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Research"
+      ],
+      "lat": 22.5958,
+      "lng": 88.2636,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-027",
+      "name": "JMN Medical College and Hospital",
+      "type": "hospital",
+      "district": "Chakdaha",
+      "address": null,
+      "phone": "+91 33 2550 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 23.08,
+      "lng": 88.52,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-028",
+      "name": "Krishnanagar Institute of Medical Science",
+      "type": "hospital",
+      "district": "Krishnanagar",
+      "address": null,
+      "phone": "+91 3472 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 23.4,
+      "lng": 88.5,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-029",
+      "name": "KPC Medical College and Hospital",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2441 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.5726,
+      "lng": 88.3639,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-030",
+      "name": "Maharaja Jitendra Narayan Medical College and Hospital",
+      "type": "hospital",
+      "district": "Cooch Behar",
+      "address": null,
+      "phone": "+91 3582 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Pediatrics"
+      ],
+      "lat": 26.3167,
+      "lng": 89.4333,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-031",
+      "name": "Malda Medical College and Hospital",
+      "type": "hospital",
+      "district": "Malda",
+      "address": null,
+      "phone": "+91 3512 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 25,
+      "lng": 88.15,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-032",
+      "name": "Medical College and Hospital, Kolkata",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2204 1101",
+      "hours": null,
+      "services": [
+        "All Specialties",
+        "Oldest Medical College",
+        "Research"
+      ],
+      "lat": 22.5738,
+      "lng": 88.3611,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-033",
+      "name": "Midnapore Medical College and Hospital",
+      "type": "hospital",
+      "district": "Midnapore",
+      "address": null,
+      "phone": "+91 3222 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.425,
+      "lng": 87.32,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-034",
+      "name": "Murshidabad Medical College and Hospital",
+      "type": "hospital",
+      "district": "Berhampore",
+      "address": null,
+      "phone": "+91 3482 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 24.1,
+      "lng": 88.25,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-035",
+      "name": "Nil Ratan Sircar Medical College and Hospital",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2223 5181",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.5745,
+      "lng": 88.3622,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-036",
+      "name": "North Bengal Medical College and Hospital",
+      "type": "hospital",
+      "district": "Siliguri",
+      "address": null,
+      "phone": "+91 353 250 1234",
+      "hours": null,
+      "services": [
+        "Emergency Care",
+        "Pediatrics",
+        "General Medicine"
+      ],
+      "lat": 26.7271,
+      "lng": 88.3953,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-037",
+      "name": "Prafulla Chandra Sen Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Arambagh",
+      "address": null,
+      "phone": "+91 3212 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.88,
+      "lng": 87.78,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-038",
+      "name": "PKG Medical College and Hospital",
+      "type": "hospital",
+      "district": "New Town",
+      "address": null,
+      "phone": "+91 33 2567 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.58,
+      "lng": 88.45,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-039",
+      "name": "R. G. Kar Medical College and Hospital",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2555 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.595,
+      "lng": 88.37,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-040",
+      "name": "Raiganj Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Raiganj",
+      "address": null,
+      "phone": "+91 3523 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Pediatrics"
+      ],
+      "lat": 25.62,
+      "lng": 88.12,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-041",
+      "name": "Rampurhat Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Rampurhat",
+      "address": null,
+      "phone": "+91 3461 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 24.17,
+      "lng": 87.78,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-042",
+      "name": "Santiniketan Medical College",
+      "type": "hospital",
+      "district": "Bolpur",
+      "address": null,
+      "phone": "+91 3463 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 23.67,
+      "lng": 87.72,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-043",
+      "name": "Sarat Chandra Chattopadhyay Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Uluberia",
+      "address": null,
+      "phone": "+91 33 2661 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.47,
+      "lng": 88.11,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-044",
+      "name": "Shri Ramkrishna Institute of Medical Sciences and Sanaka Hospital",
+      "type": "hospital",
+      "district": "Durgapur",
+      "address": null,
+      "phone": "+91 343 250 5678",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 23.5204,
+      "lng": 87.3119,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-045",
+      "name": "Tamralipto Government Medical College and Hospital",
+      "type": "hospital",
+      "district": "Tamluk",
+      "address": null,
+      "phone": "+91 3228 250 123",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Obstetrics"
+      ],
+      "lat": 22.3,
+      "lng": 87.92,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fac-046",
+      "name": "Vivekananda Institute of Medical Sciences",
+      "type": "hospital",
+      "district": "Kolkata",
+      "address": null,
+      "phone": "+91 33 2456 1234",
+      "hours": null,
+      "services": [
+        "General Medicine",
+        "Surgery",
+        "Emergency Care"
+      ],
+      "lat": 22.5726,
+      "lng": 88.3639,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    }
+  ]
+}
