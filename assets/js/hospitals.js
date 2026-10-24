@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const U = window.FacilityUtils;
     const DATA_URL = '../assets/data/facilities.json';
-    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal
+    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
 
     const hospitalsList = document.querySelector('.hospitals-list');
     const searchInput = document.querySelector('.search-box input');
@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
     const locateButton = document.getElementById('use-my-location');
+
+    if (!hospitalsList || !U) return;
+
+    let facilities = [];
+    let map = null;
+    let markers = [];
+    let userMarker = null;
 
     // Saved facilities live in localStorage so they work offline
     const SAVED_KEY = 'relief_saved_facilities';
@@ -76,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
             remove.type = 'button';
             remove.className = 'btn-save is-saved';
             remove.textContent = 'Remove';
-            remove.addEventListener('click', () => toggleSaved(item.id));
+            remove.addEventListener('click', () => toggleSaved(String(item.id)));
             row.appendChild(remove);
 
             savedList.appendChild(row);
@@ -85,19 +92,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleSaved(id) {
         const items = getSavedFacilities();
-        const exists = items.some(item => item.id === id);
+        const exists = items.some(item => String(item.id) === id);
         if (exists) {
-            setSavedFacilities(items.filter(item => item.id !== id));
+            setSavedFacilities(items.filter(item => String(item.id) !== id));
         } else {
-            const hospital = hospitals.find(h => h.id === id);
-            if (!hospital) return;
+            const facility = facilities.find(f => f.id === id);
+            if (!facility) return;
             items.push({
-                id: hospital.id,
-                name: hospital.name,
-                location: hospital.location,
-                phone: hospital.phone,
-                lat: hospital.lat,
-                lng: hospital.lng,
+                id: facility.id,
+                name: facility.name,
+                location: facility.address || facility.district || '',
+                phone: facility.phone,
+                lat: facility.lat,
+                lng: facility.lng,
                 savedAt: Date.now()
             });
             setSavedFacilities(items);
@@ -107,50 +114,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateSaveButtons() {
-        const savedIds = new Set(getSavedFacilities().map(item => item.id));
+        const savedIds = new Set(getSavedFacilities().map(item => String(item.id)));
         document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
-            const saved = savedIds.has(Number(button.getAttribute('data-id')));
+            const saved = savedIds.has(button.getAttribute('data-id'));
             button.classList.toggle('is-saved', saved);
             button.textContent = saved ? 'Saved' : 'Save';
             button.setAttribute('aria-pressed', saved ? 'true' : 'false');
         });
     }
 
-    // Initialize map
-    let map;
-    let markers = [];
-    let userMarker = null;
-    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
+    // The saved location comes from the shared location helper (manual entry or GPS).
+    // Older visits stored a bare { lat, lng } under the same key, which still parses.
+    function readSavedLocation() {
+        try {
+            if (window.ReliefLocation) {
+                const saved = window.ReliefLocation.loadLocation();
+                return saved ? { lat: saved.lat, lng: saved.lng } : null;
+            }
+            return U.parseUserLocation(localStorage.getItem('userLocation'));
+        } catch (e) {
+            return null;
+        }
+    }
 
-    // Returns [lat, lng] from the saved location, or null.
-    function getUserLocation() {
-        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
-        return saved ? [saved.lat, saved.lng] : null;
+    function setStatus(message) {
+        if (statusEl) statusEl.textContent = message;
     }
 
     function setUserMarker(location) {
+        if (!map) return;
         if (userMarker) {
             map.removeLayer(userMarker);
             userMarker = null;
         }
         if (location) {
-            userMarker = L.marker(location).addTo(map).bindPopup('Your Location');
+            userMarker = L.marker([location.lat, location.lng]).addTo(map).bindPopup('Your Location');
         }
     }
-
-    document.addEventListener('relief:location-changed', function() {
-        if (!map) return;
-        const location = getUserLocation();
-        setUserMarker(location);
-        map.setView(location || DEFAULT_CENTER, location ? 13 : 7);
-    });
-
-    function initMap() {
-        // Use user's location if available, or default to a central location
-        const userLocation = getUserLocation();
-        const center = userLocation || DEFAULT_CENTER;
-
-        map = L.map('map').setView(center, userLocation ? 13 : 7);
 
     function initMap() {
         if (typeof L === 'undefined' || !document.getElementById('map')) return;
@@ -160,14 +160,11 @@ document.addEventListener('DOMContentLoaded', function() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
-
-        // Add marker for user's location if available
-        setUserMarker(userLocation);
+        setUserMarker(saved);
     }
 
-    function updateMapMarkers(hospitalsToShow) {
+    function updateMapMarkers(list) {
         if (!map) return;
-        // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
         list.forEach(f => {
@@ -177,85 +174,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 .bindPopup('<b>' + U.escapeHtml(f.name) + '</b><br>' + U.escapeHtml(f.district));
             markers.push(marker);
         });
-
-        // Adjust map view to show all markers if there are any
-        if (hospitalsToShow.length > 0) {
-            const markerGroup = new L.featureGroup(markers);
-            map.fitBounds(markerGroup.getBounds().pad(0.2));
-        } else if (map) {
-            // Reset to default view if no markers
-            const userLocation = getUserLocation();
-            map.setView(userLocation || DEFAULT_CENTER, userLocation ? 13 : 7);
+        if (markers.length > 0) {
+            map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+        } else {
+            const saved = readSavedLocation();
+            map.setView(saved ? [saved.lat, saved.lng] : DEFAULT_CENTER, saved ? 11 : 7);
         }
     }
 
-    // Display all hospitals initially
-    function displayHospitals(hospitalsToDisplay) {
-        hospitalsList.innerHTML = '';
-
-        if (hospitalsToDisplay.length === 0) {
-            hospitalsList.innerHTML = '<p class="no-results">No hospitals found matching your criteria.</p>';
-            updateMapMarkers([]);
-            return;
-        }
-
-        const sortBy = sortSelect.value;
-        const sortedHospitals = sortHospitals(hospitalsToDisplay, sortBy);
-
-        sortedHospitals.forEach(hospital => {
-            const hospitalCard = document.createElement('div');
-            hospitalCard.className = 'hospital-card';
-            hospitalCard.innerHTML = `
-                <div class="hospital-image" style="background-image: url('${hospital.image}')"></div>
-                <div class="hospital-info">
-                    <h4 class="hospital-name">${hospital.name}</h4>
-                    <p class="hospital-type">${hospital.type}</p>
-                    <p class="hospital-location"><i class="fas fa-map-marker-alt"></i> ${hospital.location}</p>
-                    <div class="hospital-services">
-                        ${hospital.services.map(service =>
-                            `<span class="service-tag">${service}</span>`
-                        ).join('')}
-                    </div>
-                    <div class="hospital-actions">
-                        <button class="btn-directions" data-lat="${hospital.lat}" data-lng="${hospital.lng}">
-                            <i class="fas fa-directions"></i> Directions
-                        </button>
-                        <button class="btn-call" data-phone="${hospital.phone}">
-                            <i class="fas fa-phone"></i> Call
-                        </button>
-                        <button class="btn-save" data-id="${hospital.id}" aria-pressed="false">Save</button>
-                    </div>
-                </div>
-            `;
-            hospitalsList.appendChild(hospitalCard);
+    function fillSelect(select, firstLabel, values, labelFor) {
+        if (!select) return;
+        select.innerHTML = '';
+        const first = document.createElement('option');
+        first.value = '';
+        first.textContent = firstLabel;
+        select.appendChild(first);
+        values.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = labelFor ? labelFor(v) : v;
+            select.appendChild(opt);
         });
-
-        // Add event listeners to buttons
-        document.querySelectorAll('.btn-directions').forEach(button => {
-            button.addEventListener('click', function() {
-                const lat = parseFloat(this.getAttribute('data-lat'));
-                const lng = parseFloat(this.getAttribute('data-lng'));
-                // Open directions in new tab
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-            });
-        });
-
-        document.querySelectorAll('.btn-call').forEach(button => {
-            button.addEventListener('click', function() {
-                const phone = this.getAttribute('data-phone');
-                // Initiate phone call
-                window.location.href = `tel:${phone}`;
-            });
-        });
-
-        document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
-            button.addEventListener('click', function() {
-                toggleSaved(Number(this.getAttribute('data-id')));
-            });
-        });
-        updateSaveButtons();
-
-        updateMapMarkers(sortedHospitals);
     }
 
     function populateFilters() {
@@ -298,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     (phoneHref
                         ? '<a class="btn-call" href="tel:' + U.escapeHtml(phoneHref) + '" aria-label="Call ' + U.escapeHtml(f.name) + '"><i class="fas fa-phone" aria-hidden="true"></i> Call</a>'
                         : '') +
+                    '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' for offline use">Save</button>' +
                 '</div>' +
             '</div>';
     }
@@ -321,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const count = list.length + (list.length === 1 ? ' facility found.' : ' facilities found.');
         setStatus(note ? count + ' ' + note : count);
+        updateSaveButtons();
         updateMapMarkers(list);
     }
 
@@ -341,72 +282,28 @@ document.addEventListener('DOMContentLoaded', function() {
         render(sorted, note);
     }
 
-    // Event listeners
-    searchInput.addEventListener('input', filterHospitals);
-    filterButton.addEventListener('click', filterHospitals);
-    sortSelect.addEventListener('change', filterHospitals);
-
-    // Initialize
-    renderSavedFacilities();
-    initMap();
-    displayHospitals(hospitals);
-
-    // API search function (kept for reference)
-    async function searchHospitals(lat, lng, radius = 10) {
-        try {
-            // Try CMS API first
-            const cmsResponse = await fetch(`https://data.cms.gov/data-api/v1/dataset/9c7c7e7a-3f3e-4f3b-9c3e-3f3e3f3e3f3e/data?latitude=${lat}&longitude=${lng}&radius=${radius}`);
-
-            if (!cmsResponse.ok) throw new Error('CMS API failed');
-
-            const cmsData = await cmsResponse.json();
-
-            if (cmsData && cmsData.length > 0) {
-                return cmsData.map(hospital => ({
-                    id: hospital.id,
-                    name: hospital.name,
-                    type: 'Hospital',
-                    location: hospital.address,
-                    services: hospital.services?.split(',') || [],
-                    phone: hospital.phone,
-                    rating: hospital.rating,
-                    lat: hospital.latitude,
-                    lng: hospital.longitude,
-                    image: "../assets/images/hospital-default.jpg"
-                }));
-            }
-
-            // Fallback to OpenStreetMap if CMS fails
-            const osmResponse = await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node[amenity=hospital](around:${radius*1000},${lat},${lng});out;`);
-
-            if (!osmResponse.ok) throw new Error('OSM API failed');
-
-            const osmData = await osmResponse.json();
-
-            return osmData.elements.map(hospital => ({
-                id: hospital.id,
-                name: hospital.tags?.name || 'Hospital',
-                type: 'Hospital',
-                location: hospital.tags?.['addr:full'] || 'Location not available',
-                services: [],
-                phone: hospital.tags?.phone || '',
-                rating: null,
-                lat: hospital.lat,
-                lng: hospital.lon,
-                image: "../assets/images/hospital-default.jpg"
-            }));
-        } catch (error) {
-            console.error('Error fetching hospitals:', error);
-            return [];
+    function locateUser() {
+        if (!navigator.geolocation) {
+            setStatus('Location is not supported by this browser. Sorting by name instead.');
+            return;
         }
         setStatus('Finding your location...');
         navigator.geolocation.getCurrentPosition(function(pos) {
-            try {
-                localStorage.setItem('userLocation', JSON.stringify({
+            if (window.ReliefLocation) {
+                window.ReliefLocation.saveLocation({
                     lat: pos.coords.latitude,
-                    lng: pos.coords.longitude
-                }));
-            } catch (e) { /* storage unavailable; the location is used only for this visit */ }
+                    lng: pos.coords.longitude,
+                    source: 'gps'
+                });
+            } else {
+                try {
+                    localStorage.setItem('userLocation', JSON.stringify({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude
+                    }));
+                } catch (e) { /* storage unavailable; the location is used only for this visit */ }
+            }
+            setUserMarker(readSavedLocation());
             if (sortSelect) sortSelect.value = 'distance';
             applyFilters();
         }, function(err) {
@@ -456,6 +353,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     hospitalsList.addEventListener('click', function(e) {
+        const saveBtn = e.target.closest('.btn-save');
+        if (saveBtn) {
+            toggleSaved(saveBtn.getAttribute('data-id'));
+            return;
+        }
         const btn = e.target.closest('.btn-directions');
         if (!btn) return;
         const lat = parseFloat(btn.getAttribute('data-lat'));
@@ -463,6 +365,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (U.isValidCoord(lat, lng)) {
             window.open('https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng, '_blank', 'noopener');
         }
+    });
+
+    // The location panel fires this when the user types a place, uses GPS or clears it
+    document.addEventListener('relief:location-changed', function() {
+        setUserMarker(readSavedLocation());
+        if (facilities.length) applyFilters();
     });
 
     if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); applyFilters(); });
@@ -473,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     if (locateButton) locateButton.addEventListener('click', locateUser);
 
+    renderSavedFacilities();
     initMap();
     loadFacilities();
 });
