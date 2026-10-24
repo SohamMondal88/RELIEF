@@ -145,8 +145,46 @@
 
 .chat-input-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 10px;
+}
+
+.chat-note {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #4a5a78;
+}
+
+.chat-bubble p {
+    margin: 0;
+}
+
+.chat-bubble.urgent {
+    background: #fff1f0;
+    border: 2px solid #d92d20;
+    color: #7a1410;
+    font-weight: 600;
+}
+
+.chat-link {
+    display: inline-block;
+    margin: 8px 8px 0 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #0f6dff;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.chat-bubble.urgent .chat-link {
+    background: #d92d20;
+}
+
+.chat-link:focus-visible,
+.chip:focus-visible {
+    outline: 3px solid #134293;
+    outline-offset: 2px;
 }
 
 @media (max-width: 900px) {
