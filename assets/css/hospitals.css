@@ -1341,3 +1341,61 @@ grid-template-columns: 1fr;
         font-size: 0.9rem;
     }
 }
+
+/* Facility directory: status, verification and empty/error states */
+.data-note {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.directory-status {
+    min-height: 1.4em;
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+
+.verify-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-verified {
+    background: #d4f5e6;
+    color: #00593f;
+}
+
+.badge-unverified {
+    background: #fff1d6;
+    color: #7a4a00;
+}
+
+.verify-detail,
+.not-available {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.hospital-distance {
+    font-weight: 600;
+}
+
+.loading-state,
+.error-state,
+.no-results {
+    padding: 20px;
+    text-align: center;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hospital-actions .btn-call {
+    display: inline-block;
+    text-decoration: none;
+}
