@@ -567,31 +567,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
     let map;
     let markers = [];
+    let userMarker = null;
+    const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
+
+    // Returns [lat, lng] from the saved location, or null.
+    function getUserLocation() {
+        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
+        return saved ? [saved.lat, saved.lng] : null;
+    }
+
+    function setUserMarker(location) {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+            userMarker = null;
+        }
+        if (location) {
+            userMarker = L.marker(location).addTo(map).bindPopup('Your Location');
+        }
+    }
+
+    document.addEventListener('relief:location-changed', function() {
+        if (!map) return;
+        const location = getUserLocation();
+        setUserMarker(location);
+        map.setView(location || DEFAULT_CENTER, location ? 13 : 7);
+    });
 
     function initMap() {
         // Use user's location if available, or default to a central location
-        const userLocation = JSON.parse(localStorage.getItem('userLocation'));
-        let center;
+        const userLocation = getUserLocation();
+        const center = userLocation || DEFAULT_CENTER;
 
-        if (userLocation && Array.isArray(userLocation)) {
-            center = userLocation;
-        } else {
-            center = [40.7128, -74.0060]; // Default to New York
-        }
-
-        map = L.map('map').setView(center, 13);
+        map = L.map('map').setView(center, userLocation ? 13 : 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         // Add marker for user's location if available
-        if (userLocation && Array.isArray(userLocation)) {
-            L.marker(userLocation)
-                .addTo(map)
-                .bindPopup('Your Location')
-                .openPopup();
-        }
+        setUserMarker(userLocation);
     }
 
     function updateMapMarkers(hospitalsToShow) {
@@ -614,9 +628,8 @@ document.addEventListener('DOMContentLoaded', function() {
             map.fitBounds(markerGroup.getBounds().pad(0.2));
         } else if (map) {
             // Reset to default view if no markers
-            const userLocation = JSON.parse(localStorage.getItem('userLocation'));
-            const center = userLocation && Array.isArray(userLocation) ? userLocation : [40.7128, -74.0060];
-            map.setView(center, 13);
+            const userLocation = getUserLocation();
+            map.setView(userLocation || DEFAULT_CENTER, userLocation ? 13 : 7);
         }
     }
 

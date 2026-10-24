@@ -551,6 +551,13 @@ if (typeof document !== 'undefined') {
 
 // Geolocation function
 function getLocation() {
+    if (typeof window !== 'undefined' && window.ReliefLocation) {
+        // Shared helper: timeout, retry, readable error reasons and expiring storage
+        return window.ReliefLocation.getPositionWithRetry({ retries: 1, timeout: 10000 }).then(pos => {
+            window.ReliefLocation.saveLocation(pos);
+            return { lat: pos.lat, lng: pos.lng };
+        });
+    }
     return new Promise((resolve, reject) => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ambulance Services | Relief</title>
     <link rel="stylesheet" href="../assets/css/ambulances.css">
+    <link rel="stylesheet" href="../assets/css/location-panel.css">
     <link rel="stylesheet" href="../assets/css/emergency-sos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,6 +68,8 @@
         <div class="container">
             <h1>Ambulance Services</h1>
             <p>Emergency medical transportation when you need it most</p>
+
+            <div id="location-panel" class="location-panel"></div>
 
             <!-- Emergency SOS Flow Section -->
             <section class="relief-sos-section" aria-label="One-tap Emergency SOS Flow" id="emergency-sos">
@@ -211,6 +214,8 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/location-service.js"></script>
+    <script src="../assets/js/location-panel.js"></script>
     <script src="../assets/js/ambulances.js"></script>
     <script src="../assets/js/emergency-sos.js"></script>
     <script>
