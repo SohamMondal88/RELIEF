@@ -1,194 +1,252 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get selected doctor from localStorage
-    const selectedDoctor = JSON.parse(localStorage.getItem('selectedDoctor'));
-    if (!selectedDoctor) {
-        alert('No doctor selected. Please select a doctor first.');
-        window.location.href = '../pages/doctors.html';
-        return;
-    }
+    var Request = window.ReliefAppointmentRequest;
 
-    // Appointment data
-    let appointmentData = {
-        doctor: selectedDoctor,
-        date: null,
-        time: null,
-        patientInfo: null,
-        videoUrl: null
-    };
+    // The doctor is chosen on the doctors page and passed through localStorage.
+    var selectedDoctor = null;
+    try {
+        selectedDoctor = JSON.parse(localStorage.getItem('selectedDoctor'));
+    } catch (e) {
+        selectedDoctor = null;
+    }
 
     // DOM elements
-    const doctorSummary = document.querySelector('.doctor-summary');
-    const datePicker = document.querySelector('.date-picker');
-    const timeSlots = document.querySelector('.time-slots');
-    const appointmentSummary = document.querySelector('.appointment-summary');
-    const steps = document.querySelectorAll('.form-step');
-    const stepIndicators = document.querySelectorAll('.booking-steps .step');
-    let currentStep = 0;
+    var doctorSummary = document.querySelector('.doctor-summary');
+    var appointmentSummary = document.querySelector('.appointment-summary');
+    var steps = document.querySelectorAll('.form-step');
+    var stepIndicators = document.querySelectorAll('.booking-steps .step');
+    var form = document.getElementById('patient-form');
+    var dateInput = document.getElementById('preferred-date');
+    var submitButton = document.querySelector('.btn-confirm');
+    var statusRegion = document.getElementById('request-status');
+    var currentStep = 0;
+    var sending = false;
 
-    // Initialize the page
-    displayDoctorInfo();
-    generateDateOptions();
-    showStep(currentStep);
+    // Where each validated field lives on the page: the element to focus,
+    // the element that shows the message, and the step it belongs to.
+    var FIELDS = {
+        doctor: { focus: 'doctor-error', error: 'doctor-error', step: 0 },
+        date: { focus: 'preferred-date', error: 'preferred-date-error', step: 1 },
+        timeWindow: { focus: 'window-morning', error: 'time-window-error', step: 1 },
+        name: { focus: 'patient-name', error: 'patient-name-error', step: 2 },
+        email: { focus: 'patient-email', error: 'patient-email-error', step: 2 },
+        phone: { focus: 'patient-phone', error: 'patient-phone-error', step: 2 },
+        notes: { focus: 'patient-notes', error: 'patient-notes-error', step: 2 },
+        consent: { focus: 'patient-consent', error: 'patient-consent-error', step: 2 }
+    };
 
-    // Display doctor information
+    function addParagraph(parent, className, text) {
+        var el = document.createElement('p');
+        el.className = className;
+        el.textContent = text;
+        parent.appendChild(el);
+        return el;
+    }
+
+    // Display doctor information (textContent only, the stored value is untrusted)
     function displayDoctorInfo() {
-        doctorSummary.innerHTML = `
-            <div class="doctor-image" style="background-image: url('${appointmentData.doctor.image}')"></div>
-            <div class="doctor-details">
-                <h3>${appointmentData.doctor.name}</h3>
-                <p class="doctor-specialty">${appointmentData.doctor.specialty}</p>
-                <p class="doctor-location"><i class="fas fa-map-marker-alt"></i> ${appointmentData.doctor.location}</p>
-                <div class="doctor-rating">
-                    <div class="stars">
-                        ${'<i class="fas fa-star"></i>'.repeat(Math.floor(appointmentData.doctor.rating))}
-                        ${appointmentData.doctor.rating % 1 >= 0.5 ? '<i class="fas fa-star-half-alt"></i>' : ''}
-                    </div>
-                    <span>${appointmentData.doctor.reviews} reviews</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // Generate date options for the next 7 days
-    function generateDateOptions() {
-        datePicker.innerHTML = '';
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        for (let i = 0; i < 7; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() + i);
-
-            const dayName = days[date.getDay()];
-            const day = date.getDate();
-            const month = months[date.getMonth()];
-
-            const dateOption = document.createElement('div');
-            dateOption.className = 'date-option';
-            dateOption.innerHTML = `
-                <div class="day">${day}</div>
-                <div class="month">${month}</div>
-                <div class="day-name">${dayName}</div>
-            `;
-
-            dateOption.addEventListener('click', function() {
-                document.querySelectorAll('.date-option').forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-
-                // Store selected date
-                appointmentData.date = new Date(date); // Create new Date object to avoid reference issues
-
-                // Generate time slots for selected date
-                generateTimeSlots(appointmentData.date);
-            });
-
-            datePicker.appendChild(dateOption);
+        doctorSummary.textContent = '';
+        if (!selectedDoctor) {
+            var msg = document.getElementById('doctor-error');
+            msg.hidden = false;
+            msg.textContent = '';
+            msg.appendChild(document.createTextNode('No doctor selected. '));
+            var link = document.createElement('a');
+            link.href = '../pages/doctors.html';
+            link.textContent = 'Choose a doctor first.';
+            msg.appendChild(link);
+            document.querySelectorAll('.btn-next').forEach(function(b) { b.disabled = true; });
+            return;
         }
-    }
-
-    // Generate time slots for a selected date
-    function generateTimeSlots(date) {
-        timeSlots.innerHTML = '';
-
-        // Determine if it's today or future date
-        const today = new Date();
-        const isToday = date.toDateString() === today.toDateString();
-        const currentHour = today.getHours();
-
-        // Generate time slots (every 30 minutes from 9AM to 5PM)
-        for (let hour = 9; hour <= 17; hour++) {
-            // Skip past times if it's today
-            if (isToday && hour < currentHour) continue;
-
-            // Add full hour slot
-            const fullHour = document.createElement('div');
-            fullHour.className = 'time-slot';
-            fullHour.textContent = `${hour}:00`;
-            fullHour.addEventListener('click', function() {
-                document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('active'));
-                this.classList.add('active');
-                appointmentData.time = `${hour}:00`;
-            });
-            timeSlots.appendChild(fullHour);
-
-            // Add half hour slot (except for 5PM)
-            if (hour < 17) {
-                const halfHour = document.createElement('div');
-                halfHour.className = 'time-slot';
-                halfHour.textContent = `${hour}:30`;
-                halfHour.addEventListener('click', function() {
-                    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('active'));
-                    this.classList.add('active');
-                    appointmentData.time = `${hour}:30`;
-                });
-                timeSlots.appendChild(halfHour);
-            }
+        var image = document.createElement('div');
+        image.className = 'doctor-image';
+        image.setAttribute('aria-hidden', 'true');
+        if (selectedDoctor.image) {
+            image.style.backgroundImage = 'url("' + String(selectedDoctor.image).replace(/["\\\n\r]/g, '') + '")';
         }
+        var details = document.createElement('div');
+        details.className = 'doctor-details';
+        var name = document.createElement('h3');
+        name.textContent = selectedDoctor.name || '';
+        details.appendChild(name);
+        addParagraph(details, 'doctor-specialty', selectedDoctor.specialty || '');
+        addParagraph(details, 'doctor-location', selectedDoctor.location || '');
+        doctorSummary.appendChild(image);
+        doctorSummary.appendChild(details);
     }
 
-    // Show current step
     function showStep(stepIndex) {
-        steps.forEach((step, index) => {
+        steps.forEach(function(step, index) {
             step.classList.toggle('active', index === stepIndex);
         });
-
-        // Update step indicators
-        stepIndicators.forEach((indicator, index) => {
+        stepIndicators.forEach(function(indicator, index) {
             indicator.classList.toggle('active', index === stepIndex);
             indicator.classList.toggle('completed', index < stepIndex);
         });
-
-        // Update summary in step 3
         if (stepIndex === 2) {
             updateAppointmentSummary();
         }
     }
 
-    // Update appointment summary
-    function updateAppointmentSummary() {
-        if (!appointmentData.date || !appointmentData.time) {
-            alert('Please select a date and time for your appointment');
-            currentStep = 1;
-            showStep(currentStep);
-            return;
-        }
-
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = appointmentData.date.toLocaleDateString('en-US', options);
-
-        appointmentSummary.innerHTML = `
-            <div class="summary-item">
-                <span class="summary-label">Doctor:</span>
-                <span>${appointmentData.doctor.name}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Specialty:</span>
-                <span>${appointmentData.doctor.specialty}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Date:</span>
-                <span>${formattedDate}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Time:</span>
-                <span>${appointmentData.time}</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Location:</span>
-                <span>${appointmentData.doctor.location}</span>
-            </div>
-        `;
+    function selectedWindow() {
+        var checked = document.querySelector('input[name="time-window"]:checked');
+        return checked ? checked.value : '';
     }
 
-    // Next button click handler
-    document.querySelectorAll('.btn-next').forEach(button => {
-        button.addEventListener('click', function() {
-            // Validate current step before proceeding
-            if (currentStep === 1 && (!appointmentData.date || !appointmentData.time)) {
-                alert('Please select a date and time for your appointment');
-                return;
-            }
+    function addSummaryRow(label, value) {
+        var row = document.createElement('div');
+        row.className = 'summary-item';
+        var l = document.createElement('span');
+        l.className = 'summary-label';
+        l.textContent = label;
+        var v = document.createElement('span');
+        v.textContent = value;
+        row.appendChild(l);
+        row.appendChild(v);
+        appointmentSummary.appendChild(row);
+    }
 
+    function updateAppointmentSummary() {
+        appointmentSummary.textContent = '';
+        var date = Request.parseDate(dateInput.value);
+        var windowInfo = Request.TIME_WINDOWS[selectedWindow()];
+        addSummaryRow('Doctor:', selectedDoctor.name || '');
+        addSummaryRow('Specialty:', selectedDoctor.specialty || '');
+        addSummaryRow('Preferred date:', date ? date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '');
+        addSummaryRow('Preferred time:', windowInfo ? windowInfo.label : '');
+        addSummaryRow('Location:', selectedDoctor.location || '');
+    }
+
+    function readInput() {
+        return {
+            doctor: selectedDoctor,
+            date: dateInput.value,
+            timeWindow: selectedWindow(),
+            name: document.getElementById('patient-name').value,
+            email: document.getElementById('patient-email').value,
+            phone: document.getElementById('patient-phone').value,
+            notes: document.getElementById('patient-notes').value,
+            consent: document.getElementById('patient-consent').checked
+        };
+    }
+
+    function clearErrors() {
+        Object.keys(FIELDS).forEach(function(key) {
+            if (key === 'doctor') return;
+            var cfg = FIELDS[key];
+            var err = document.getElementById(cfg.error);
+            err.textContent = '';
+            err.hidden = true;
+            document.getElementById(cfg.focus).removeAttribute('aria-invalid');
+        });
+        document.getElementById('time-window-group').removeAttribute('aria-invalid');
+    }
+
+    // Shows inline errors for the given keys and focuses the first one.
+    function showErrors(errors, keys) {
+        clearErrors();
+        var first = null;
+        keys.forEach(function(key) {
+            if (!errors[key] || key === 'doctor') return;
+            var cfg = FIELDS[key];
+            var err = document.getElementById(cfg.error);
+            err.textContent = errors[key];
+            err.hidden = false;
+            if (key === 'timeWindow') {
+                document.getElementById('time-window-group').setAttribute('aria-invalid', 'true');
+            } else {
+                document.getElementById(cfg.focus).setAttribute('aria-invalid', 'true');
+            }
+            if (!first) first = key;
+        });
+        if (first) {
+            document.getElementById(FIELDS[first].focus).focus();
+        }
+        return first;
+    }
+
+    function setStatus(message, isError) {
+        statusRegion.textContent = message;
+        statusRegion.classList.toggle('is-error', !!isError);
+        statusRegion.hidden = !message;
+    }
+
+    function setSending(value) {
+        sending = value;
+        submitButton.disabled = value;
+        submitButton.setAttribute('aria-busy', value ? 'true' : 'false');
+        submitButton.textContent = value ? 'Sending request...' : 'Submit Request';
+    }
+
+    function showSuccess(request) {
+        form.hidden = true;
+        appointmentSummary.hidden = true;
+        document.querySelectorAll('.form-step[data-step="3"] .form-actions').forEach(function(a) { a.hidden = true; });
+        var box = document.getElementById('request-success');
+        box.hidden = false;
+        box.textContent = '';
+        var title = document.createElement('h3');
+        title.textContent = 'Request submitted, not yet confirmed';
+        title.tabIndex = -1;
+        box.appendChild(title);
+        addParagraph(box, 'request-success-text',
+            'Your request for ' + request.doctorName + ' has been submitted. It is not a confirmed appointment yet. ' +
+            'The provider will confirm the actual date and time with you by email or phone.');
+        addParagraph(box, 'request-success-text',
+            'Reference: ' + request.id + '. If this is an emergency, do not wait. Call your local emergency number.');
+        title.focus();
+    }
+
+    function submitRequest(event) {
+        event.preventDefault();
+        if (sending) return;
+        setStatus('', false);
+        var input = readInput();
+        var result = Request.validateRequest(input);
+        if (!result.valid) {
+            var first = showErrors(result.errors, Request.FIELD_ORDER);
+            // A field from an earlier step lives on another panel, so go back to it.
+            if (first && FIELDS[first].step !== currentStep) {
+                currentStep = FIELDS[first].step;
+                showStep(currentStep);
+                document.getElementById(FIELDS[first].focus).focus();
+            }
+            return;
+        }
+        clearErrors();
+        setSending(true);
+        var request = Request.buildRequest(input);
+        var saved = Request.saveRequest(window.localStorage, request);
+        if (saved.ok) {
+            showSuccess(request);
+            return;
+        }
+        setSending(false);
+        if (saved.reason === 'duplicate') {
+            setStatus('You already have an open request for this doctor, date and time window. Wait for the provider to contact you or choose a different date.', true);
+        } else {
+            setStatus('Your request could not be saved because browser storage is unavailable or full. Nothing was submitted. Free up space or allow storage for this site, then try again.', true);
+        }
+    }
+
+    // Initialize the page
+    var today = new Date();
+    dateInput.min = Request.toDateString(today);
+    dateInput.max = Request.toDateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + Request.MAX_DAYS_AHEAD));
+    displayDoctorInfo();
+    showStep(currentStep);
+
+    // Step 2 only needs a date and a time window before moving on.
+    document.querySelectorAll('.btn-next').forEach(function(button) {
+        button.addEventListener('click', function() {
+            if (currentStep === 1) {
+                var stepKeys = ['date', 'timeWindow'];
+                var result = Request.validateRequest(readInput());
+                if (stepKeys.some(function(k) { return result.errors[k]; })) {
+                    showErrors(result.errors, stepKeys);
+                    return;
+                }
+                clearErrors();
+            }
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 showStep(currentStep);
@@ -196,8 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Previous button click handler
-    document.querySelectorAll('.btn-prev').forEach(button => {
+    document.querySelectorAll('.btn-prev').forEach(function(button) {
         button.addEventListener('click', function() {
             if (currentStep > 0) {
                 currentStep--;
@@ -206,101 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    let callFrame;
-
-    function startVideoCall(roomUrl) {
-        callFrame = window.DailyIframe.createFrame({
-            iframeStyle: {
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                zIndex: '9999'
-            }
-        });
-
-        callFrame.join({ url: roomUrl });
-
-        // Add button to end call
-        const endCallBtn = document.createElement('button');
-        endCallBtn.textContent = 'End Call';
-        endCallBtn.style.position = 'fixed';
-        endCallBtn.style.bottom = '20px';
-        endCallBtn.style.left = '50%';
-        endCallBtn.style.transform = 'translateX(-50%)';
-        endCallBtn.style.zIndex = '10000';
-        endCallBtn.style.padding = '10px 20px';
-        endCallBtn.style.backgroundColor = '#ff4444';
-        endCallBtn.style.color = 'white';
-        endCallBtn.style.border = 'none';
-        endCallBtn.style.borderRadius = '5px';
-        endCallBtn.style.cursor = 'pointer';
-
-        endCallBtn.onclick = () => {
-            callFrame.leave();
-            document.body.removeChild(endCallBtn);
-            window.location.href = '../index.html';
-        };
-        document.body.appendChild(endCallBtn);
-    }
-
-    // Combined confirm appointment handler
-    document.querySelector('.btn-confirm')?.addEventListener('click', function() {
-        // Validate patient form
-        const patientName = document.getElementById('patient-name').value.trim();
-        const patientEmail = document.getElementById('patient-email').value.trim();
-        const patientPhone = document.getElementById('patient-phone').value.trim();
-
-        if (!patientName || !patientEmail || !patientPhone) {
-            alert('Please fill in all required patient information');
-            return;
-        }
-
-        // Validate email format
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(patientEmail)) {
-            alert('Please enter a valid email address');
-            return;
-        }
-
-        // Store patient info
-        appointmentData.patientInfo = {
-            name: patientName,
-            email: patientEmail,
-            phone: patientPhone,
-            notes: document.getElementById('patient-notes').value.trim()
-        };
-
-        // Create video room URL (simulated - in real app you'd call your backend)
-        const roomName = `appointment-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
-        appointmentData.videoUrl = `https://your-video-service.com/${roomName}`;
-
-        // In a real app, you would send this data to your backend
-        console.log('Appointment data:', appointmentData);
-
-        // Store appointment in localStorage
-        let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-        appointments.push(appointmentData);
-        localStorage.setItem('appointments', JSON.stringify(appointments));
-
-        // Start the video call
-        startVideoCall(appointmentData.videoUrl);
-
-        // Show confirmation (this won't show if video call starts immediately)
-        alert(`Appointment booked successfully with ${appointmentData.doctor.name} on ${appointmentData.date.toDateString()} at ${appointmentData.time}`);
-    });
+    form.addEventListener('submit', submitRequest);
 });
-
-
-
-
-
-
-
-
-
-
-
 
 document.addEventListener('DOMContentLoaded', function() {
     // Secondary safety check: ensure hamburger exists and is not already initialized
