@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign Up';
+                submitBtn.textContent = window.ReliefI18n ? window.ReliefI18n.t('signup.submit', 'Sign Up') : 'Sign Up';
             }
         }
     });

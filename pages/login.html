@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Relief</title>
+    <title data-i18n="login.title">Login | Relief</title>
 
     <link rel="stylesheet" href="../assets/css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,16 +12,16 @@
     <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
-        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#main-content" class="skip-link" data-i18n="nav.skip">Skip to main content</a>
         <div class="healthcare-quote">
-            <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
+            <p data-i18n="nav.quote">"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
 
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
         <div class="navbar-left">
             <ul class="nav-links" id="main-nav-links">
-                <li><a href="../index.html">Home</a></li>
+                <li><a href="../index.html" data-i18n="nav.home">Home</a></li>
 
             </ul>
         </div>
@@ -34,10 +34,10 @@
 
         <div class="navbar-right">
             <ul class="nav-links">
-                <li><a href="../pages/signup.html" class="btn-signup">Sign Up</a></li>
+                <li><a href="../pages/signup.html" class="btn-signup" data-i18n="nav.signup">Sign Up</a></li>
             </ul>
 
-            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
+            <button class="hamburger" aria-label="Mobile menu" data-i18n-attr="aria-label:nav.menu" aria-expanded="false" aria-controls="main-nav-links">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -51,36 +51,36 @@
     <!-- Login Form -->
     <section class="auth-container">
         <div class="auth-form">
-            <h2>Login to Your Account</h2>
+            <h2 data-i18n="login.h2">Login to Your Account</h2>
             <p class="demo-notice" id="demo-notice" role="note" hidden></p>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="Enter your email" required>
+                    <label for="login-email" data-i18n="auth.email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" data-i18n-attr="placeholder:auth.email.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                    <label for="login-password" data-i18n="auth.password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" data-i18n-attr="placeholder:login.password.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-options">
                     <label for="remember-me">
-                        <input type="checkbox" id="remember-me" name="remember-me"> Remember me
+                        <input type="checkbox" id="remember-me" name="remember-me"> <span data-i18n="login.remember">Remember me</span>
                     </label>
-                    <a href="#">Forgot password?</a>
+                    <a href="#" data-i18n="login.forgot">Forgot password?</a>
                 </div>
-                <button type="submit" class="btn-primary">Login</button>
+                <button type="submit" class="btn-primary" data-i18n="login.submit">Login</button>
             </form>
             <div class="auth-footer">
-                <p>Don't have an account? <a href="../pages/signup.html">Sign up</a></p>
+                <p><span data-i18n="login.noaccount">Don't have an account?</span> <a href="../pages/signup.html" data-i18n="login.signup.link">Sign up</a></p>
             </div>
             <div class="social-login">
-                <p>Or login with</p>
+                <p data-i18n="login.social">Or login with</p>
                 <div class="social-icons">
-                    <a href="#" class="social-btn google" aria-label="Login with Google"><i class="fab fa-google" aria-hidden="true"></i></a>
-                    <a href="#" class="social-btn facebook" aria-label="Login with Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
-                    <a href="#" class="social-btn twitter" aria-label="Login with Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn google" aria-label="Login with Google" data-i18n-attr="aria-label:login.google"><i class="fab fa-google" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn facebook" aria-label="Login with Facebook" data-i18n-attr="aria-label:login.facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+                    <a href="#" class="social-btn twitter" aria-label="Login with Twitter" data-i18n-attr="aria-label:login.twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
@@ -94,25 +94,25 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section about">
-                <h3>About Relief</h3>
-                <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
+                <h3 data-i18n="footer.about.title">About Relief</h3>
+                <p data-i18n="footer.about.short">Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information.</p>
             </div>
             <div class="footer-section links">
-                <h3>Quick Links</h3>
+                <h3 data-i18n="footer.links.title">Quick Links</h3>
                 <ul>
-                    <li><a href="../index.html">Home</a></li>
-                    <li><a href="../pages/symptoms.html">Symptom Checker</a></li>
-                    <li><a href="../pages/doctors.html">Find Doctors</a></li>
+                    <li><a href="../index.html" data-i18n="footer.home">Home</a></li>
+                    <li><a href="../pages/symptoms.html" data-i18n="footer.symptoms">Symptom Checker</a></li>
+                    <li><a href="../pages/doctors.html" data-i18n="footer.doctors">Find Doctors</a></li>
                 </ul>
             </div>
             <div class="footer-section contact">
-                <h3>Contact Us</h3>
+                <h3 data-i18n="footer.contact.title">Contact Us</h3>
                 <p><i class="fas fa-phone"></i> +1 234 567 890</p>
                 <p><i class="fas fa-envelope"></i> support@relief.com</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2023 Relief. All rights reserved.</p>
+            <p>&copy; 2023 Relief. <span data-i18n="footer.rights">All rights reserved.</span></p>
         </div>
     </footer>
 
@@ -120,6 +120,7 @@
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/login.js"></script>
 
+    <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app-enhancements.js"></script>
 </body>
 </html>

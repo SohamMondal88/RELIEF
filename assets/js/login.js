@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Login';
+                submitBtn.textContent = window.ReliefI18n ? window.ReliefI18n.t('login.submit', 'Login') : 'Login';
             }
         }
     });
