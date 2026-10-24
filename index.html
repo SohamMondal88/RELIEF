@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Relief - Your complete healthcare companion offering symptom checking, doctor finding, hospital locating, and emergency services">
     <meta name="keywords" content="healthcare, doctor finder, symptom checker, hospital locator, medical assistance">
-    <title>Relief - Your Complete Healthcare Companion | Symptom Checker & Doctor Finder</title>
+    <title data-i18n="home.title">Relief - Your Complete Healthcare Companion | Symptom Checker & Doctor Finder</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -28,25 +28,25 @@
     <!-- Main Content -->
     <div class="main-content" style="display: none; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); ">
         <!-- Skip to Content Link for Accessibility -->
-        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#main-content" class="skip-link" data-i18n="nav.skip">Skip to main content</a>
         <div class="healthcare-quote">
-            <p>"When hospitals are hours away, Relief brings the doctor to you."</p>
+            <p data-i18n="nav.quote">"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
 
 <nav class="navbar" aria-label="Main navigation">
     <div class="container">
         <div class="navbar-left">
             <ul class="nav-links" id="main-nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="pages/about.html">About Us</a></li>
-                <li><a href="pages/contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#" class="dropdown-toggle" aria-expanded="false">Services <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
+                <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+                <li><a href="pages/about.html" data-i18n="nav.about">About Us</a></li>
+                <li><a href="pages/contact.html" data-i18n="nav.contact">Contact</a></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle" aria-expanded="false"><span data-i18n="nav.services">Services</span> <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
                     <ul class="dropdown-menu">
-                        <li><a href="pages/doctors.html">Doctors</a></li>
-                        <li><a href="pages/symptoms.html">Symptom-checker</a></li>
-                        <li><a href="pages/hospitals.html">Hospitals</a></li>
-                        <li><a href="pages/pharmacies.html">Pharmacies</a></li>
-                        <li><a href="pages/ambulances.html">Ambulances</a></li></ul>
+                        <li><a href="pages/doctors.html" data-i18n="nav.doctors">Doctors</a></li>
+                        <li><a href="pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a></li>
+                        <li><a href="pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a></li>
+                        <li><a href="pages/pharmacies.html" data-i18n="nav.pharmacies">Pharmacies</a></li>
+                        <li><a href="pages/ambulances.html" data-i18n="nav.ambulances">Ambulances</a></li></ul>
                 </li>
             </ul>
         </div>
@@ -59,11 +59,11 @@
 
         <div class="navbar-right">
             <ul class="nav-links">
-                <li><a href="pages/login.html" class="btn-login">Login</a></li>
-                <li><a href="pages/signup.html" class="btn-signup">Sign Up</a></li>
+                <li><a href="pages/login.html" class="btn-login" data-i18n="nav.login">Login</a></li>
+                <li><a href="pages/signup.html" class="btn-signup" data-i18n="nav.signup">Sign Up</a></li>
             </ul>
 
-            <button class="hamburger" aria-label="Mobile menu" aria-expanded="false" aria-controls="main-nav-links">
+            <button class="hamburger" aria-label="Mobile menu" data-i18n-attr="aria-label:nav.menu" aria-expanded="false" aria-controls="main-nav-links">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -77,39 +77,39 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <h1>Your Health, Our Priority</h1>
-                    <p class="lead">Get instant healthcare solutions, find doctors, hospitals, pharmacies and more - all in one place.</p>
+                    <h1 data-i18n="home.hero.title">Your Health, Our Priority</h1>
+                    <p class="lead" data-i18n="home.hero.lead">Get instant healthcare solutions, find doctors, hospitals, pharmacies and more - all in one place.</p>
 
                     <div class="hero-search">
-                        <form role="search" aria-label="Quick search">
-                            <input type="text" placeholder="Search symptoms, doctors, or locations..." aria-label="Search healthcare services">
-                            <button type="submit" aria-label="Search">
+                        <form role="search" aria-label="Quick search" data-i18n-attr="aria-label:home.search.label">
+                            <input type="text" placeholder="Search symptoms, doctors, or locations..." aria-label="Search healthcare services" data-i18n-attr="placeholder:home.search.placeholder;aria-label:home.search.aria">
+                            <button type="submit" aria-label="Search" data-i18n-attr="aria-label:home.search.button">
                                 <i class="fas fa-search"></i>
                             </button>
                         </form>
                     </div>
 
                     <div class="hero-buttons">
-                        <a href="pages/symptoms.html" class="btn-primary" aria-label="Check your symptoms">
-                            <i class="fas fa-stethoscope"></i> Check Symptoms
+                        <a href="pages/symptoms.html" class="btn-primary" aria-label="Check your symptoms" data-i18n-attr="aria-label:home.hero.symptoms.aria">
+                            <i class="fas fa-stethoscope"></i> <span data-i18n="home.hero.symptoms">Check Symptoms</span>
                         </a>
-                        <a href="pages/doctors.html" class="btn-secondary" aria-label="Find a doctor near you">
-                            <i class="fas fa-user-md"></i> Find a Doctor
+                        <a href="pages/doctors.html" class="btn-secondary" aria-label="Find a doctor near you" data-i18n-attr="aria-label:home.hero.doctor.aria">
+                            <i class="fas fa-user-md"></i> <span data-i18n="home.hero.doctor">Find a Doctor</span>
                         </a>
                     </div>
 
                     <div class="hero-stats">
                         <div class="stat-item">
                             <span class="stat-number">10,000+</span>
-                            <span class="stat-label">Verified Doctors</span>
+                            <span class="stat-label" data-i18n="home.stat.doctors">Verified Doctors</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-number">5,000+</span>
-                            <span class="stat-label">Hospitals</span>
+                            <span class="stat-label" data-i18n="home.stat.hospitals">Hospitals</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-number">1M+</span>
-                            <span class="stat-label">Patients Helped</span>
+                            <span class="stat-label" data-i18n="home.stat.patients">Patients Helped</span>
                         </div>
                     </div>
                 </div>
@@ -136,62 +136,62 @@
         <!-- Features Section -->
         <section class="features" id="features" aria-labelledby="features-heading">
             <div class="container">
-                <h2 id="features-heading" class="section-title">Our Comprehensive Features</h2>
-                <p class="section-subtitle">Everything you need for your healthcare journey in one place</p>
+                <h2 id="features-heading" class="section-title" data-i18n="home.features.title">Our Comprehensive Features</h2>
+                <p class="section-subtitle" data-i18n="home.features.sub">Everything you need for your healthcare journey in one place</p>
 
                 <div class="features-grid">
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-stethoscope" aria-hidden="true"></i>
                         </div>
-                        <h3>Symptom Checker</h3>
-                        <p>Enter your symptoms and get instant recommendations with our AI-powered diagnostic tool.</p>
-                        <a href="pages/symptoms.html" class="feature-link" aria-label="Learn more about Symptom Checker">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f1.title">Symptom Checker</h3>
+                        <p data-i18n="home.f1.text">Enter your symptoms and get instant recommendations with our AI-powered diagnostic tool.</p>
+                        <a href="pages/symptoms.html" class="feature-link" aria-label="Learn more about Symptom Checker" data-i18n-attr="aria-label:home.f1.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
 
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-user-md" aria-hidden="true"></i>
                         </div>
-                        <h3>Doctor Finder</h3>
-                        <p>Find and book appointments with specialists based on your location and health needs.</p>
-                        <a href="pages/doctors.html" class="feature-link" aria-label="Learn more about Doctor Finder">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f2.title">Doctor Finder</h3>
+                        <p data-i18n="home.f2.text">Find and book appointments with specialists based on your location and health needs.</p>
+                        <a href="pages/doctors.html" class="feature-link" aria-label="Learn more about Doctor Finder" data-i18n-attr="aria-label:home.f2.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
 
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-hospital" aria-hidden="true"></i>
                         </div>
-                        <h3>Hospital Locator</h3>
-                        <p>Locate the nearest hospitals with available services, emergency rooms, and specialties.</p>
-                        <a href="pages/hospitals.html" class="feature-link" aria-label="Learn more about Hospital Locator">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f3.title">Hospital Locator</h3>
+                        <p data-i18n="home.f3.text">Locate the nearest hospitals with available services, emergency rooms, and specialties.</p>
+                        <a href="pages/hospitals.html" class="feature-link" aria-label="Learn more about Hospital Locator" data-i18n-attr="aria-label:home.f3.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
 
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-prescription-bottle-alt" aria-hidden="true"></i>
                         </div>
-                        <h3>Pharmacy Finder</h3>
-                        <p>Find nearby pharmacies, check medication availability, and get home delivery options.</p>
-                        <a href="pages/pharmacies.html" class="feature-link" aria-label="Learn more about Pharmacy Finder">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f4.title">Pharmacy Finder</h3>
+                        <p data-i18n="home.f4.text">Find nearby pharmacies, check medication availability, and get home delivery options.</p>
+                        <a href="pages/pharmacies.html" class="feature-link" aria-label="Learn more about Pharmacy Finder" data-i18n-attr="aria-label:home.f4.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
 
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-ambulance" aria-hidden="true"></i>
                         </div>
-                        <h3>Emergency Services</h3>
-                        <p>Request ambulances, contact emergency services, and get first response guidance.</p>
-                        <a href="pages/ambulances.html" class="feature-link" aria-label="Learn more about Emergency Services">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f5.title">Emergency Services</h3>
+                        <p data-i18n="home.f5.text">Request ambulances, contact emergency services, and get first response guidance.</p>
+                        <a href="pages/ambulances.html" class="feature-link" aria-label="Learn more about Emergency Services" data-i18n-attr="aria-label:home.f5.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
 
                     <div class="feature-card" tabindex="0">
                         <div class="feature-icon">
                             <i class="fas fa-first-aid" aria-hidden="true"></i>
                         </div>
-                        <h3>Health Resources</h3>
-                        <p>Access first aid guides, health articles, and preventive care information.</p>
-                        <a href="pages/firstaid.html" class="feature-link" aria-label="Learn more about Health Resources">Learn more <i class="fas fa-chevron-right"></i></a>
+                        <h3 data-i18n="home.f6.title">Health Resources</h3>
+                        <p data-i18n="home.f6.text">Access first aid guides, health articles, and preventive care information.</p>
+                        <a href="pages/firstaid.html" class="feature-link" aria-label="Learn more about Health Resources" data-i18n-attr="aria-label:home.f6.aria"><span data-i18n="home.learn">Learn more</span> <i class="fas fa-chevron-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -200,38 +200,38 @@
         <!-- How It Works Section -->
         <section class="how-it-works" id="how-it-works" aria-labelledby="how-it-works-heading">
             <div class="container">
-                <h2 id="how-it-works-heading" class="section-title">How Relief Works</h2>
-                <p class="section-subtitle">Three simple steps to get the healthcare you need</p>
+                <h2 id="how-it-works-heading" class="section-title" data-i18n="home.how.title">How Relief Works</h2>
+                <p class="section-subtitle" data-i18n="home.how.sub">Three simple steps to get the healthcare you need</p>
 
                 <div class="steps-container">
                     <div class="step">
                         <div class="step-number">1</div>
                         <div class="step-content">
-                            <h3>Describe Your Needs</h3>
-                            <p>Enter your symptoms, search for a doctor, or describe your healthcare requirement.</p>
+                            <h3 data-i18n="home.step1.title">Describe Your Needs</h3>
+                            <p data-i18n="home.step1.text">Enter your symptoms, search for a doctor, or describe your healthcare requirement.</p>
                         </div>
                     </div>
 
                     <div class="step">
                         <div class="step-number">2</div>
                         <div class="step-content">
-                            <h3>Get Matched</h3>
-                            <p>Our system will analyze your input and provide personalized recommendations.</p>
+                            <h3 data-i18n="home.step2.title">Get Matched</h3>
+                            <p data-i18n="home.step2.text">Our system will analyze your input and provide personalized recommendations.</p>
                         </div>
                     </div>
 
                     <div class="step">
                         <div class="step-number">3</div>
                         <div class="step-content">
-                            <h3>Connect & Get Help</h3>
-                            <p>Book appointments, chat with doctors, or get directions to healthcare facilities.</p>
+                            <h3 data-i18n="home.step3.title">Connect & Get Help</h3>
+                            <p data-i18n="home.step3.text">Book appointments, chat with doctors, or get directions to healthcare facilities.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="video-demo">
                     <div class="video-container">
-                        <button class="play-button" aria-label="Play how it works video">
+                        <button class="play-button" aria-label="Play how it works video" data-i18n-attr="aria-label:home.video.play">
                             <i class="fas fa-play"></i>
                         </button>
                         <img src="assets/images/hero-image.jpeg" alt="Video thumbnail showing Relief app in action" width="800" height="450">
@@ -354,15 +354,15 @@
         <section class="emergency-cta" aria-label="Emergency assistance">
             <div class="container">
                 <div class="emergency-content">
-                    <h2>Need Immediate Medical Assistance?</h2>
-                    <p>If you're experiencing a medical emergency, please contact emergency services immediately.</p>
+                    <h2 data-i18n="home.emergency.title">Need Immediate Medical Assistance?</h2>
+                    <p data-i18n="home.emergency.text">If you're experiencing a medical emergency, please contact emergency services immediately.</p>
 
                     <div class="emergency-buttons">
-                        <a href="tel:911" class="btn-emergency" aria-label="Call emergency services">
-                            <i class="fas fa-phone-alt"></i> Call Emergency
+                        <a href="tel:911" class="btn-emergency" aria-label="Call emergency services" data-i18n-attr="aria-label:home.emergency.call.aria">
+                            <i class="fas fa-phone-alt"></i> <span data-i18n="home.emergency.call">Call Emergency</span>
                         </a>
-                        <a href="pages/ambulances.html" class="btn-secondary1" aria-label="Get emergency help">
-                            <i class="fas fa-ambulance"></i> Get Emergency Help
+                        <a href="pages/ambulances.html" class="btn-secondary1" aria-label="Get emergency help" data-i18n-attr="aria-label:home.emergency.help.aria">
+                            <i class="fas fa-ambulance"></i> <span data-i18n="home.emergency.help">Get Emergency Help</span>
                         </a>
                     </div>
                 </div>
@@ -404,16 +404,16 @@
         <!-- Newsletter Section -->
         <section class="newsletter" aria-labelledby="newsletter-heading">
             <div class="container">
-                <h2 id="newsletter-heading">Stay Updated with Health Tips</h2>
-                <p>Subscribe to our newsletter for the latest healthcare advice and Relief updates.</p>
+                <h2 id="newsletter-heading" data-i18n="home.news.title">Stay Updated with Health Tips</h2>
+                <p data-i18n="home.news.text">Subscribe to our newsletter for the latest healthcare advice and Relief updates.</p>
 
-                <form class="newsletter-form" aria-label="Subscribe to newsletter">
-                    <input type="email" placeholder="Enter your email address" aria-label="Email address" required>
-                    <button type="submit" class="btn-primary" aria-label="Subscribe">Subscribe</button>
+                <form class="newsletter-form" aria-label="Subscribe to newsletter" data-i18n-attr="aria-label:home.news.form">
+                    <input type="email" placeholder="Enter your email address" aria-label="Email address" data-i18n-attr="placeholder:home.news.placeholder;aria-label:home.news.email" required>
+                    <button type="submit" class="btn-primary" aria-label="Subscribe" data-i18n-attr="aria-label:home.news.button" data-i18n="home.news.button">Subscribe</button>
                 </form>
 
                 <div class="privacy-note">
-                    <p>We respect your privacy. Unsubscribe at any time.</p>
+                    <p data-i18n="home.news.privacy">We respect your privacy. Unsubscribe at any time.</p>
                 </div>
             </div>
         </section>
@@ -424,8 +424,8 @@
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-section about">
-                        <h3>About Relief</h3>
-                        <p>Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information to everyone, everywhere.</p>
+                        <h3 data-i18n="footer.about.title">About Relief</h3>
+                        <p data-i18n="footer.about.text">Relief is a comprehensive healthcare solution designed to provide immediate medical assistance and information to everyone, everywhere.</p>
 
                         <div class="social-links">
                             <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
@@ -436,47 +436,47 @@
                     </div>
 
                     <div class="footer-section links">
-                        <h3>Quick Links</h3>
+                        <h3 data-i18n="footer.links.title">Quick Links</h3>
                         <ul>
-                            <li><a href="pages/home.html">Home</a></li>
-                            <li><a href="pages/symptoms.html">Symptom Checker</a></li>
-                            <li><a href="pages/doctors.html">Find Doctors</a></li>
-                            <li><a href="pages/hospitals.html">Find Hospitals</a></li>
-                            <li><a href="pages/pharmacies.html">Find Pharmacies</a></li>
-                            <li><a href="pages/ambulances.html">Emergency Services</a></li>
+                            <li><a href="pages/home.html" data-i18n="footer.home">Home</a></li>
+                            <li><a href="pages/symptoms.html" data-i18n="footer.symptoms">Symptom Checker</a></li>
+                            <li><a href="pages/doctors.html" data-i18n="footer.doctors">Find Doctors</a></li>
+                            <li><a href="pages/hospitals.html" data-i18n="footer.hospitals">Find Hospitals</a></li>
+                            <li><a href="pages/pharmacies.html" data-i18n="footer.pharmacies">Find Pharmacies</a></li>
+                            <li><a href="pages/ambulances.html" data-i18n="footer.emergency">Emergency Services</a></li>
                         </ul>
                     </div>
 
                     <div class="footer-section links">
-                        <h3>Company</h3>
+                        <h3 data-i18n="footer.company.title">Company</h3>
                         <ul>
-                            <li><a href="pages/about.html">About Us</a></li>
-                            <li><a href="pages/team.html">Our Team</a></li>
-                            <li><a href="pages/careers.html">Careers</a></li>
-                            <li><a href="pages/blog.html">Blog</a></li>
-                            <li><a href="pages/press.html">Press</a></li>
-                            <li><a href="pages/contact.html">Contact</a></li>
+                            <li><a href="pages/about.html" data-i18n="footer.about">About Us</a></li>
+                            <li><a href="pages/team.html" data-i18n="footer.team">Our Team</a></li>
+                            <li><a href="pages/careers.html" data-i18n="footer.careers">Careers</a></li>
+                            <li><a href="pages/blog.html" data-i18n="footer.blog">Blog</a></li>
+                            <li><a href="pages/press.html" data-i18n="footer.press">Press</a></li>
+                            <li><a href="pages/contact.html" data-i18n="footer.contact">Contact</a></li>
                         </ul>
                     </div>
 
                     <div class="footer-section contact">
-                        <h3>Contact Us</h3>
+                        <h3 data-i18n="footer.contact.title">Contact Us</h3>
                         <ul class="contact-info">
                             <li><i class="fas fa-map-marker-alt"></i> 123 Healthcare Ave, Medical City, MC 12345</li>
                             <li><i class="fas fa-phone"></i> <a href="tel:+18005551234">+1 (800) 555-1234</a></li>
                             <li><i class="fas fa-envelope"></i> <a href="mailto:support@relief.com">support@relief.com</a></li>
-                            <li><i class="fas fa-clock"></i> 24/7 Support Available</li>
+                            <li><i class="fas fa-clock"></i> <span data-i18n="footer.support">24/7 Support Available</span></li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="footer-bottom">
                     <div class="footer-legal">
-                        <p>&copy; 2025 Relief. All rights reserved.</p>
+                        <p>&copy; 2025 Relief. <span data-i18n="footer.rights">All rights reserved.</span></p>
                         <div class="legal-links">
-                            <a href="pages/privacy-policy.html">Privacy Policy</a>
-                            <a href="pages/terms-of-service.html">Terms of Service</a>
-                            <a href="pages/cookie-policy.html">Cookie Policy</a>
+                            <a href="pages/privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+                            <a href="pages/terms-of-service.html" data-i18n="footer.terms">Terms of Service</a>
+                            <a href="pages/cookie-policy.html" data-i18n="footer.cookies">Cookie Policy</a>
                         </div>
                     </div>
 
@@ -493,6 +493,7 @@
 
     <script src="assets/js/main.js"></script>
 
+    <script src="assets/js/i18n.js"></script>
     <script src="assets/js/app-enhancements.js"></script>
 </body>
 </html>
