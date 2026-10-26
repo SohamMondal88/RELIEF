@@ -446,6 +446,36 @@ const ReliefAPI = (function() {
         }
     };
 
+    // Facility corrections (moderated). Contract: docs/FACILITY_CORRECTIONS.md
+    // The backend, not the page, decides who may review: it must check the
+    // moderator role on list and decision, and take the moderator's name from
+    // their login rather than from the request.
+
+    /**
+     * Sends a suggested correction to the review queue. It is never applied to the
+     * facility record. POST {backend}/v1/facility-corrections
+     * correction: { facilityId, field, proposedValue, sourceUrl, contact }
+     */
+    const submitFacilityCorrection = (correction) =>
+        backendRequest('/v1/facility-corrections', { method: 'POST', body: correction });
+
+    /**
+     * Moderators only. GET {backend}/v1/facility-corrections?status=pending|approved|rejected
+     * Resolves with an array (or { corrections: [] }) of correction records.
+     */
+    const listFacilityCorrections = (filter = {}) => {
+        const query = filter.status ? '?status=' + encodeURIComponent(filter.status) : '';
+        return backendRequest('/v1/facility-corrections' + query);
+    };
+
+    /**
+     * Moderators only. POST {backend}/v1/facility-corrections/{id}/decision
+     * decision: { decision: 'approve' | 'reject', reason, evidence }
+     * Approving needs evidence, rejecting needs a reason. A decision is final.
+     */
+    const reviewFacilityCorrection = (id, decision) =>
+        backendRequest('/v1/facility-corrections/' + encodeURIComponent(id) + '/decision', { method: 'POST', body: decision });
+
     // Public API
     return {
         // Authentication
@@ -453,6 +483,7 @@ const ReliefAPI = (function() {
         signup,
         logout,
         getCurrentUser,
+        deleteAccount,
 
         // Subscription (server-verified, see docs/SUBSCRIPTION_SERVER_CONTRACT.md)
         verifySubscription,
@@ -475,7 +506,12 @@ const ReliefAPI = (function() {
 
         // Data Storage
         savePatientData,
-        getPatientData
+        getPatientData,
+
+        // Facility corrections (moderated, see docs/FACILITY_CORRECTIONS.md)
+        submitFacilityCorrection,
+        listFacilityCorrections,
+        reviewFacilityCorrection
     };
 })();
 

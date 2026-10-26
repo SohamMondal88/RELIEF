@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ? '<a class="btn-call" href="tel:' + U.escapeHtml(phoneHref) + '" aria-label="Call ' + U.escapeHtml(f.name) + '"><i class="fas fa-phone" aria-hidden="true"></i> Call</a>'
                         : '') +
                     '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' for offline use">Save</button>' +
+                    '<button type="button" class="btn-correct" data-id="' + U.escapeHtml(String(f.id)) + '" aria-label="Suggest a correction for ' + U.escapeHtml(f.name) + '">Suggest a correction</button>' +
                 '</div>' +
             '</div>';
     }
@@ -348,6 +349,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 facilities = U.normalizeFacilities(data);
                 populateFilters();
                 applyFilters();
+                // The correction form (facility-corrections-ui.js) fills its list from this.
+                document.dispatchEvent(new CustomEvent('relief:facilities-loaded', { detail: { facilities: facilities } }));
             })
             .catch(() => showError());
     }

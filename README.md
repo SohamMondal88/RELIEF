@@ -288,6 +288,8 @@ if ($failed) { exit 1 }
 git diff --check
 ```
 
+The unit tests and the browser tests for the main user journeys (`npm ci`, `npm test`, `npm run test:e2e`) are described in [docs/E2E_TESTING.md](docs/E2E_TESTING.md). CI runs both.
+
 ### Step 5: Commit Your Changes
 
 Use a clear, descriptive commit message.
@@ -426,6 +428,8 @@ Contributors should:
 - Use secure server-side validation and authorization if backend functionality is introduced.
 
 Client-side validation alone is not a security boundary. Any future backend that handles sensitive information must enforce appropriate access controls on the server.
+
+What RELIEF stores, which third parties it contacts, how long data is kept and how account deletion works are in [docs/PRIVACY_AND_DATA.md](docs/PRIVACY_AND_DATA.md). If you add a `localStorage` key or a new external request, update that file.
 
 ## ⚕️ Medical Disclaimer
 

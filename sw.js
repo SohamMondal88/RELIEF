@@ -7,7 +7,7 @@
  * Only same-origin GET requests for the exact paths below are ever cached.
  * Accounts, dashboard, login, firebase and api calls are never stored.
  */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_PREFIX = 'relief-static-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 

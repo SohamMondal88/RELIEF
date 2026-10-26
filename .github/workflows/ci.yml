@@ -74,7 +74,38 @@ jobs:
           echo "Running HTML reference and link validator..."
           python .github/scripts/check-links.py
 
-      - name: Automated tests status
-        run: |
-          echo "No automated unit or end-to-end test suite is currently configured in this static repository."
-          echo "Skipping test execution until test suites are added (see Issue #23)."
+      - name: Unit tests
+        run: node --test
+
+  e2e:
+    name: Browser tests (Playwright)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:e2e
+
+      - name: Upload report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

@@ -13,7 +13,7 @@ Install or have access to:
 - A current web browser
 - An internet connection for external resources and integrations
 
-The repository does not currently define a root `package.json`, so a Node.js/npm installation is not required for the basic static preview described below.
+Node.js 20 or newer is only needed to run the automated tests (section 4, "Run the automated tests"). The basic static preview below needs no Node.js or npm.
 
 ## 2. Fork and clone the repository
 
@@ -56,7 +56,9 @@ The following is a high-level map of the current repository. It is not an exhaus
 | `assets/images/` | Images and visual assets |
 | `profiles/` | Doctor, patient, ambulance, and pharmacy profile interfaces |
 | `docs/` | Project and contributor documentation |
-| `.github/` | GitHub repository configuration |
+| `.github/` | GitHub repository configuration and the CI workflow |
+| `tests/` | Unit tests (`node --test`) |
+| `e2e/` | Playwright browser tests of the main user journeys |
 | `README.md` | Project overview and getting-started information |
 | `LICENSE` | Project license |
 
@@ -74,7 +76,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `pages/dashboard.html`: User dashboard displaying localized records, reminders, and health timelines.
 - **Stylesheets (`assets/css/`)**:
   - `style.css`: Primary global design system, typography, color scheme, navbar, buttons, layout grids, and core media queries.
-  - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
+  - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `onboarding.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
 - **Client-Side Scripts (`assets/js/`)**:
   - `main.js`: Global site behaviors (mobile navigation toggle, smooth scrolling, and alerts).
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
@@ -82,7 +84,9 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
+  - `privacy-data.js` and `privacy-controls.js`: the list of every `localStorage` key RELIEF writes, account deletion logic and the dashboard "Your data and account" panel. Documented in `docs/PRIVACY_AND_DATA.md` and tested by `tests/privacy-data.test.js`, which fails if a script uses a storage key that is not in the inventory.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
+  - `onboarding.js`: Guided first-visit onboarding flow introducing verified, implemented features (facility search, emergency resources, reminders, and cautious health support). Persists skip/completion preferences in browser `localStorage` (key `relief_onboarding_status`) without requesting location or credentials. Tested by `tests/onboarding.test.js`.
 
 ## 4. Preview the website locally
 
@@ -99,7 +103,18 @@ For a basic static preview, open `index.html` in your browser.
 
 A local web server is often more reliable than opening files directly, particularly for pages that load scripts or resources using browser features that restrict `file://` URLs.
 
-There is no repository-defined automated test command in the current root setup. Test relevant pages and flows manually in the browser, and check the browser developer console for errors.
+Test relevant pages and flows manually in the browser as well, and check the browser developer console for errors.
+
+### Run the automated tests
+
+```bash
+npm ci                      # once: installs Playwright, the only dev dependency
+npm test                    # unit tests (node:test), no browser needed
+npx playwright install chromium   # once: downloads the test browser
+npm run test:e2e            # browser tests of the main user journeys
+```
+
+The browser tests start their own static server. To use one you already run (for example `python3 -m http.server 8000`), set `E2E_BASE_URL=http://localhost:8000`. Details, mocks and debugging with traces are in [E2E_TESTING.md](E2E_TESTING.md).
 
 ### Offline support (service worker)
 
@@ -109,6 +124,7 @@ There is no repository-defined automated test command in the current root setup.
 - **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
+- **Onboarding preferences:** first-visit onboarding status (completed or dismissed/skipped) is stored in `localStorage` under `relief_onboarding_status`. No account, login, or geolocation permissions are required. Visitors can revisit the tour at any time via the Tour button in the navigation or footer.
 - **Saved facilities:** the Save button on `pages/hospitals.html` stores a small copy of the facility (name, location, phone, coordinates, saved date) in `localStorage` under `relief_saved_facilities`. No account is needed and nothing is sent anywhere. The map needs the network, so it shows a short message offline.
 - **Testing:** serve the repo root over localhost, open `pages/firstaid.html` once, then tick **Offline** in DevTools (Application > Service Workers) and reload.
 
