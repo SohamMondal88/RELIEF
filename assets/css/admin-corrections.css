@@ -1,0 +1,94 @@
+.corrections-card [hidden] {
+    display: none;
+}
+
+.correction-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 10px 0;
+}
+
+.correction-title {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+}
+
+.correction-detail {
+    margin: 4px 0;
+    overflow-wrap: anywhere;
+}
+
+.correction-badges {
+    margin: 0 0 6px;
+}
+
+.correction-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 6px;
+    background: #fff1d6;
+    color: #7a4a00;
+}
+
+.correction-badge--approved {
+    background: #d4f5e6;
+    color: #00593f;
+}
+
+.correction-badge--rejected {
+    background: #fde8e8;
+    color: #9b1c1c;
+}
+
+.correction-badge--demo {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.correction-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.correction-actions .btn {
+    border: 0;
+    cursor: pointer;
+}
+
+.correction-error {
+    color: #b42318;
+    min-height: 1.2em;
+    margin: 6px 0 0;
+}
+
+.correction-log {
+    padding-left: 20px;
+}
+
+.correction-log-item {
+    margin: 6px 0;
+    overflow-wrap: anywhere;
+}
+
+.correction-empty {
+    color: #6b7280;
+}
+
+.correction-patch {
+    background: #f3f4f6;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}
+
+#moderation-message[data-tone="ok"] {
+    color: #00593f;
+    font-weight: 600;
+}
