@@ -20,20 +20,96 @@ const ReliefAPI = (function() {
         },
 
         // Chat bot (using Rasa open source)
-        RASA_API_URL: 'http://localhost:5005' // Self-hosted
+        RASA_API_URL: 'http://localhost:5005', // Self-hosted
+
+        // RELIEF backend (subscription status, facility corrections). Empty means
+        // "not configured": every backend call then fails with code 'backend-unavailable'.
+        // Set window.RELIEF_BACKEND_URL or <meta name="relief-backend-url"> at deploy time.
+        RELIEF_BACKEND_URL: ''
     };
 
-    // Initialize Firebase if it hasn't been initialized already
-    if (!firebase.apps.length) {
+    // Initialize Firebase only if the SDK is on the page. No page loads it today, and
+    // without this guard api.js throws on load, so ReliefAPI would never exist.
+    const firebaseLoaded = typeof firebase !== 'undefined';
+    if (firebaseLoaded && !firebase.apps.length) {
         firebase.initializeApp(config.FIREBASE_CONFIG);
     }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const auth = firebaseLoaded ? firebase.auth() : null;
+    const db = firebaseLoaded ? firebase.firestore() : null;
 
     // Helper functions
     const handleError = (error) => {
         console.error('API Error:', error);
         throw error;
+    };
+
+    // ---- RELIEF backend --------------------------------------------------
+    // One place for every call to the RELIEF backend. Errors carry a `code`:
+    //   backend-unavailable  not configured, offline, timed out, 5xx, or no usable answer
+    //   unauthenticated      401
+    //   forbidden            403
+    //   rate-limited         429
+    //   rejected             any other 4xx (err.status, err.details from the body if any)
+    // Callers must treat anything but a clean 2xx JSON answer as "no answer".
+    const backendError = (code, message, extra) => {
+        const error = new Error(message);
+        error.name = 'ReliefBackendError';
+        error.code = code;
+        return Object.assign(error, extra || {});
+    };
+
+    const backendBase = () => {
+        let base = config.RELIEF_BACKEND_URL;
+        if (typeof window !== 'undefined' && window.RELIEF_BACKEND_URL) base = window.RELIEF_BACKEND_URL;
+        if (typeof document !== 'undefined' && document.querySelector) {
+            const meta = document.querySelector('meta[name="relief-backend-url"]');
+            if (meta && meta.getAttribute('content')) base = meta.getAttribute('content');
+        }
+        return String(base || '').trim().replace(/\/+$/, '');
+    };
+
+    const backendRequest = async (path, options = {}) => {
+        const base = backendBase();
+        if (!base) throw backendError('backend-unavailable', 'No RELIEF backend is configured.');
+        // Plain http is only allowed for a local backend, so nothing sensitive crosses the network unencrypted.
+        if (!/^https:\/\//i.test(base) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(base)) {
+            throw backendError('backend-unavailable', 'The RELIEF backend URL must use https.');
+        }
+        if (typeof fetch !== 'function') throw backendError('backend-unavailable', 'fetch is not available.');
+
+        const hasBody = options.body !== undefined;
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), options.timeoutMs || 8000) : null;
+        try {
+            const response = await fetch(base + path, {
+                method: options.method || 'GET',
+                credentials: 'include',
+                cache: 'no-store',
+                headers: hasBody ? { Accept: 'application/json', 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                body: hasBody ? JSON.stringify(options.body) : undefined,
+                signal: controller ? controller.signal : undefined
+            });
+            const type = response.headers && response.headers.get ? (response.headers.get('content-type') || '') : '';
+            let data = null;
+            if (/json/i.test(type)) {
+                try { data = await response.json(); } catch (e) { data = null; }
+            }
+            if (!response.ok) {
+                const status = response.status;
+                if (status === 401) throw backendError('unauthenticated', 'Sign in required.', { status });
+                if (status === 403) throw backendError('forbidden', 'Not allowed.', { status });
+                if (status === 429) throw backendError('rate-limited', 'Too many requests.', { status });
+                if (status >= 400 && status < 500) throw backendError('rejected', 'The request was rejected.', { status, details: data });
+                throw backendError('backend-unavailable', 'The RELIEF backend returned ' + status + '.', { status });
+            }
+            if (data === null) throw backendError('backend-unavailable', 'The RELIEF backend sent an unusable answer.');
+            return data;
+        } catch (error) {
+            if (error && error.name === 'ReliefBackendError') throw error;
+            throw backendError('backend-unavailable', 'Could not reach the RELIEF backend.');
+        } finally {
+            if (timer) clearTimeout(timer);
+        }
     };
 
     const validateEmail = (email) => {
@@ -107,6 +183,7 @@ const ReliefAPI = (function() {
 
     const getCurrentUser = async () => {
         try {
+            if (!auth) return null; // Firebase SDK not on this page
             const user = auth.currentUser;
             if (!user) return null;
 
@@ -116,6 +193,21 @@ const ReliefAPI = (function() {
             return handleError(error);
         }
     };
+
+    // Subscription status
+    /**
+     * Asks the RELIEF backend what the signed-in user's subscription really is.
+     *
+     * GET {backend}/v1/subscription  (session cookie, no client-supplied plan or status)
+     * Contract: docs/SUBSCRIPTION_SERVER_CONTRACT.md
+     *
+     * Resolves with the parsed JSON body exactly as the server sent it. It is NOT
+     * checked here: pass it to ReliefSubscription.normalize()/verify() before using it.
+     * Rejects (code 'backend-unavailable', 'unauthenticated', ...) when there is no
+     * trustworthy answer. It never reads localStorage, cookies the page can set, or
+     * URL parameters, and it never returns a guessed or cached value.
+     */
+    const verifySubscription = () => backendRequest('/v1/subscription');
 
     // Medical Data Services (using OpenMRS instead of Infermedica)
     const searchDoctors = async (params) => {
@@ -362,6 +454,9 @@ const ReliefAPI = (function() {
         logout,
         getCurrentUser,
 
+        // Subscription (server-verified, see docs/SUBSCRIPTION_SERVER_CONTRACT.md)
+        verifySubscription,
+
         // Medical Services
         searchDoctors,
         searchHospitals,
@@ -389,4 +484,7 @@ if (typeof window !== 'undefined') {
     window.ReliefAPI = ReliefAPI;
 }
 
-export default ReliefAPI;
+// `export default` is a syntax error in a classic <script>, which is how every page loads this file.
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ReliefAPI;
+}

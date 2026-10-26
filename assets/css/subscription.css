@@ -73,3 +73,53 @@
 .faq-card p {
     margin: 0 0 12px;
 }
+
+.subscription-status {
+    border-left: 4px solid #0f6dff;
+}
+
+.subscription-status[data-tone="ok"] {
+    border-left-color: #1a7f37;
+}
+
+.subscription-status[data-tone="warn"] {
+    border-left-color: #b45309;
+}
+
+.subscription-status[data-tone="error"] {
+    border-left-color: #cc1f1f;
+}
+
+.subscription-status .btn[hidden] {
+    display: none;
+}
+
+.subscription-status h2 {
+    margin-bottom: 6px;
+}
+
+.subscription-status p {
+    margin: 0 0 10px;
+}
+
+.subscription-status .btn {
+    border: 1px solid #0f6dff;
+    background: #fff;
+    color: #0f6dff;
+    cursor: pointer;
+}
+
+.plan-card .btn:disabled,
+.card .btn:disabled {
+    background: #cfd7e4;
+    color: #4b5563;
+    cursor: not-allowed;
+    border: 0;
+}
+
+.terms-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+}
