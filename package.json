@@ -1,0 +1,17 @@
+{
+  "name": "relief",
+  "version": "0.0.0",
+  "private": true,
+  "description": "RELIEF static site. This file only holds test scripts, there is no build step.",
+  "scripts": {
+    "test": "node --test",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

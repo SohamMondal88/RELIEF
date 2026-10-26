@@ -27,6 +27,8 @@ KNOWN_LEGACY_EXCEPTIONS = {
 IGNORED_DIRS = {
     ".git",
     "node_modules",
+    "playwright-report",
+    "test-results",
     ".system_generated",
     ".gemini",
     "scratch",
