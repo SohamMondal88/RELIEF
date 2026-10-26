@@ -288,6 +288,8 @@ if ($failed) { exit 1 }
 git diff --check
 ```
 
+The unit tests and the browser tests for the main user journeys (`npm ci`, `npm test`, `npm run test:e2e`) are described in [docs/E2E_TESTING.md](docs/E2E_TESTING.md). CI runs both.
+
 ### Step 5: Commit Your Changes
 
 Use a clear, descriptive commit message.
