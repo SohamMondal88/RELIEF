@@ -427,6 +427,8 @@ Contributors should:
 
 Client-side validation alone is not a security boundary. Any future backend that handles sensitive information must enforce appropriate access controls on the server.
 
+What RELIEF stores, which third parties it contacts, how long data is kept and how account deletion works are in [docs/PRIVACY_AND_DATA.md](docs/PRIVACY_AND_DATA.md). If you add a `localStorage` key or a new external request, update that file.
+
 ## ⚕️ Medical Disclaimer
 
 RELIEF is an informational and educational technology project. Its symptom guidance and related features are not a substitute for professional medical evaluation, diagnosis, or treatment.

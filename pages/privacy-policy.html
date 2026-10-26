@@ -15,47 +15,42 @@
 </head>
 <body>
     <h1>Privacy Policy</h1>
-    <p class="last-updated">Last Updated: June 10, 2024</p>
+    <p class="last-updated">Last updated: October 26, 2026</p>
 
-    <p>Welcome to the <strong>Relief Web App</strong> ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.</p>
+    <p><strong>Relief Web App</strong> is a demonstration project. Do not enter real patient information. This page describes what the code actually does. The full list is in <a href="https://github.com/SohamMondal88/RELIEF/blob/main/docs/PRIVACY_AND_DATA.md">docs/PRIVACY_AND_DATA.md</a>.</p>
 
-    <h2>1. Information We Collect</h2>
-    <p>We may collect the following types of data:</p>
+    <h2>1. What stays in your browser</h2>
+    <p>Relief has no server of its own. What you enter is saved in your browser (local storage) on this device and is not sent to Relief:</p>
     <ul>
-        <li><strong>Personal Information:</strong> Name, email, phone number, location (if provided).</li>
-        <li><strong>Medical Data:</strong> Hospital preferences, appointment details (if applicable).</li>
-        <li><strong>Usage Data:</strong> IP address, browser type, pages visited, device information.</li>
+        <li>Demo account details (name, email and a hashed password) and sign-in sessions.</li>
+        <li>Medicine reminders and the dashboard timeline.</li>
+        <li>Appointment requests (name, email, phone, notes). A request is only a saved record. It is not sent to a doctor.</li>
+        <li>Saved facilities, the doctor you picked, your language, and a saved location (rounded to about 1 km, kept for 1 day from GPS or 7 days if typed).</li>
+    </ul>
+    <p>The Relief Assistant chat and symptom checker answers are not saved.</p>
+
+    <h2>2. What Relief does not do</h2>
+    <ul>
+        <li>No cookies, no analytics and no advertising or tracking scripts.</li>
+        <li>No sale of data, because Relief does not receive any.</li>
+        <li>No encryption of what is kept in your browser. Anyone who can use your browser profile can read it.</li>
     </ul>
 
-    <h2>2. How We Use Your Data</h2>
-    <p>We use your information to:</p>
+    <h2>3. Other websites that see you</h2>
+    <p>Pages load fonts, icons, map code, map tiles and some images from other hosts (Google Fonts, Font Awesome, unpkg, OpenStreetMap, Google, and a few image hosts). They can see your IP address. If you type a place that is not a built-in town into the manual location form, the text is sent to OpenStreetMap Nominatim. The SOS buttons open your phone or SMS app, and the message goes through your carrier. The contact form does not send anything.</p>
+
+    <h2>4. Your choices and deleting your data</h2>
     <ul>
-        <li>Provide and improve our services.</li>
-        <li>Respond to inquiries and emergencies.</li>
-        <li>Analyze app usage for better performance.</li>
-        <li>Comply with legal obligations.</li>
+        <li>See what is stored, and delete your account and all Relief data in this browser, in <a href="dashboard.html#privacy-data">Your data and account</a> on the dashboard.</li>
+        <li>Deleting removes local data at once and cannot be undone. If a deployment connects an online sign-in service, deletion also asks that service to delete your account, and tells you plainly if it could not.</li>
+        <li>Change location permission in your browser at any time.</li>
     </ul>
 
-    <h2>3. Data Sharing & Security</h2>
-    <p>We do not sell your data. We may share it with:</p>
-    <ul>
-        <li>Hospitals/medical providers (for emergency coordination).</li>
-        <li>Legal authorities (if required by law).</li>
-    </ul>
-    <p>We implement encryption and access controls to protect your data.</p>
+    <h2>5. Changes to this policy</h2>
+    <p>This page changes with the code. The date above is the last time it was checked against the code.</p>
 
-    <h2>4. Your Rights</h2>
-    <p>You may:</p>
-    <ul>
-        <li>Request access to or deletion of your data.</li>
-        <li>Opt out of non-essential communications.</li>
-    </ul>
-
-    <h2>5. Changes to This Policy</h2>
-    <p>We may update this policy periodically. Check this page for the latest version.</p>
-
-    <h2>6. Contact Us</h2>
-    <p>For questions, email <strong>privacy@reliefwebapp.com</strong>.</p>
+    <h2>6. Questions</h2>
+    <p>Open an issue on the <a href="https://github.com/SohamMondal88/RELIEF/issues">Relief repository</a>. Please do not put personal details in it.</p>
 
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app-enhancements.js"></script>

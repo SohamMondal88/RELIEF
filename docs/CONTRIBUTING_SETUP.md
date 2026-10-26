@@ -82,6 +82,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
+  - `privacy-data.js` and `privacy-controls.js`: the list of every `localStorage` key RELIEF writes, account deletion logic and the dashboard "Your data and account" panel. Documented in `docs/PRIVACY_AND_DATA.md` and tested by `tests/privacy-data.test.js`, which fails if a script uses a storage key that is not in the inventory.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
 
 ## 4. Preview the website locally
