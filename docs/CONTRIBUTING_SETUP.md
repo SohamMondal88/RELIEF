@@ -74,7 +74,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `pages/dashboard.html`: User dashboard displaying localized records, reminders, and health timelines.
 - **Stylesheets (`assets/css/`)**:
   - `style.css`: Primary global design system, typography, color scheme, navbar, buttons, layout grids, and core media queries.
-  - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
+  - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `onboarding.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
 - **Client-Side Scripts (`assets/js/`)**:
   - `main.js`: Global site behaviors (mobile navigation toggle, smooth scrolling, and alerts).
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
@@ -83,6 +83,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
+  - `onboarding.js`: Guided first-visit onboarding flow introducing verified, implemented features (facility search, emergency resources, reminders, and cautious health support). Persists skip/completion preferences in browser `localStorage` (key `relief_onboarding_status`) without requesting location or credentials. Tested by `tests/onboarding.test.js`.
 
 ## 4. Preview the website locally
 
@@ -109,6 +110,7 @@ There is no repository-defined automated test command in the current root setup.
 - **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
+- **Onboarding preferences:** first-visit onboarding status (completed or dismissed/skipped) is stored in `localStorage` under `relief_onboarding_status`. No account, login, or geolocation permissions are required. Visitors can revisit the tour at any time via the Tour button in the navigation or footer.
 - **Saved facilities:** the Save button on `pages/hospitals.html` stores a small copy of the facility (name, location, phone, coordinates, saved date) in `localStorage` under `relief_saved_facilities`. No account is needed and nothing is sent anywhere. The map needs the network, so it shows a short message offline.
 - **Testing:** serve the repo root over localhost, open `pages/firstaid.html` once, then tick **Offline** in DevTools (Application > Service Workers) and reload.
 

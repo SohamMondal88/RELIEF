@@ -1,0 +1,463 @@
+/* ==========================================================================
+   RELIEF - Guided First-Visit Onboarding Flow Stylesheet
+   Implements GitHub Issue #53: skippable, accessible, emergency-first tour.
+   ========================================================================== */
+
+/* Prevent background scroll when onboarding dialog is open */
+body.relief-onboarding-open {
+    overflow: hidden !important;
+}
+
+/* Backdrop */
+.relief-onboarding-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.68);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    animation: reliefOnboardingFadeIn 0.25s ease-out;
+}
+
+/* Dialog Positioning Wrapper */
+.relief-onboarding-wrapper {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Main Dialog Card */
+.relief-onboarding-dialog {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    animation: reliefOnboardingSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    font-family: 'Poppins', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1e293b;
+}
+
+.relief-onboarding-dialog:focus-visible {
+    outline: 3px solid #0984e3;
+    outline-offset: 3px;
+}
+
+/* Top Emergency Callout Banner */
+.relief-onboarding-emergency-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 1.15rem;
+    background: #fff1f2;
+    border-bottom: 1px solid #fecdd3;
+    font-size: 0.825rem;
+    color: #9f1239;
+    font-weight: 500;
+}
+
+.relief-onboarding-emergency-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    line-height: 1.35;
+}
+
+.relief-onboarding-emergency-content i {
+    color: #e11d48;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.relief-onboarding-emergency-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #e11d48;
+    color: #ffffff !important;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.775rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.relief-onboarding-emergency-btn:hover,
+.relief-onboarding-emergency-btn:focus-visible {
+    background: #be123c;
+    outline: 2px solid #9f1239;
+    outline-offset: 1px;
+}
+
+/* Header */
+.relief-onboarding-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.5rem;
+}
+
+.relief-onboarding-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.relief-onboarding-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.relief-onboarding-counter {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.relief-onboarding-close {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.relief-onboarding-close:hover,
+.relief-onboarding-close:focus-visible {
+    background: #f1f5f9;
+    color: #0f172a;
+    outline: 2px solid #0984e3;
+}
+
+/* Body */
+.relief-onboarding-body {
+    padding: 0.75rem 1.4rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.relief-onboarding-icon-wrap {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #00b894 0%, #0984e3 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.85rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 20px -4px rgba(9, 132, 227, 0.35);
+}
+
+.relief-onboarding-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.relief-onboarding-desc {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.55;
+    margin-bottom: 1rem;
+    max-width: 460px;
+}
+
+.relief-onboarding-highlight {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    color: #334155;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 0.75rem;
+}
+
+.relief-onboarding-highlight i {
+    color: #00b894;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.relief-onboarding-feature-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    color: #0984e3;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.relief-onboarding-feature-link:hover,
+.relief-onboarding-feature-link:focus-visible {
+    color: #00997b;
+    text-decoration: underline;
+    outline: 2px solid #0984e3;
+    outline-offset: 2px;
+}
+
+/* Dots Indicator */
+.relief-onboarding-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.relief-onboarding-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: width 0.25s ease, background 0.25s ease;
+}
+
+.relief-onboarding-dot.active {
+    width: 24px;
+    background: #0984e3;
+}
+
+.relief-onboarding-dot:focus-visible {
+    outline: 2px solid #0984e3;
+    outline-offset: 2px;
+}
+
+/* Actions Footer */
+.relief-onboarding-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.25rem 1.25rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    gap: 0.75rem;
+}
+
+.relief-onboarding-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.relief-onboarding-btn {
+    border: none;
+    background: transparent;
+    padding: 0.6rem 1.15rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.relief-onboarding-btn-skip {
+    color: #64748b;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.relief-onboarding-btn-skip:hover,
+.relief-onboarding-btn-skip:focus-visible {
+    color: #0f172a;
+    background: #e2e8f0;
+    outline: 2px solid #0984e3;
+}
+
+.relief-onboarding-btn-prev {
+    color: #334155;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+}
+
+.relief-onboarding-btn-prev:hover,
+.relief-onboarding-btn-prev:focus-visible {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    outline: 2px solid #0984e3;
+}
+
+.relief-onboarding-btn-next,
+.relief-onboarding-btn-finish {
+    background: linear-gradient(135deg, #00b894 0%, #00997b 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+}
+
+.relief-onboarding-btn-next:hover,
+.relief-onboarding-btn-next:focus-visible,
+.relief-onboarding-btn-finish:hover,
+.relief-onboarding-btn-finish:focus-visible {
+    background: linear-gradient(135deg, #00a884 0%, #00876c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 184, 148, 0.35);
+    outline: 2px solid #00997b;
+    outline-offset: 2px;
+}
+
+/* Nav Revisit Button */
+.btn-tour-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: inherit;
+    border: 2px solid var(--secondary-color, #0984e3);
+    background: #ffffff;
+    color: var(--secondary-color, #0984e3);
+    cursor: pointer;
+    transition: var(--transition, all 0.3s ease);
+    margin-right: 6px;
+    text-decoration: none;
+}
+
+.btn-tour-nav:hover,
+.btn-tour-nav:focus-visible {
+    background: var(--secondary-color, #0984e3);
+    color: #ffffff;
+    outline: 2px solid var(--secondary-dark, #0767b1);
+    outline-offset: 2px;
+}
+
+/* Footer Revisit Link */
+.footer-tour-link {
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s ease;
+}
+
+.footer-tour-link:hover,
+.footer-tour-link:focus-visible {
+    color: var(--primary-color, #00b894);
+    outline: 2px solid #00b894;
+    outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes reliefOnboardingFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes reliefOnboardingSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Accessibility: Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .relief-onboarding-backdrop,
+    .relief-onboarding-dialog,
+    .relief-onboarding-dot,
+    .relief-onboarding-btn {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .relief-onboarding-dialog {
+        border-radius: 12px;
+    }
+
+    .relief-onboarding-emergency-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .relief-onboarding-emergency-btn {
+        align-self: flex-start;
+    }
+
+    .relief-onboarding-body {
+        padding: 0.5rem 1rem 1rem;
+    }
+
+    .relief-onboarding-icon-wrap {
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+    }
+
+    .relief-onboarding-title {
+        font-size: 1.15rem;
+    }
+
+    .relief-onboarding-desc {
+        font-size: 0.875rem;
+    }
+
+    .relief-onboarding-actions {
+        padding: 0.75rem 1rem 1rem;
+    }
+}
