@@ -194,49 +194,20 @@ const ReliefAPI = (function() {
         }
     };
 
-    // Account deletion (Issue #29). Best effort from the browser, see docs/PRIVACY_AND_DATA.md.
-    // It needs a recent sign-in (checked first, so a refused request deletes nothing), removes
-    // the documents this file writes for the user, then deletes the auth user. It resolves
-    // { success: true } only after the auth user is gone, and throws on any failure.
-    // A deployment should move this to a trusted server so backups and logs are covered too.
-    const RECENT_LOGIN_MS = 5 * 60 * 1000;
-    const USER_DATA_COLLECTIONS = ['appointments', 'emergencyRequests', 'medicineDeliveries'];
-
-    const deleteAccount = async () => {
-        try {
-            const user = auth.currentUser;
-            if (!user) {
-                const noUser = new Error('Not signed in');
-                noUser.code = 'auth/no-current-user';
-                throw noUser;
-            }
-
-            const lastSignIn = Date.parse(user.metadata && user.metadata.lastSignInTime);
-            if (!lastSignIn || Date.now() - lastSignIn > RECENT_LOGIN_MS) {
-                const stale = new Error('Recent sign-in required');
-                stale.code = 'auth/requires-recent-login';
-                throw stale;
-            }
-
-            const refs = [db.collection('users').doc(user.uid), db.collection('patients').doc(user.uid)];
-            for (const name of USER_DATA_COLLECTIONS) {
-                const snapshot = await db.collection(name).where('userId', '==', user.uid).get();
-                snapshot.docs.forEach(doc => refs.push(doc.ref));
-            }
-
-            // A Firestore batch holds at most 500 writes.
-            for (let i = 0; i < refs.length; i += 400) {
-                const batch = db.batch();
-                refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
-                await batch.commit();
-            }
-
-            await user.delete();
-            return { success: true, documentsRemoved: refs.length };
-        } catch (error) {
-            return handleError(error);
-        }
-    };
+    // Subscription status
+    /**
+     * Asks the RELIEF backend what the signed-in user's subscription really is.
+     *
+     * GET {backend}/v1/subscription  (session cookie, no client-supplied plan or status)
+     * Contract: docs/SUBSCRIPTION_SERVER_CONTRACT.md
+     *
+     * Resolves with the parsed JSON body exactly as the server sent it. It is NOT
+     * checked here: pass it to ReliefSubscription.normalize()/verify() before using it.
+     * Rejects (code 'backend-unavailable', 'unauthenticated', ...) when there is no
+     * trustworthy answer. It never reads localStorage, cookies the page can set, or
+     * URL parameters, and it never returns a guessed or cached value.
+     */
+    const verifySubscription = () => backendRequest('/v1/subscription');
 
     // Medical Data Services (using OpenMRS instead of Infermedica)
     const searchDoctors = async (params) => {
@@ -513,6 +484,9 @@ const ReliefAPI = (function() {
         logout,
         getCurrentUser,
         deleteAccount,
+
+        // Subscription (server-verified, see docs/SUBSCRIPTION_SERVER_CONTRACT.md)
+        verifySubscription,
 
         // Medical Services
         searchDoctors,

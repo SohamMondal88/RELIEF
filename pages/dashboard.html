@@ -98,14 +98,10 @@
     </section>
 
     <section class="grid dashboard-grid">
-        <article class="card benefit-card">
+        <article class="card benefit-card" id="plan-summary">
             <h2>Current Plan Benefits</h2>
-            <ul class="benefit-list">
-                <li>✔ Priority appointment slots</li>
-                <li>✔ 24/7 nurse assistance</li>
-                <li>✔ Discounted pharmacy deliveries</li>
-                <li>✔ AI symptom tracking insights</li>
-            </ul>
+            <p id="plan-summary-status" role="status" aria-live="polite">Checking your plan with the server...</p>
+            <ul class="benefit-list" id="plan-benefits" hidden></ul>
             <a href="./subscription.html" class="btn btn-primary">Manage Subscription</a>
         </article>
 
@@ -156,6 +152,9 @@
 
 <script src="../assets/js/reminders.js"></script>
 <script src="../assets/js/main.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/subscription-state.js"></script>
+<script src="../assets/js/subscription.js"></script>
 <script src="../assets/js/symptoms.js"></script>
 <script src="../assets/js/assistant.js"></script>
 <script src="../assets/js/dashboard.js"></script>

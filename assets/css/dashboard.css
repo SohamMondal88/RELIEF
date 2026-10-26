@@ -141,6 +141,10 @@
     gap: 8px;
 }
 
+.benefit-list[hidden] {
+    display: none;
+}
+
 .chatbot-card {
     display: grid;
     gap: 10px;

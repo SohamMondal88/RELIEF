@@ -35,6 +35,13 @@
         </div>
     </section>
 
+    <section class="card subscription-status" id="subscription-status" role="status" aria-live="polite" data-state="checking" data-tone="info">
+        <h2 id="subscription-status-title">Checking your subscription</h2>
+        <p id="subscription-status-message">Asking the server. Plan benefits stay off until it answers.</p>
+        <p class="muted subscription-status-note">This status comes from our server. It is never read from this browser or from the page address.</p>
+        <button class="btn btn-outline" id="subscription-recheck" type="button" hidden>Check again</button>
+    </section>
+
     <section class="plan-grid">
         <article class="card plan-card">
             <h2>Basic Care</h2>
@@ -44,7 +51,7 @@
                 <li>✔ Symptom checker history</li>
                 <li>✔ Medicine reminders</li>
             </ul>
-            <button class="btn btn-primary">Get Basic</button>
+            <button class="btn btn-primary" type="button" disabled aria-describedby="checkout-note">Get Basic</button>
         </article>
 
         <article class="card plan-card recommended">
@@ -57,7 +64,7 @@
                 <li>✔ Pharmacy discounts up to 15%</li>
                 <li>✔ Emergency callback support</li>
             </ul>
-            <button class="btn btn-primary">Choose Plus</button>
+            <button class="btn btn-primary" type="button" disabled aria-describedby="checkout-note">Choose Plus</button>
         </article>
 
         <article class="card plan-card">
@@ -69,20 +76,33 @@
                 <li>✔ 24/7 nurse helpline</li>
                 <li>✔ Dedicated care coordinator</li>
             </ul>
-            <button class="btn btn-primary">Start Premium</button>
+            <button class="btn btn-primary" type="button" disabled aria-describedby="checkout-note">Start Premium</button>
         </article>
     </section>
 
     <section class="grid" style="margin-top: 16px;">
         <article class="card">
-            <h2>Secure Checkout</h2>
+            <h2>Checkout</h2>
+            <p class="muted" id="checkout-note">Online payment is not connected yet, so no payment can be taken here and plan buttons are switched off. A plan only turns on after our server confirms the payment, never because a page says "success".</p>
             <label for="full-name">Full Name</label>
             <input id="full-name" placeholder="Enter your full name">
             <label for="email">Email</label>
             <input id="email" type="email" placeholder="Enter your email">
             <label for="coupon">Coupon Code</label>
             <input id="coupon" placeholder="Optional">
-            <button class="btn btn-primary" style="margin-top: 12px;">Proceed to Payment</button>
+            <button class="btn btn-primary" style="margin-top: 12px;" type="button" disabled aria-describedby="checkout-note">Proceed to Payment</button>
+        </article>
+        <article class="card terms-card" id="plan-terms">
+            <h2>Before you pay</h2>
+            <p class="muted">These are the terms we plan to show before any payment. They are a draft until payments are switched on.</p>
+            <ul class="terms-list">
+                <li><strong>What you get:</strong> the features listed on the plan you pick.</li>
+                <li><strong>Billing period:</strong> monthly or yearly, as selected at the top of this page. The price shown is what you would be charged for that period.</li>
+                <li><strong>Renewal:</strong> the plan is meant to renew each period until you cancel. We will say so on the checkout step.</li>
+                <li><strong>Cancelling:</strong> from your dashboard, at any time (see FAQs). Benefits end when the paid period ends.</li>
+                <li><strong>Refunds:</strong> prorated within 7 days (see FAQs).</li>
+                <li><strong>Support:</strong> use the <a href="./contact.html">Contact page</a> for billing questions.</li>
+            </ul>
         </article>
         <article class="card faq-card">
             <h2>FAQs</h2>
@@ -96,6 +116,8 @@
 <footer class="wrap footer">Need enterprise or clinic plans? Contact RELIEF support for custom pricing.</footer>
 
 <script src="../assets/js/main.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/subscription-state.js"></script>
 <script src="../assets/js/subscription.js"></script>
 <script src="../assets/js/i18n.js"></script>
 <script src="../assets/js/app-enhancements.js"></script>
