@@ -128,6 +128,28 @@
             </form>
         </article>
     </section>
+
+    <section class="card privacy-card" id="privacy-data" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading">Your data and account</h2>
+        <p class="muted">RELIEF keeps what you enter in this browser only. Nothing here is sent to a RELIEF server. Read the <a href="./privacy-policy.html">privacy policy</a> for the full list.</p>
+
+        <h3 id="privacy-stored-heading">Stored in this browser right now</h3>
+        <ul id="privacy-stored" class="privacy-stored" aria-labelledby="privacy-stored-heading"></ul>
+
+        <button type="button" class="btn btn-danger" id="privacy-delete" aria-controls="privacy-confirm" aria-expanded="false">Delete my account and data</button>
+
+        <div id="privacy-confirm" class="privacy-confirm" role="group" aria-labelledby="privacy-confirm-title" hidden>
+            <h3 id="privacy-confirm-title" tabindex="-1">Delete everything RELIEF stores here?</h3>
+            <p>This removes your reminders, timeline, appointment requests, saved facilities, saved location, sign-in sessions and any demo accounts kept in this browser. It cannot be undone.</p>
+            <p>If you signed in through an online sign-in service, RELIEF will ask it to delete your account too and will tell you what the service answered.</p>
+            <div class="privacy-actions">
+                <button type="button" class="btn btn-danger" id="privacy-confirm-yes">Yes, delete my data</button>
+                <button type="button" class="btn" id="privacy-confirm-cancel">Cancel</button>
+            </div>
+        </div>
+
+        <div id="privacy-status" class="privacy-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
+    </section>
 </main>
 
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
@@ -137,6 +159,8 @@
 <script src="../assets/js/symptoms.js"></script>
 <script src="../assets/js/assistant.js"></script>
 <script src="../assets/js/dashboard.js"></script>
+<script src="../assets/js/privacy-data.js"></script>
+<script src="../assets/js/privacy-controls.js"></script>
 <script src="../assets/js/i18n.js"></script>
 <script src="../assets/js/app-enhancements.js"></script>
 </body>

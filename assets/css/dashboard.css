@@ -245,6 +245,73 @@
     outline-offset: 2px;
 }
 
+.privacy-card h3 {
+    margin: 14px 0 6px;
+    font-size: 1rem;
+}
+
+.privacy-stored {
+    margin: 0 0 14px;
+    padding-left: 20px;
+}
+
+.privacy-confirm {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 2px solid #d92d20;
+    border-radius: 10px;
+    background: #fff1f0;
+    color: #7a1410;
+}
+
+.privacy-confirm h3 {
+    margin-top: 0;
+}
+
+.privacy-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.privacy-status {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #dbe7ff;
+    background: #f0f6ff;
+}
+
+.privacy-status p {
+    margin: 0 0 6px;
+}
+
+.privacy-status--success {
+    border-color: #1a7f4b;
+    background: #effaf3;
+    color: #0e4d2c;
+}
+
+.privacy-status--warning {
+    border-color: #f5c26b;
+    background: #fff8e8;
+    color: #5c3b00;
+}
+
+.privacy-status--error {
+    border-color: #d92d20;
+    background: #fff1f0;
+    color: #7a1410;
+}
+
+#privacy-delete:focus-visible,
+.privacy-confirm .btn:focus-visible,
+.privacy-status:focus-visible,
+.privacy-confirm h3:focus-visible {
+    outline: 3px solid #134293;
+    outline-offset: 2px;
+}
+
 @media (max-width: 900px) {
     .hero-gradient {
         grid-template-columns: 1fr;

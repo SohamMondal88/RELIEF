@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeZone = R ? R.getLocalTimeZone() : 'UTC';
 
     let reminders = R ? R.loadReminders(localStorage) : [];
+    // Set after "Delete my account and data" so the page does not write its old state back.
+    let dataDeleted = false;
     const history = JSON.parse(localStorage.getItem(historyKey) || '[{"date":"2026-01-02","event":"Symptom check completed","status":"Advised doctor consult"},{"date":"2026-01-04","event":"Appointment booked","status":"Dr. A. Sen - 10:30 AM"}]');
 
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
@@ -39,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function persist() {
+        if (dataDeleted) return;
         const saved = R.saveReminders(localStorage, reminders);
         localStorage.setItem(historyKey, JSON.stringify(history));
         if (!saved) showErrors({ form: 'Could not save reminders in this browser (storage may be full or blocked).' });
@@ -133,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form?.addEventListener('submit', (e) => {
         e.preventDefault();
+        dataDeleted = false;
         const editId = fields.id.value;
         const ctx = { timeZone };
         const result = editId
@@ -154,6 +158,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cancelBtn?.addEventListener('click', resetForm);
 
+    document.addEventListener('relief:data-deleted', (e) => {
+        if (!e.detail || (e.detail.local && e.detail.local.state === 'unavailable')) return;
+        dataDeleted = true;
+        reminders = [];
+        history.length = 0;
+        bannerMessages.innerHTML = '';
+        banner.hidden = true;
+        resetForm();
+        render();
+    });
+
     notifyBtn?.addEventListener('click', () => {
         if (!window.Notification) return;
         Promise.resolve(Notification.requestPermission()).then(renderNotifyPanel, renderNotifyPanel);
@@ -170,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
 
+        dataDeleted = false;
         const id = btn.dataset.id;
         const action = btn.dataset.action;
         const current = reminders.find((r) => r.id === id);
