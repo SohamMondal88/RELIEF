@@ -7,6 +7,7 @@
     <meta name="keywords" content="healthcare, doctor finder, symptom checker, hospital locator, medical assistance">
     <title data-i18n="home.title">Relief - Your Complete Healthcare Companion | Symptom Checker & Doctor Finder</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/onboarding.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -59,6 +60,7 @@
 
         <div class="navbar-right">
             <ul class="nav-links">
+                <li><button type="button" class="btn-tour-nav" id="btn-revisit-tour" data-i18n="nav.tour" aria-label="Take a guided tour of RELIEF"><i class="fas fa-compass" aria-hidden="true"></i> <span data-i18n="nav.tour">Tour</span></button></li>
                 <li><a href="pages/login.html" class="btn-login" data-i18n="nav.login">Login</a></li>
                 <li><a href="pages/signup.html" class="btn-signup" data-i18n="nav.signup">Sign Up</a></li>
             </ul>
@@ -444,6 +446,7 @@
                             <li><a href="pages/hospitals.html" data-i18n="footer.hospitals">Find Hospitals</a></li>
                             <li><a href="pages/pharmacies.html" data-i18n="footer.pharmacies">Find Pharmacies</a></li>
                             <li><a href="pages/ambulances.html" data-i18n="footer.emergency">Emergency Services</a></li>
+                            <li><button type="button" class="footer-tour-link" id="footer-revisit-tour" data-i18n="footer.tour"><i class="fas fa-compass" aria-hidden="true"></i> Quick Tour &amp; Guide</button></li>
                         </ul>
                     </div>
 
@@ -494,6 +497,7 @@
     <script src="assets/js/main.js"></script>
 
     <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/onboarding.js"></script>
     <script src="assets/js/app-enhancements.js"></script>
 </body>
 </html>
