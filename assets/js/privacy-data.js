@@ -116,6 +116,30 @@
       personal: false,
       holds: 'A timestamp, used to say when the offline copy was last refreshed.',
       retention: 'Overwritten on every online page load. It comes back on your next visit after deletion.'
+    },
+    {
+      key: 'relief_formguard_contact',
+      label: 'Submission limiter (Contact form)',
+      category: 'technical',
+      personal: false,
+      holds: 'Timestamps of recent attempts only, used to slow down repeated submissions. No form content.',
+      retention: 'Entries older than the limit window (1 to 10 minutes) are ignored and removed. Included in deletion.'
+    },
+    {
+      key: 'relief_formguard_login',
+      label: 'Submission limiter (Login)',
+      category: 'technical',
+      personal: false,
+      holds: 'Timestamps of recent attempts only, used to slow down repeated submissions. No form content.',
+      retention: 'Entries older than the limit window (1 to 10 minutes) are ignored and removed. Included in deletion.'
+    },
+    {
+      key: 'relief_formguard_signup',
+      label: 'Submission limiter (Signup)',
+      category: 'technical',
+      personal: false,
+      holds: 'Timestamps of recent attempts only, used to slow down repeated submissions. No form content.',
+      retention: 'Entries older than the limit window (1 to 10 minutes) are ignored and removed. Included in deletion.'
     }
   ];
 

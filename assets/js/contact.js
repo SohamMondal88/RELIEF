@@ -1,6 +1,12 @@
 // Contact Form Validation
 const contactForm = document.getElementById('contactForm');
+const contactGuard = contactForm && window.ReliefFormGuard
+    ? window.ReliefFormGuard.createGuard('contact', { maxAttempts: 3, windowMs: 60 * 1000, minFillMs: 1500 })
+    : null;
+
 if (contactForm) {
+    window.ReliefFormGuard?.attachHoneypot(contactForm);
+
     contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -11,8 +17,7 @@ if (contactForm) {
         const isValid = validateForm();
 
         if (isValid) {
-            // Form is valid - simulate submission
-            simulateFormSubmission();
+            submitContactForm();
         }
     });
 
@@ -129,6 +134,21 @@ function resetErrors() {
     inputs.forEach(input => input.style.borderColor = '#ddd');
 }
 
+async function submitContactForm() {
+    if (!contactGuard) {
+        simulateFormSubmission();
+        return;
+    }
+
+    const outcome = await contactGuard.run(
+        () => simulateFormSubmission(),
+        { honeypot: contactForm.elements['website']?.value }
+    );
+
+    // A blocked attempt keeps the user's text and explains how to recover.
+    window.ReliefFormGuard.showGuardMessage(contactForm, outcome.ok ? '' : outcome.message);
+}
+
 function simulateFormSubmission() {
     const submitButton = contactForm.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
@@ -138,7 +158,7 @@ function simulateFormSubmission() {
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
     // Simulate API call
-    setTimeout(() => {
+    return new Promise((resolve) => setTimeout(() => {
         // Show success message
         const successMessage = document.createElement('div');
         successMessage.className = 'form-success';
@@ -154,7 +174,8 @@ function simulateFormSubmission() {
 
         // Reset form (in a real app, this would happen after actual submission)
         contactForm.reset();
-    }, 1500);
+        resolve();
+    }, 1500));
 }
 
 // FAQ Accordion Functionality

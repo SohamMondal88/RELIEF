@@ -11,6 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // Count only failed logins so normal users are never slowed down.
+    const guard = window.ReliefFormGuard?.createGuard('login', {
+        maxAttempts: 5,
+        windowMs: 5 * 60 * 1000,
+        minFillMs: 0,
+        countFailuresOnly: true
+    });
+    window.ReliefFormGuard?.attachHoneypot(loginForm);
+
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -24,14 +33,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const user = await authenticateUser(email, password);
-            window.ReliefSession?.createSession?.(user);
+            const attempt = () => authenticateUser(email, password);
+            const outcome = guard
+                ? await guard.run(attempt, { honeypot: loginForm.elements['website']?.value })
+                : await attempt().then((value) => ({ ok: true, value }), (error) => ({ ok: false, message: error.message }));
+
+            if (!outcome.ok) {
+                showAlert('danger', outcome.message || 'Login failed. Please try again.');
+                return;
+            }
+
+            window.ReliefSession?.createSession?.(outcome.value);
             showAlert('success', 'Login successful! Redirecting to dashboard...');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 800);
-        } catch (error) {
-            showAlert('danger', error.message || 'Login failed. Please try again.');
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;

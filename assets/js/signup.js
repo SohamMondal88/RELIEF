@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    const guard = window.ReliefFormGuard?.createGuard('signup', {
+        maxAttempts: 5,
+        windowMs: 10 * 60 * 1000,
+        minFillMs: 0
+    });
+    window.ReliefFormGuard?.attachHoneypot(signupForm);
+
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -36,14 +43,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const user = await createUser(name, email, password);
-            window.ReliefSession?.createSession?.(user);
+            const attempt = () => createUser(name, email, password);
+            const outcome = guard
+                ? await guard.run(attempt, { honeypot: signupForm.elements['website']?.value })
+                : await attempt().then((value) => ({ ok: true, value }), (error) => ({ ok: false, message: error.message }));
+
+            if (!outcome.ok) {
+                showAlert('danger', outcome.message || 'Signup failed. Please try again.');
+                return;
+            }
+
+            window.ReliefSession?.createSession?.(outcome.value);
             showAlert('success', 'Account created successfully! Redirecting to dashboard...');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 800);
-        } catch (error) {
-            showAlert('danger', error.message || 'Signup failed. Please try again.');
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
