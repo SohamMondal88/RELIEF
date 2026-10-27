@@ -156,7 +156,7 @@
                     <div class="form-group">
                         <label for="symptoms">What symptoms are you experiencing?</label>
                         <p class="field-hint">Use plain, everyday language (e.g. headache, mild fever, cough, stomach pain).</p>
-                        <textarea id="symptoms" placeholder="Describe what you are experiencing in your own words" rows="4"></textarea>
+                        <textarea id="symptoms" maxlength="1000" placeholder="Describe what you are experiencing in your own words" rows="4"></textarea>
                     </div>
                     <div class="form-group">
                         <label>How long have you had these symptoms?</label>
@@ -188,12 +188,12 @@
                     <div class="form-group">
                         <label for="additional-info">Any other relevant health context? (Optional)</label>
                         <p class="field-hint">e.g. Existing health conditions, known allergies, or changes over time.</p>
-                        <textarea id="additional-info" placeholder="Optional context to discuss with your doctor" rows="3"></textarea>
+                        <textarea id="additional-info" maxlength="1000" placeholder="Optional context to discuss with your doctor" rows="3"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="medications">Current medications or treatments (Optional)</label>
                         <p class="field-hint">Note: RELIEF does not recommend starting, stopping, or changing prescription medications or dosages.</p>
-                        <input type="text" id="medications" placeholder="Optional notes for your doctor's discussion">
+                        <input type="text" id="medications" maxlength="200" placeholder="Optional notes for your doctor's discussion">
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn-prev">Previous</button>

@@ -1,4 +1,7 @@
 // Contact Form Validation
+// Longest accepted text. Longer input is refused with a message, never cut off silently.
+const CONTACT_LIMITS = { name: 100, email: 254, message: 2000 };
+
 const contactForm = document.getElementById('contactForm');
 const contactGuard = contactForm && window.ReliefFormGuard
     ? window.ReliefFormGuard.createGuard('contact', { maxAttempts: 3, windowMs: 60 * 1000, minFillMs: 1500 })
@@ -60,6 +63,11 @@ function validateName() {
         return false;
     }
 
+    if (nameValue.length > CONTACT_LIMITS.name) {
+        showError(nameInput, errorElement, 'Name must be ' + CONTACT_LIMITS.name + ' characters or fewer');
+        return false;
+    }
+
     clearError(nameInput, errorElement);
     return true;
 }
@@ -72,6 +80,11 @@ function validateEmail() {
 
     if (emailValue === '') {
         showError(emailInput, errorElement, 'Please enter your email');
+        return false;
+    }
+
+    if (emailValue.length > CONTACT_LIMITS.email) {
+        showError(emailInput, errorElement, 'Email address must be ' + CONTACT_LIMITS.email + ' characters or fewer');
         return false;
     }
 
@@ -96,6 +109,11 @@ function validateMessage() {
 
     if (messageValue.length < 10) {
         showError(messageInput, errorElement, 'Message must be at least 10 characters');
+        return false;
+    }
+
+    if (messageValue.length > CONTACT_LIMITS.message) {
+        showError(messageInput, errorElement, 'Message must be ' + CONTACT_LIMITS.message + ' characters or fewer (now ' + messageValue.length + ')');
         return false;
     }
 
