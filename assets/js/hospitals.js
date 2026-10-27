@@ -290,17 +290,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         setStatus('Finding your location...');
         navigator.geolocation.getCurrentPosition(function(pos) {
+            const coords = pos && pos.coords;
+            if (!coords || !U.isValidCoord(coords.latitude, coords.longitude)) {
+                setStatus('Your device gave an unusable position, so it was ignored. Showing facilities sorted by name.');
+                return;
+            }
             if (window.ReliefLocation) {
                 window.ReliefLocation.saveLocation({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
+                    lat: coords.latitude,
+                    lng: coords.longitude,
                     source: 'gps'
                 });
             } else {
                 try {
                     localStorage.setItem('userLocation', JSON.stringify({
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude
+                        lat: coords.latitude,
+                        lng: coords.longitude
                     }));
                 } catch (e) { /* storage unavailable; the location is used only for this visit */ }
             }
