@@ -221,6 +221,8 @@ For a static deployment:
 
 Do not add an invented build command or assume that all integrations work in production.
 
+Security headers and the Content Security Policy are described in `docs/SECURITY_HEADERS.md`, including what each host needs. If you add an external script, stylesheet, image, frame or API origin, the policy in every page and in `vercel.json` has to change with it (`tests/security-headers.test.js` checks this).
+
 ## 9. Troubleshooting
 
 | Problem | What to check |
