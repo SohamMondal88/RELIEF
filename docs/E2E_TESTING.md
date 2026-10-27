@@ -32,6 +32,23 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/sos.spec.js` | SOS dialog (focus, Escape, Tab trap), no backend configured, server error, unconfirmed 200, dropped connection, Retry, confirmed success with a mocked location, denied location, offline, closing while a request is in flight |
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+
+## Network helpers
+
+For tests about a bad connection, use the helpers in `e2e/helpers.js` (call them before `page.goto`). Each one that intercepts returns `{ requests }`, the URLs it caught, so a test can assert the failure really happened.
+
+| Helper | What it does |
+|---|---|
+| `failRequests(page, matcher)` | The request fails at once (dropped connection) |
+| `errorResponse(page, matcher, { status })` | The server answers with an error, 503 by default |
+| `delayRequests(page, matcher, ms)` | The request waits, then goes to the local server (same-origin only) |
+| `holdRequests(page, matcher)` | The request stays pending until `release()` (goes through) or `fail()`. `pending()` says how many are waiting. Use it to look at a loading state without a timer |
+| `failThirdParty(page, { baseURL, mode })` | Every outside host fails as `abort`, `error` (503), `empty` (200 with an empty file) or `hang` (never answers) |
+| `goOffline(page)` / `goOnline(page)` | Switches the whole browser context offline and back |
+| `waitForOfflineCopy(page, path)` | Visits a page online until the service worker controls it and has filled its cache |
+
+`matcher` is anything `page.route` takes: a glob, a RegExp or a function. The helpers never pass a request on to an outside host.
 
 ## Rules the tests follow
 
@@ -60,6 +77,10 @@ These are real behaviours the tests found. They are skipped, listed in the repor
 | `navigation.spec.js` Services menu at 1280px | The logo image covers the Services link (logo x 555 to 725, link x 548 to 669), so the mouse cannot reach the menu |
 | `navigation.spec.js` no horizontal scrolling at 375px | The language switcher sticks out 2px past the viewport |
 | `sos.spec.js` ambulances page without page errors | `ambulances.js` calls Leaflet (`L`) when the CDN script did not load and throws "L is not defined" |
+| `network-resilience.spec.js` first aid is readable while an outside stylesheet is still pending | A stylesheet in `<head>` that never answers (Font Awesome) stops the parser, so not even the `<h1>` is in the page until the browser gives up |
+| `network-resilience.spec.js` facility list gives up waiting | `fetch()` in `hospitals.js` has no timeout, so "Loading facilities..." stays for ever when the server never answers |
+| `network-resilience.spec.js` place lookup gives up waiting | Same in `location-service.js`: "Looking up that place..." for ever |
+| `network-resilience.spec.js` hospitals page opens offline | `sw.js` precaches `hospitals.html` but not `facility-utils.js`, `location-service.js`, `location-panel.js`, `i18n.js` and other scripts it needs, so offline the page has no list and no message |
 | `sos.spec.js` focus returns to the SOS button | A click opens the SOS dialog twice (button handler plus document handler), so focus is lost on close |
 
 Not covered because the feature does not exist yet: a Relief Assistant launcher that opens and closes (the assistant is a card on the dashboard).
