@@ -708,6 +708,14 @@ a:hover {
     overflow: hidden;
 }
 
+.map-unavailable {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    border-left: 4px solid var(--secondary-color);
+}
+
 @media (max-width: 768px) {
     .ambulance-item {
         flex-direction: column;

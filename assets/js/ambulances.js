@@ -83,7 +83,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (location) map.setView(location, 13);
     });
 
+    // The map library comes from a CDN. When it did not load (offline, blocked, slow) the rest of the page
+    // still works, so say that the map is missing instead of leaving an empty box.
+    function showMapUnavailable(mapElement) {
+        mapElement.hidden = true;
+        const note = document.createElement('p');
+        note.className = 'map-unavailable';
+        note.setAttribute('role', 'status');
+        note.textContent = 'The map could not be loaded, so it is not shown. The ambulance list above still works, and Directions opens the route in your maps app.';
+        mapElement.parentNode.insertBefore(note, mapElement);
+    }
+
     function initMap() {
+        const mapElement = document.getElementById('map');
+        if (!mapElement) return;
+        if (typeof L === 'undefined') {
+            showMapUnavailable(mapElement);
+            return;
+        }
+
         // Use the saved location if there is one, otherwise a West Bengal overview
         const userLocation = getUserLocation();
         const center = userLocation || DEFAULT_CENTER;
