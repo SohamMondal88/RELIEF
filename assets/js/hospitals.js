@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!hospitalsList || !U) return;
 
     let facilities = [];
+    let reviewPolicy = U.getReviewPolicy(null);
     let map = null;
     let markers = [];
     let userMarker = null;
@@ -214,9 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const distance = f.distanceKm != null
             ? '<p class="hospital-distance">' + U.escapeHtml(U.formatDistance(f.distanceKm)) + '</p>'
             : '';
-        const badgeClass = f.verified ? 'badge-verified' : 'badge-unverified';
-        const badgeText = f.verified ? 'Verified' : 'Not verified';
-        const detail = f.verified ? U.verificationLabel(f).replace(/^Verified - /, '') : 'no source recorded yet';
+        // The label comes from the review state and the check date, never from a bare flag.
+        const label = U.reviewLabel(f, { policy: reviewPolicy });
+        const badgeClass = 'badge-' + (label.state === 'pending' ? 'unverified' : label.state);
+        const badgeText = label.badge;
+        const detail = label.detail;
         return '' +
             '<div class="hospital-info">' +
                 '<h4 class="hospital-name">' + U.escapeHtml(f.name) + '</h4>' +
@@ -272,7 +275,8 @@ document.addEventListener('DOMContentLoaded', function() {
             type: facilityTypeFilter ? facilityTypeFilter.value : '',
             district: districtFilter ? districtFilter.value : '',
             service: servicesFilter ? servicesFilter.value : '',
-            verifiedOnly: verifiedOnly ? verifiedOnly.checked : false
+            verifiedOnly: verifiedOnly ? verifiedOnly.checked : false,
+            policy: reviewPolicy
         });
         const sortBy = sortSelect ? sortSelect.value : 'name';
         const location = readSavedLocation();
@@ -354,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         checked.quarantined.map(q => (q.id || '#' + q.index) + ' (' + q.errors.join(', ') + ')'));
                 }
                 facilities = U.normalizeFacilities(checked ? checked.accepted : data);
+                reviewPolicy = U.getReviewPolicy(data);
                 populateFilters();
                 applyFilters();
                 // The correction form (facility-corrections-ui.js) fills its list from this.

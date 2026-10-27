@@ -8,6 +8,15 @@
 <article class="card"><h2>Provider Verification</h2><p>Review newly onboarded doctors and pharmacies.</p><ul><li>Dr. N. Rao - Documents verified ✅</li><li>LifeCare Pharmacy - Pending license upload ⚠️</li></ul></article>
 <article class="card"><h2>System Metrics</h2><p><strong>Avg triage response:</strong> 2m 10s</p><p><strong>SOS initiation success:</strong> 97%</p><p><strong>Reminder delivery:</strong> 94%</p></article>
 </div>
+<section class="card freshness-card" id="facility-freshness" aria-labelledby="freshness-heading">
+<h2 id="freshness-heading">Facility data freshness</h2>
+<p class="muted">A verified record turns stale <span id="freshness-window">180</span> days after it was last checked. This list is read-only: review states change with <code>scripts/facility-review.js</code> and a pull request (see <code>docs/FACILITY_VERIFICATION_POLICY.md</code>).</p>
+<ul class="freshness-counts" id="freshness-counts" aria-label="Records by review state"></ul>
+<div class="freshness-controls"><div><label for="freshness-filter">Show</label><select id="freshness-filter"><option value="all">Stale and pending</option><option value="stale">Stale only</option><option value="pending">Pending only</option></select></div></div>
+<p id="freshness-message" role="status" aria-live="polite" data-tone=""></p>
+<div class="freshness-table-wrap" id="freshness-table-wrap" hidden><table class="table"><caption class="muted">Records that need a check, stale first, then oldest check first</caption><thead><tr><th scope="col">Facility</th><th scope="col">State</th><th scope="col">Last checked</th><th scope="col">Age</th><th scope="col">Source</th></tr></thead><tbody id="freshness-rows"></tbody></table></div>
+<button class="btn btn-primary freshness-more" id="freshness-more" type="button" hidden>Show all</button>
+</section>
 <section class="card corrections-card" id="correction-moderation" aria-labelledby="corrections-heading" style="margin-top:16px">
 <h2 id="corrections-heading">Facility corrections</h2>
 <p class="muted">Suggestions from the public for facility hours, phone, address and services. Nothing here changes the public directory: an approved change is listed below for a maintainer to apply.</p>
@@ -29,6 +38,9 @@
 <footer class="wrap footer">Access should be role-protected in production using server-side authorization.</footer>
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/facility-utils.js"></script>
+    <script src="../assets/js/facility-review.js"></script>
+    <script src="../assets/js/facility-review-ui.js"></script>
     <script src="../assets/js/facility-corrections.js"></script>
     <script src="../assets/js/facility-corrections-ui.js"></script>
     <script src="../assets/js/i18n.js"></script>
