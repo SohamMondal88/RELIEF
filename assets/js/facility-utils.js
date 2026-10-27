@@ -49,6 +49,14 @@
       lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }
 
+  // Number(null), Number('') and Number(false) are all 0, which would turn a broken value
+  // into a real-looking point at 0,0. Only numbers and non-empty numeric strings count.
+  function toCoord(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    return NaN;
+  }
+
   // Accepts the saved formats seen in the app: {lat, lng} or [lat, lng].
   function parseUserLocation(raw) {
     var value = raw;
@@ -58,11 +66,11 @@
     var lat;
     var lng;
     if (Array.isArray(value)) {
-      lat = Number(value[0]);
-      lng = Number(value[1]);
+      lat = toCoord(value[0]);
+      lng = toCoord(value[1]);
     } else if (value && typeof value === 'object') {
-      lat = Number(value.lat);
-      lng = Number(value.lng);
+      lat = toCoord(value.lat);
+      lng = toCoord(value.lng);
     } else {
       return null;
     }
@@ -131,9 +139,10 @@
   }
 
   function withDistance(facilities, userLocation) {
+    var origin = userLocation && isValidCoord(userLocation.lat, userLocation.lng);
     return facilities.map(function (f) {
       var d = null;
-      if (userLocation && isValidCoord(f.lat, f.lng)) {
+      if (origin && isValidCoord(f.lat, f.lng)) {
         d = haversineKm(userLocation.lat, userLocation.lng, f.lat, f.lng);
       }
       return Object.assign({}, f, { distanceKm: d });
@@ -144,7 +153,7 @@
   function sortFacilities(facilities, sortBy, userLocation) {
     var list = withDistance(facilities, userLocation);
     list.sort(function (a, b) {
-      if (sortBy === 'distance' && userLocation) {
+      if (sortBy === 'distance' && userLocation && isValidCoord(userLocation.lat, userLocation.lng)) {
         if (a.distanceKm == null && b.distanceKm == null) return a.name.localeCompare(b.name);
         if (a.distanceKm == null) return 1;
         if (b.distanceKm == null) return -1;

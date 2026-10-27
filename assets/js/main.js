@@ -575,6 +575,11 @@ function getLocation() {
                 position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    const valid = [lat, lng].every(Number.isFinite) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+                    if (!valid) {
+                        reject(new Error('Invalid coordinates'));
+                        return;
+                    }
                     localStorage.setItem('userLocation', JSON.stringify({ lat, lng }));
                     resolve({ lat, lng });
                 },
