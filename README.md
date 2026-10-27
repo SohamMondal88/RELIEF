@@ -441,6 +441,8 @@ In a medical emergency, contact the appropriate local emergency service or seek 
 
 Contributors must not introduce features that imply clinical validation, medical certification, guaranteed accuracy, or emergency-service integration without evidence and appropriate review.
 
+If you add or change a first aid article, or translate one, go through the [First Aid Article Review Checklist](docs/FIRST_AID_REVIEW_CHECKLIST.md) and update its register.
+
 ## 🗺️ Roadmap
 
 The following are potential areas for continued development, subject to prioritization and technical review.
