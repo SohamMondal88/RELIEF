@@ -66,21 +66,26 @@
                 <input type="hidden" id="reminder-id">
 
                 <label for="medicine">Medicine or label</label>
-                <input id="medicine" required maxlength="80" placeholder="e.g. Metformin 500mg">
+                <input id="medicine" required aria-required="true" maxlength="80" placeholder="e.g. Metformin 500mg" aria-describedby="medicine-error">
+                <p class="field-error" id="medicine-error" hidden></p>
 
                 <label for="instructions">Note for yourself (optional)</label>
-                <input id="instructions" maxlength="300" placeholder="e.g. after breakfast, as written on my prescription">
+                <input id="instructions" maxlength="300" placeholder="e.g. after breakfast, as written on my prescription" aria-describedby="instructions-error">
+                <p class="field-error" id="instructions-error" hidden></p>
 
                 <label for="time">Time (every day)</label>
-                <input id="time" type="time" required>
+                <input id="time" type="time" required aria-required="true" aria-describedby="time-error">
+                <p class="field-error" id="time-error" hidden></p>
 
                 <label for="start-date">Start date (optional)</label>
-                <input id="start-date" type="date">
+                <input id="start-date" type="date" aria-describedby="start-date-error">
+                <p class="field-error" id="start-date-error" hidden></p>
 
                 <label for="end-date">End date (optional)</label>
-                <input id="end-date" type="date">
+                <input id="end-date" type="date" aria-describedby="end-date-error">
+                <p class="field-error" id="end-date-error" hidden></p>
 
-                <ul id="reminder-errors" class="reminder-errors" role="alert" hidden></ul>
+                <div class="error-summary" id="reminder-error-summary" role="alert" tabindex="-1" hidden></div>
 
                 <button class="btn btn-primary" id="reminder-submit" type="submit" style="margin-top: 10px;">Save Reminder</button>
                 <button class="btn" id="reminder-cancel" type="button" hidden>Cancel edit</button>
@@ -154,6 +159,7 @@
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
 <script src="../assets/js/reminders.js"></script>
+<script src="../assets/js/form-errors.js"></script>
 <script src="../assets/js/session-guard.js"></script>
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/api.js"></script>

@@ -122,11 +122,53 @@
     font-size: 0.85rem;
 }
 
-.reminder-errors {
-    margin: 10px 0 0;
-    padding-left: 18px;
+.field-error {
+    margin: 4px 0 0;
     color: #b42318;
     font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.field-error[hidden],
+.error-summary[hidden] {
+    display: none;
+}
+
+.error-summary {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border: 2px solid #b42318;
+    border-radius: 8px;
+    background: #fef3f2;
+    color: #7a1a12;
+    font-size: 0.9rem;
+}
+
+.error-summary:focus {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.error-summary-title {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.error-summary ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.error-summary a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+    border-color: #b42318 !important;
+    outline-color: #b42318;
 }
 
 .benefit-card {

@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const list = document.getElementById('reminder-list');
     const timeline = document.getElementById('timeline');
     const kpiReminders = document.getElementById('kpi-reminders');
-    const errorBox = document.getElementById('reminder-errors');
     const banner = document.getElementById('reminder-banner');
     const bannerMessages = document.getElementById('reminder-banner-messages');
     const submitBtn = document.getElementById('reminder-submit');
@@ -34,11 +33,34 @@ document.addEventListener('DOMContentLoaded', () => {
         history.unshift({ date: new Date().toISOString().slice(0, 10), event, status });
     }
 
+    // Field settings for the shared error helper (see form-errors.js).
+    const ERROR_FIELDS = {
+        medicine: { focusId: 'medicine', errorId: 'medicine-error' },
+        instructions: { focusId: 'instructions', errorId: 'instructions-error' },
+        time: { focusId: 'time', errorId: 'time-error' },
+        startDate: { focusId: 'start-date', errorId: 'start-date-error' },
+        endDate: { focusId: 'end-date', errorId: 'end-date-error' }
+    };
+    const ERROR_ORDER = ['medicine', 'instructions', 'time', 'startDate', 'endDate'];
+    const FE = window.ReliefFormErrors;
+
+    // Inline message per field, aria-invalid, and a summary. Focus goes to the summary when
+    // several things need fixing, or to the field when there is only one. What the user typed stays.
     function showErrors(errors) {
-        const messages = Object.values(errors || {});
-        errorBox.innerHTML = messages.map((m) => `<li>${esc(m)}</li>`).join('');
-        errorBox.hidden = messages.length === 0;
+        const messages = errors || {};
+        if (Object.keys(messages).length === 0) {
+            FE.clearErrors(document, { fields: ERROR_FIELDS, summaryId: 'reminder-error-summary' });
+            return;
+        }
+        FE.applyErrors(document, messages, {
+            fields: ERROR_FIELDS,
+            order: ERROR_ORDER,
+            summaryId: 'reminder-error-summary',
+            title: 'Please fix the following'
+        });
     }
+
+    FE.bindSummaryLinks(document, 'reminder-error-summary');
 
     function persist() {
         if (dataDeleted) return;
