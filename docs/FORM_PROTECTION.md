@@ -63,7 +63,9 @@ Real enforcement belongs where data is accepted. For this project that means:
 - Firebase Authentication's built-in sign-in throttling and email enumeration protection
 - A server or Cloud Function with per-IP limits if forms ever post to our own API
 
-The contact form is currently a simulated submission. When it is connected to a real backend, add the server-side checks above in the same change.
+The server-side side of this is in [FIREBASE_SECURITY.md](FIREBASE_SECURITY.md): ready-to-deploy Firestore rules (`firebase/firestore.rules`), opt-in App Check, and the console settings to switch on.
+
+The contact form is currently a simulated submission. When it is connected to a real backend, add the matching rules in the same change (section 4 of that page).
 
 ## Tests
 

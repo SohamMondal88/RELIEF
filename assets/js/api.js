@@ -34,6 +34,14 @@ const ReliefAPI = (function() {
     if (firebaseLoaded && !firebase.apps.length) {
         firebase.initializeApp(config.FIREBASE_CONFIG);
     }
+
+    // App Check lets Firebase reject traffic that does not come from the real site.
+    // Opt in per deployment: load the App Check SDK and set window.RELIEF_APP_CHECK_SITE_KEY
+    // to your reCAPTCHA v3 site key. Does nothing otherwise. See docs/FIREBASE_SECURITY.md.
+    const appCheckSiteKey = (typeof window !== 'undefined' && window.RELIEF_APP_CHECK_SITE_KEY) || '';
+    if (firebaseLoaded && appCheckSiteKey && typeof firebase.appCheck === 'function') {
+        firebase.appCheck().activate(appCheckSiteKey, true);
+    }
     const auth = firebaseLoaded ? firebase.auth() : null;
     const db = firebaseLoaded ? firebase.firestore() : null;
 
