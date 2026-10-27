@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "_note": "Fictional records. Names, numbers and addresses are made up and match no real place or person.",
+  "facilities": [
+    {
+      "id": "fx-001",
+      "name": "Example District Hospital",
+      "type": "hospital",
+      "district": "Exampleganj",
+      "address": "1 Sample Road, Exampleganj",
+      "phone": "+91 33 5550 0101",
+      "hours": "Open 24 hours",
+      "services": [
+        "Emergency",
+        "Maternity",
+        "Radiology"
+      ],
+      "lat": 22.6,
+      "lng": 88.4,
+      "verified": true,
+      "source": "https://example.org/facility-list",
+      "lastChecked": "2026-09-30"
+    },
+    {
+      "id": "fx-002",
+      "name": "Sample Primary Health Centre",
+      "type": "phc",
+      "district": "Samplepur",
+      "address": null,
+      "phone": "(033) 5550-0102",
+      "hours": "Mon-Sat 9:00-15:00",
+      "services": [
+        "Vaccination"
+      ],
+      "lat": 23.2,
+      "lng": 87.1,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fx-003",
+      "name": "Demo Community Clinic",
+      "type": "clinic",
+      "district": "Demotola",
+      "address": "Demo Lane",
+      "phone": null,
+      "hours": null,
+      "services": [],
+      "lat": 26.7,
+      "lng": 88.4,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fx-004",
+      "name": "Placeholder Pharmacy",
+      "type": "pharmacy",
+      "district": "Placeholder Nagar",
+      "address": null,
+      "phone": "+91 98000 00000",
+      "hours": "8:00-21:00",
+      "services": [
+        "Dispensing"
+      ],
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "source": null,
+      "lastChecked": null
+    },
+    {
+      "id": "fx-005",
+      "name": "Fictional Diagnostic Centre",
+      "type": "diagnostic",
+      "district": "Fictionpara",
+      "services": [
+        "Blood tests",
+        "X-ray"
+      ],
+      "lat": 22.4,
+      "lng": 88.1
+    },
+    {
+      "id": "fx-006",
+      "name": "Minimal Record",
+      "type": "hospital",
+      "district": "Minimalpur"
+    },
+    {
+      "id": "fx-007",
+      "name": "Imaginary Specialist Unit",
+      "type": "dialysis",
+      "district": "Imaginarypur",
+      "phone": "+91 33 5550 0107",
+      "lat": 24.1,
+      "lng": 88.2
+    }
+  ]
+}
