@@ -181,6 +181,15 @@ const ReliefAPI = (function() {
         }
     };
 
+    // Asks Firebase for a fresh ID token. A rejection means the sign-in is no longer valid
+    // (for example the account was disabled or the session was revoked), so the caller
+    // ends the local session. Resolves quietly when no real sign-in exists.
+    const refreshSession = async () => {
+        if (!auth || !auth.currentUser) return { refreshed: false };
+        await auth.currentUser.getIdToken(true);
+        return { refreshed: true };
+    };
+
     const getCurrentUser = async () => {
         try {
             if (!auth) return null; // Firebase SDK not on this page
@@ -482,6 +491,7 @@ const ReliefAPI = (function() {
         login,
         signup,
         logout,
+        refreshSession,
         getCurrentUser,
         deleteAccount,
 
