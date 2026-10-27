@@ -54,6 +54,14 @@
       retention: 'Each session expires 30 days after sign-in; at most the 10 newest are kept. Logout clears all of them.'
     },
     {
+      key: 'relief_schema_version',
+      label: 'Stored data version',
+      category: 'technical',
+      personal: false,
+      holds: 'A number (the layout version of the saved reminders, timeline, requests and facilities).',
+      retention: 'Until you delete your data. It is written again the next time a page that keeps saved data opens.'
+    },
+    {
       key: 'relief_reminders_v1',
       label: 'Medicine reminders',
       category: 'health',

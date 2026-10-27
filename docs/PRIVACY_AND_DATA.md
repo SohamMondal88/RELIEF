@@ -21,6 +21,7 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 | `relief_demo_users` | Name, email, random salt and PBKDF2 password hash, creation time of demo accounts | Lets you try sign in without a backend. Only written in demo mode (localhost, `file://` or an explicit demo flag) | Until deleted | Yes |
 | `relief_users` | Legacy: older builds saved email and a plain text password here | Nothing now | Removed automatically on the next login or signup; also removed by deletion | Yes |
 | `relief_auth_sessions` | Session token, signed-in user (id, name, email), device type (mobile or desktop), timestamps | Keeps you signed in | Each session expires 30 days after sign in, newest 10 kept. Logout clears them | Yes |
+| `relief_schema_version` | A number, the layout version of the saved data below | Lets the site upgrade older saved reminders, timeline entries, requests and facilities without losing them (section 2.1) | Until you delete your data. Written again the next time a page that keeps saved data opens | No |
 | `relief_reminders_v1` | Medicine name or label, your note, daily time, start and end date, status | Medicine reminders on the dashboard | Until you remove the reminder or delete your data. The dashboard writes an empty list when it opens | Yes |
 | `relief_history_v1` | Timeline entries ("Medication reminder created", medicine name and time) | Dashboard health timeline | Until you delete your data. Two sample entries are added on first open | Yes |
 | `relief_appointment_requests` | Your name, email, phone, optional notes, doctor, preferred date and window, consent flag | The appointment request form. It is a request record only, nothing is sent to the doctor | Until you delete your data. Newest 50 kept | Yes |
@@ -37,6 +38,17 @@ Other things in the browser, none of which hold personal data:
 
 - **Cache Storage** `relief-static-v1`: copies of the public first aid and hospitals pages and the css, js and logo they need, so they open offline (`sw.js`). Account, dashboard, login and cross-origin requests are never cached. Deletion leaves this cache alone on purpose, because removing it would break offline first aid and it holds nothing about you.
 - **sessionStorage, cookies, IndexedDB:** RELIEF code uses none of them. (The Firebase SDK would use IndexedDB if a deployment loads it, see 6.3.)
+
+### 2.1 Versioning and migration of the saved data (Issue #93)
+
+`assets/js/storage-schema.js` runs on the dashboard, appointments and hospitals pages before their own scripts. It covers `relief_reminders_v1`, `relief_history_v1`, `relief_appointment_requests`, `relief_saved_facilities` and `selectedDoctor`. `userLocation` is checked by `location-service.js` when it is read, `relief_lang` by `i18n.js`, and `relief_onboarding_status` by `onboarding.js`; the other keys are not browser data lists.
+
+- **Version.** `relief_schema_version` holds the layout version (now `1`). No marker means data from an older build (version `0`). The stored formats did not change, so nothing is converted; the first run only checks what is there.
+- **What the check does.** Each list keeps every valid entry and drops the broken ones (a reminder without a medicine name or with a time that is not `HH:MM`, a timeline entry without an event, a request without an id, a facility without a name, anything that is not an object). A value that is not valid JSON, or the wrong type (an object where a list belongs), is removed. Dropped data is not kept anywhere else: it could not be read by the site anyway.
+- **Safe to repeat.** The marker is written last. A second run finds the marker and touches nothing. If the browser refuses a write (storage full or blocked), the old data stays and the marker is not written, so the next page load tries again.
+- **Newer data.** If the marker is higher than this build knows (you opened an older version of the site after a newer one), nothing is changed or deleted.
+- **Logging.** The check never logs. Its result holds counts only (kept, dropped), never names, medicines or dates.
+- **Adding a format change later.** Raise `CURRENT_VERSION`, add an entry to `MIGRATIONS` that plans the writes for the old version, and add a test in `tests/storage-schema.test.js` with a stored value from the old format.
 
 ### Kept only in the page (never saved)
 
