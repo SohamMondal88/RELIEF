@@ -3,8 +3,8 @@
  *
  * Pure functions used by the appointment page: validate the form, build the
  * request record that gets stored, detect duplicates and save without throwing.
- * A request is only a request. Its status is always "requested" until a
- * provider confirms it, which this static site cannot do.
+ * A request is only a request. A new one is always "submitted"; only a provider can move it
+ * on (see appointment-status.js), which this static site cannot do.
  */
 (function (root, factory) {
   if (typeof exports === 'object' && typeof module !== 'undefined') {
@@ -14,6 +14,11 @@
   }
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
+
+  // Status rules are shared with the page that lists requests (appointment-status.js).
+  var Status = (typeof module === 'object' && module.exports)
+    ? require('./appointment-status.js')
+    : (typeof ReliefAppointmentStatus !== 'undefined' ? ReliefAppointmentStatus : null);
 
   var STORAGE_KEY = 'relief_appointment_requests';
   var MAX_DAYS_AHEAD = 60;
@@ -164,7 +169,8 @@
       throw new Error('Cannot build an appointment request from invalid input: ' + check.firstInvalid);
     }
     var now = (options && options.now) ? options.now : new Date();
-    var id = (options && options.id) ? options.id : 'req-' + now.getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    // A random reference such as RQ-7K3M-9P2X: it holds no personal information, so it can be quoted safely.
+    var id = (options && options.id) ? options.id : (Status ? Status.newReference() : 'req-' + now.getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 8));
     var notes = asText(input.notes);
     var request = {
       id: id,
@@ -178,7 +184,8 @@
       patientPhone: normalizePhone(asText(input.phone)),
       consentGiven: true,
       createdAt: now.toISOString(),
-      status: 'requested'
+      status: 'submitted',
+      statusHistory: [{ status: 'submitted', at: now.toISOString(), by: 'patient' }]
     };
     if (notes) request.notes = notes;
     return request;
@@ -186,12 +193,18 @@
 
   /**
    * True when an open request for the same doctor, date and window already
-   * exists for the same email or phone number.
+   * exists for the same email or phone number. Open means submitted, under review or
+   * confirmed; a cancelled or declined request does not block a new one.
    */
+  function isOpenStatus(status) {
+    if (Status) return Status.isOpen(status);
+    return status === 'requested' || status === 'submitted' || status === 'under_review' || status === 'confirmed';
+  }
+
   function isDuplicate(existing, request) {
     if (!Array.isArray(existing) || !request) return false;
     return existing.some(function (item) {
-      if (!item || item.status !== 'requested') return false;
+      if (!item || !isOpenStatus(item.status)) return false;
       if (String(item.doctorId) !== String(request.doctorId)) return false;
       if (item.preferredDate !== request.preferredDate) return false;
       if (item.preferredWindow !== request.preferredWindow) return false;

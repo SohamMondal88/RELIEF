@@ -174,6 +174,15 @@
     </main>
 
     <!-- Footer -->
+    <section class="my-requests" id="my-requests" aria-labelledby="my-requests-title">
+        <div class="container">
+            <h2 id="my-requests-title">Your appointment requests</h2>
+            <p class="my-requests-help" id="my-requests-help">A request is not a booking. The provider confirms the real date and time with you by the email or phone number you gave. To reach them yourself, use the contact details on the <a href="doctors.html">doctors page</a> and quote your reference.</p>
+            <p class="request-status" id="my-requests-status" role="status" aria-live="polite" hidden></p>
+            <ul class="request-list" id="my-requests-list" aria-describedby="my-requests-help"></ul>
+        </div>
+    </section>
+
     <footer class="footer" aria-label="Footer">
         <div class="container">
             <div class="footer-grid">
@@ -244,9 +253,11 @@
 
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/appointment-status.js"></script>
     <script src="../assets/js/form-errors.js"></script>
     <script src="../assets/js/appointment-request.js"></script>
     <script src="../assets/js/appointments.js"></script>
+    <script src="../assets/js/appointment-status-ui.js"></script>
 
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app-enhancements.js"></script>

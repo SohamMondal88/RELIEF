@@ -24,7 +24,7 @@ const alice = () => env.authenticatedContext('alice').firestore();
 const bob = () => env.authenticatedContext('bob').firestore();
 const anon = () => env.unauthenticatedContext().firestore();
 
-const appt = (uid, extra = {}) => ({ userId: uid, status: 'pending', createdAt: serverTimestamp(), doctor: 'Dr A', ...extra });
+const appt = (uid, extra = {}) => ({ userId: uid, doctorId: 'doc-1', status: 'submitted', createdAt: serverTimestamp(), doctor: 'Dr A', ...extra });
 
 test('users: owner can create and read own profile, others cannot', async () => {
   await assertSucceeds(setDoc(doc(alice(), 'users/alice'), { name: 'Alice', email: 'a@x.com', createdAt: serverTimestamp() }));
@@ -61,7 +61,7 @@ test('appointments: owner reads own list, cannot read others, cannot edit status
   await assertSucceeds(getDocs(query(collection(alice(), 'appointments'), where('userId', '==', 'alice'))));
   await assertFails(getDocs(query(collection(bob(), 'appointments'), where('userId', '==', 'alice'))));
   await assertFails(getDocs(collection(alice(), 'appointments'))); // unfiltered list is not allowed
-  await assertFails(updateDoc(doc(alice(), ref.path), { status: 'confirmed' }));
+  await assertFails(updateDoc(doc(alice(), ref.path), { status: 'confirmed' }), 'a patient cannot confirm');
   await assertFails(deleteDoc(doc(bob(), ref.path)));
   await assertSucceeds(deleteDoc(doc(alice(), ref.path)));
 });
@@ -90,4 +90,90 @@ test('unknown collections are closed to everyone', async () => {
   await assertFails(setDoc(doc(alice(), 'secrets/1'), { a: 1 }));
   await assertFails(getDoc(doc(alice(), 'secrets/1')));
   await assertFails(getDoc(doc(anon(), 'anything/1')));
+});
+
+// ---------- appointment status transitions (Issue #62)
+
+const provider = (id = 'doc-1') => env.authenticatedContext('prov-' + id, { providerId: id }).firestore();
+
+async function seed(id, extra) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'appointments/' + id), Object.assign({
+      userId: 'alice', doctorId: 'doc-1', status: 'submitted', createdAt: new Date('2026-10-01'), doctor: 'Dr A'
+    }, extra));
+  });
+}
+
+test('appointments: the request reference is the document id, so a repeated create is refused', async () => {
+  await assertSucceeds(setDoc(doc(alice(), 'appointments/RQ-AAAA-BBBB'), appt('alice')));
+  await assertFails(setDoc(doc(alice(), 'appointments/RQ-AAAA-BBBB'), appt('alice')), 'the second create is an update, which is not allowed');
+});
+
+test('appointments: new requests must start as submitted (not confirmed, not pending)', async () => {
+  for (const status of ['confirmed', 'under_review', 'declined', 'cancelled', 'pending', 'requested']) {
+    await assertFails(addDoc(collection(alice(), 'appointments'), appt('alice', { status })), status);
+  }
+});
+
+test('appointments: a patient can cancel an open request, setting only status and the server time', async () => {
+  for (const from of ['submitted', 'under_review', 'confirmed']) {
+    await seed('cancel-' + from, { status: from });
+    await assertSucceeds(updateDoc(doc(alice(), 'appointments/cancel-' + from), { status: 'cancelled', cancelledAt: serverTimestamp() }));
+  }
+});
+
+test('appointments: a patient cannot do anything else to a request', async () => {
+  await seed('p1');
+  const ref = () => doc(alice(), 'appointments/p1');
+  await assertFails(updateDoc(ref(), { status: 'confirmed' }), 'confirm');
+  await assertFails(updateDoc(ref(), { status: 'under_review' }), 'review');
+  await assertFails(updateDoc(ref(), { status: 'declined' }), 'decline');
+  await assertFails(updateDoc(ref(), { status: 'cancelled', cancelledAt: new Date('2020-01-01') }), 'forged time');
+  await assertFails(updateDoc(ref(), { status: 'cancelled' }), 'missing time');
+  await assertFails(updateDoc(ref(), { status: 'cancelled', cancelledAt: serverTimestamp(), doctorId: 'doc-2' }), 'extra field');
+  await assertFails(updateDoc(ref(), { status: 'cancelled', cancelledAt: serverTimestamp(), userId: 'bob' }), 'changing the owner');
+  await assertFails(updateDoc(ref(), { notes: 'edited' }), 'editing');
+  await assertFails(updateDoc(doc(bob(), 'appointments/p1'), { status: 'cancelled', cancelledAt: serverTimestamp() }), 'someone else cancelling');
+  await assertFails(updateDoc(doc(anon(), 'appointments/p1'), { status: 'cancelled', cancelledAt: serverTimestamp() }), 'signed out');
+});
+
+test('appointments: declined and cancelled requests are final', async () => {
+  for (const status of ['declined', 'cancelled']) {
+    await seed('final-' + status, { status });
+    await assertFails(updateDoc(doc(alice(), 'appointments/final-' + status), { status: 'cancelled', cancelledAt: serverTimestamp() }), 'patient from ' + status);
+    for (const to of ['submitted', 'under_review', 'confirmed']) {
+      await assertFails(updateDoc(doc(provider(), 'appointments/final-' + status), { status: to, statusUpdatedAt: serverTimestamp() }), 'provider ' + status + ' -> ' + to);
+    }
+  }
+});
+
+test('appointments: a provider moves a request only along the allowed path', async () => {
+  const move = (id, to, db = provider()) => updateDoc(doc(db, 'appointments/' + id), { status: to, statusUpdatedAt: serverTimestamp() });
+
+  await seed('v1', { status: 'submitted' });
+  await assertFails(move('v1', 'confirmed'), 'submitted -> confirmed must go through review');
+  await assertSucceeds(move('v1', 'under_review'));
+  await assertSucceeds(move('v1', 'confirmed'));
+  await assertFails(move('v1', 'declined'), 'confirmed -> declined');
+  await assertFails(move('v1', 'submitted'), 'no going back');
+  await assertSucceeds(move('v1', 'cancelled'));
+
+  await seed('v2', { status: 'submitted' });
+  await assertSucceeds(move('v2', 'declined'));
+
+  await seed('v3', { status: 'under_review' });
+  await assertSucceeds(move('v3', 'declined'));
+});
+
+test('appointments: a provider is limited to requests for their own id and to status fields', async () => {
+  await seed('w1', { status: 'submitted' });
+  const upd = (db, data) => updateDoc(doc(db, 'appointments/w1'), data);
+  await assertFails(upd(provider('doc-2'), { status: 'under_review', statusUpdatedAt: serverTimestamp() }), 'another provider');
+  await assertFails(upd(alice(), { status: 'under_review', statusUpdatedAt: serverTimestamp() }), 'a patient with no provider id');
+  await assertFails(upd(provider(), { status: 'under_review' }), 'no server time');
+  await assertFails(upd(provider(), { status: 'under_review', statusUpdatedAt: new Date('2020-01-01') }), 'forged time');
+  await assertFails(upd(provider(), { status: 'under_review', statusUpdatedAt: serverTimestamp(), patientEmail: 'x@y.z' }), 'extra field');
+  await assertSucceeds(getDoc(doc(provider(), 'appointments/w1')));
+  await assertFails(getDoc(doc(provider('doc-2'), 'appointments/w1')), 'another provider cannot read');
+  await assertFails(deleteDoc(doc(provider(), 'appointments/w1')), 'a provider cannot delete');
 });

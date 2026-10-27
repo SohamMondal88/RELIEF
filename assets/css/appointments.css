@@ -1511,3 +1511,111 @@ a:hover {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* ----- Your appointment requests ----- */
+.my-requests {
+    padding: 2rem 0 3rem;
+}
+
+.my-requests h2 {
+    margin-bottom: 0.5rem;
+}
+
+.my-requests-help {
+    max-width: 52rem;
+    margin-bottom: 1rem;
+    color: var(--dark-light);
+}
+
+.request-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.request-item,
+.request-empty {
+    padding: 1rem 1.25rem;
+    border: 1px solid #d0d7e2;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.request-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.request-reference {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.04em;
+}
+
+.request-pill {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.request-good .request-pill { color: #14532d; background: #eefaf1; }
+.request-bad .request-pill { color: #7a1a12; background: #fef3f2; }
+.request-muted .request-pill { color: #475467; background: #f2f4f7; }
+.request-neutral .request-pill { color: #1d4ed8; background: #eff4ff; }
+
+.request-item p {
+    margin: 0.25rem 0;
+}
+
+.request-description {
+    color: var(--dark-light);
+    font-size: 0.95rem;
+}
+
+.btn-cancel-request,
+.btn-confirm-cancel,
+.btn-keep-request {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #b42318;
+    background: #fff;
+    color: #b42318;
+    font: inherit;
+    cursor: pointer;
+}
+
+.btn-confirm-cancel {
+    background: #b42318;
+    color: #fff;
+}
+
+.btn-keep-request {
+    border-color: #475467;
+    color: #475467;
+}
+
+.btn-cancel-request:focus-visible,
+.btn-confirm-cancel:focus-visible,
+.btn-keep-request:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.request-confirm {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid #b42318;
+    background: #fef3f2;
+}
+
+.request-confirm-note {
+    font-size: 0.9rem;
+}

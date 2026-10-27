@@ -33,6 +33,26 @@ service cloud.firestore {
       return request.resource.data.keys().size() <= n;
     }
 
+    // A provider is a signed-in account whose token carries providerId (set with the Admin SDK).
+    // It can only see and change requests addressed to that provider.
+    function providerOwns() {
+      return signedIn()
+        && request.auth.token.providerId is string
+        && request.auth.token.providerId == resource.data.doctorId;
+    }
+
+    // Who may move an appointment request from one status to another. Mirrors
+    // assets/js/appointment-status.js and docs/APPOINTMENT_STATUS.md.
+    function patientMayCancel(from) {
+      return from in ['submitted', 'under_review', 'confirmed'];
+    }
+
+    function providerMayMove(from, to) {
+      return (from == 'submitted' && to in ['under_review', 'declined'])
+        || (from == 'under_review' && to in ['confirmed', 'declined', 'cancelled'])
+        || (from == 'confirmed' && to == 'cancelled');
+    }
+
     // Fields a user must never be able to grant themselves.
     function noPrivilegedFields() {
       return !request.resource.data.keys().hasAny(['role', 'roles', 'isAdmin', 'admin', 'verified', 'moderator']);
@@ -64,14 +84,28 @@ service cloud.firestore {
 
     // ---- Requests created by signed-in users ----------------------------
 
+    // The document id is the request's own reference, so a repeated create (double tap, retry)
+    // finds the document already there and is refused instead of making a second booking.
     match /appointments/{id} {
-      allow read, delete: if ownsDoc();
+      allow read: if ownsDoc() || providerOwns();
+      allow delete: if ownsDoc();
       allow create: if createsOwnDoc()
-        && maxFields(25)
-        && request.resource.data.status == 'pending'
+        && maxFields(30)
+        && request.resource.data.status == 'submitted'
         && request.resource.data.createdAt == request.time
         && shortText('notes', 1000);
-      allow update: if false; // status changes belong to a trusted server
+      allow update: if
+        // the patient cancelling their own request, and nothing else
+        (ownsDoc()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.cancelledAt == request.time
+          && patientMayCancel(resource.data.status))
+        // the provider moving it along the allowed path, and nothing else
+        || (providerOwns()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt'])
+          && request.resource.data.statusUpdatedAt == request.time
+          && providerMayMove(resource.data.status, request.resource.data.status));
     }
 
     match /emergencyRequests/{id} {
