@@ -35,7 +35,7 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 
 Other things in the browser, none of which hold personal data:
 
-- **Cache Storage** `relief-static-v1`: copies of the public first aid and hospitals pages and the css, js and logo they need, so they open offline (`sw.js`). Account, dashboard, login and cross-origin requests are never cached. Deletion leaves this cache alone on purpose, because removing it would break offline first aid and it holds nothing about you.
+- **Cache Storage** `relief-static-<version>`: copies of the public first aid, hospitals and offline pages and the css, js, locale files and logo they need, so they open offline (`sw.js`, see [OFFLINE_AND_INSTALL.md](OFFLINE_AND_INSTALL.md)). Account, dashboard, login and cross-origin requests are never cached. Deletion leaves this cache alone on purpose, because removing it would break offline first aid and it holds nothing about you.
 - **sessionStorage, cookies, IndexedDB:** RELIEF code uses none of them. (The Firebase SDK would use IndexedDB if a deployment loads it, see 6.3.)
 
 ### Kept only in the page (never saved)
