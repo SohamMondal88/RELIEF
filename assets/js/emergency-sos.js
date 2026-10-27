@@ -461,10 +461,15 @@
      */
     openConfirmationDialog() {
       if (this.state === SOS_STATES.SENDING) return;
+      // One click on the SOS button reaches this method twice (the button's own handler and the document
+      // handler). If the dialog is already open, stop here: re-rendering would also save the dialog's own
+      // Cancel button as the element to refocus and add a second keydown listener.
+      if (this.state === SOS_STATES.AWAITING_CONFIRMATION) return;
 
       this.state = SOS_STATES.AWAITING_CONFIRMATION;
       this.lastResult = null;
-      this.previouslyFocusedElement = document.activeElement;
+      // Only remember the element that had focus before the dialog, never something inside it.
+      if (!this.handleKeyDown) this.previouslyFocusedElement = document.activeElement;
 
       let modalContainer = document.getElementById('relief-sos-dialog-container');
       if (!modalContainer) {
@@ -488,7 +493,8 @@
         if (dialogCard) dialogCard.focus();
       }
 
-      // Attach keyboard navigation listeners
+      // Attach keyboard navigation listeners (never more than one)
+      if (this.handleKeyDown) document.removeEventListener('keydown', this.handleKeyDown);
       this.handleKeyDown = this.onKeyDown.bind(this);
       document.addEventListener('keydown', this.handleKeyDown);
 
