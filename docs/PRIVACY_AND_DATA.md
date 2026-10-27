@@ -7,7 +7,7 @@ This document describes what the RELIEF code does with data today (Issue #29). I
 ## 1. The short version
 
 - RELIEF has **no server of its own** in this repository. Everything you enter is kept in **your browser** (`localStorage`) and is not sent to a RELIEF server.
-- RELIEF sets **no cookies**, runs **no analytics** and loads **no advertising or tracking scripts**.
+- RELIEF sets **no cookies** and loads **no advertising or tracking scripts**. Its pages do load **Vercel Web Analytics** (section 4), which counts page views without cookies.
 - Some pages load fonts, icons, map code, map tiles and a few images from **third parties**. Those hosts see your IP address (section 4).
 - You can delete everything RELIEF stores in your browser from the dashboard: **Your data and account > Delete my account and data** (section 6).
 - The real sign-in service (`ReliefAPI`, Firebase) is **not loaded by any page today**. If a deployment connects it, it stores data on a server that this repository cannot delete on its own (section 6.3).
@@ -46,7 +46,7 @@ Other things in the browser, none of which hold personal data:
 
 ## 3. What RELIEF does not collect
 
-No analytics, no usage tracking, no advertising identifiers, no cookies, no fingerprinting, no server-side logs written by this code. Personal data is not put in URLs: the doctor you pick is passed through `localStorage`, not the address bar, and no script reads `location.search`.
+No usage tracking beyond Vercel Web Analytics page views (section 4), no advertising identifiers, no cookies, no fingerprinting, no server-side logs written by this code. Personal data is not put in URLs: the doctor you pick is passed through `localStorage`, not the address bar, and no script reads `location.search`.
 
 ## 4. Network requests and third parties
 
@@ -63,16 +63,21 @@ These are the requests the pages actually make. Each third party sees your IP ad
 | Google Maps directions (`google.com/maps/dir`) | Only when you click Directions (opens a new tab) | Coordinates of the facility, not your position |
 | Image hosts (`encrypted-tbn0.gstatic.com`, `kalyaniinfrastructure.com`, `amity.edu`, `jovialjourneys.co.in`) | Home page images | Nothing |
 | Your phone or SMS app (`tel:` and `sms:` links) | When you use the SOS buttons | Handled by your device and carrier. The SMS text can include a map link to your location if you allowed location. RELIEF sends nothing to any server unless `window.RELIEF_SOS_ENDPOINT` is set, and it is not set by default |
+| Vercel Web Analytics (`/_vercel/insights/script.js`, loaded by `assets/js/vercel-analytics.js` on most pages) | Page load on the deployed site. It only works when Web Analytics is enabled in the Vercel project | The address of the page you opened, the referrer, and browser and device type. No cookies. Because RELIEF never puts form fields or health details in the address (section 4.1), none reach it that way |
 | The site host (Vercel for the public demo) | Every request | Standard request logs kept by the host. This repository does not control them |
 
 **Not loaded by any page today:** `assets/js/api.js` and `assets/js/firebase-config.js` hold placeholder settings for Firebase, OpenMRS, a local Rasa chatbot and Jitsi. No HTML page includes them, so none of those services is contacted. If a deployment wires them in, this table and the deletion code must be updated first.
 
-## 4.1 Logs and URLs
+## 4.1 Logs and URLs (Issue #107)
 
-Checked by searching for `console.` and URL building in `assets/js` and `profiles`:
+Checked by searching for `console.`, URL building and `<form>` tags in `assets/js`, `profiles` and every page. `tests/url-log-hygiene.test.js` keeps these true:
 
-- No script logs form input, names, emails, phone numbers, passwords, reminders or locations. The remaining `console.error` calls log error objects for sign in checks, logout, storage and service worker failures (`main.js`, `hospitals.js`, `api.js`). `blog.js` logs the blog filter and search words, which are not account or health data.
-- The new privacy scripts do not log at all (a test checks this).
+- **Addresses.** No script reads `location.search`, `location.hash`, `URLSearchParams` or `document.referrer`, none uses `history.pushState` or `replaceState`, and every `location.href` change goes to a fixed page or to the `tel:` number on an emergency call button. The doctor you pick travels through `localStorage` (`selectedDoctor`), not the address.
+- **Forms without JavaScript.** A form with no `method` is sent with GET when scripts are off, blocked or have crashed, which would put every named field in the address bar, browser history, the referrer and the host logs. The symptom checker (`emergency_sign`, `duration`), contact (name, email, subject, message), login, signup, appointment request, reminder and facility correction forms are all `method="post"` now. The search and chat forms have no named fields, so a GET submit sends nothing. The test fails if a GET form gains a named field.
+- **Referrer.** No address on the site holds personal data, so a referrer sent to another site can only reveal which page you were on. Current browsers send just the site origin to other sites by default. External links use `rel="noopener noreferrer"`, and directions open Google Maps with the facility's coordinates, not yours. An explicit Referrer-Policy (header and meta tag) is separate hardening work.
+- **Console.** Every `console.*` call logs fixed text, an error `name` or `code`, or public facility ids. Raw error objects are not logged, because some carry the stored text: a corrupt saved session used to print `Unexpected token 'a', "asha@examp"... is not valid JSON` into the console. The blog no longer logs search words or filter choices. Nothing logs form input, names, emails, phone numbers, passwords, reminders or locations.
+- **Errors shown on the page** (alerts and status lines) show the message to the person who just typed it and are not logged or sent anywhere.
+- **Vercel Web Analytics** receives the page address. Keep it free of personal data: do not add query strings or fragments that carry names, symptoms, locations or search words.
 - No secrets are committed. The Firebase, Google Maps and Infermedica values in the repository are placeholders.
 
 ## 5. Retention policy
@@ -149,7 +154,18 @@ Run with a fresh browser profile and developer tools open. Serve the site with `
 - [ ] **Delete works.** Confirm: every `relief_*` key, `userLocation` and `selectedDoctor` are gone from Local Storage, unrelated keys are untouched, the reminders list and timeline on the page are empty, and reloading `pages/dashboard.html` shows no old reminders.
 - [ ] **Honest message.** As a demo user the message says "demo account". Signed out, or with a real sign-in service missing, it says no account on a server was deleted. It never says "your account was deleted" unless the service confirmed it.
 - [ ] **Keyboard and screen reader.** Reach the button with Tab, confirm with Enter, cancel with Escape. The result is announced (status region) and focus lands on it.
-- [ ] **Policy pages match.** `pages/privacy-policy.html` and `pages/cookie-policy.html` say no cookies, no analytics and link to the dashboard delete control.
+- [ ] **Policy pages match.** `pages/privacy-policy.html` and `pages/cookie-policy.html` say no cookies, name Vercel Web Analytics and link to the dashboard delete control.
+
+### Audit checklist: URLs, referrers and logs
+
+Run once per release, and after adding a form, a link or a `console` call.
+
+- [ ] **Scripts off.** In DevTools (Command menu > Disable JavaScript) fill and submit the contact, login, signup, symptom checker, appointment, reminder and facility correction forms. The address bar and history entry stay free of what you typed (the page may show an error, that is fine).
+- [ ] **Scripts on.** Submit the same forms. The address stays the same and the page does not reload.
+- [ ] **Network tab.** Filter by Doc and Fetch/XHR across a full flow. No request URL holds a name, email, phone, symptom, reminder or coordinates of the user. Only the host list in section 4 appears.
+- [ ] **Corrupt storage.** Set `relief_auth_sessions` to `asha@example.com` and reload. The console shows `SyntaxError` and nothing from the stored text.
+- [ ] **Referrer.** Click the external links on the symptoms page and Directions on a hospital. The request's `Referer` header holds no path with data in it.
+- [ ] **New code.** `node --test tests/url-log-hygiene.test.js` passes.
 
 ## 9. Known gaps
 
