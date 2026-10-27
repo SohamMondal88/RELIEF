@@ -1411,6 +1411,16 @@ grid-template-columns: 1fr;
     color: #7a4a00;
 }
 
+.badge-stale {
+    background: #ffe1d6;
+    color: #8a2c00;
+}
+
+.badge-rejected {
+    background: #e8e8ee;
+    color: #3d3d4a;
+}
+
 .verify-detail,
 .not-available {
     font-size: 0.85rem;
