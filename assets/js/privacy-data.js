@@ -102,6 +102,14 @@
       retention: 'Kept until overwritten by the next pick or until you delete your data.'
     },
     {
+      key: 'relief_notification_prefs_v1',
+      label: 'Notification choices',
+      category: 'preferences',
+      personal: false,
+      holds: 'Two yes/no choices: whether browser notifications are on, and whether they may show medicine names.',
+      retention: 'Until you delete your data.'
+    },
+    {
       key: 'relief_lang',
       label: 'Language choice',
       category: 'preferences',

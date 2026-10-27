@@ -56,10 +56,18 @@
                 <button type="button" class="btn" data-dismiss>Dismiss</button>
             </div>
 
-            <div class="notify-panel">
-                <strong>Notifications</strong>
+            <div class="notify-panel" id="notify-panel" role="group" aria-labelledby="notify-heading">
+                <strong id="notify-heading">Notifications</strong>
+                <p id="notify-explain" class="muted"></p>
                 <p id="notify-status" class="muted" aria-live="polite"></p>
-                <button type="button" class="btn" id="notify-enable" hidden>Allow browser notifications</button>
+                <div class="notify-actions">
+                    <button type="button" class="btn" id="notify-enable" hidden>Turn on browser notifications</button>
+                    <button type="button" class="btn" id="notify-disable" hidden>Turn off browser notifications</button>
+                </div>
+                <label class="notify-details" id="notify-details-wrap" hidden>
+                    <input type="checkbox" id="notify-details">
+                    <span id="notify-details-label"></span>
+                </label>
             </div>
 
             <form id="reminder-form" novalidate>
@@ -172,6 +180,7 @@
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
 <script src="../assets/js/reminders.js"></script>
+<script src="../assets/js/notification-prefs.js"></script>
 <script src="../assets/js/form-errors.js"></script>
 <script src="../assets/js/session-guard.js"></script>
 <script src="../assets/js/main.js"></script>

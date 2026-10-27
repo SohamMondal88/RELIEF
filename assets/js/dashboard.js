@@ -8,8 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const bannerMessages = document.getElementById('reminder-banner-messages');
     const submitBtn = document.getElementById('reminder-submit');
     const cancelBtn = document.getElementById('reminder-cancel');
+    const NP = window.ReliefNotificationPrefs;
     const notifyStatus = document.getElementById('notify-status');
+    const notifyExplain = document.getElementById('notify-explain');
     const notifyBtn = document.getElementById('notify-enable');
+    const notifyOffBtn = document.getElementById('notify-disable');
+    const notifyDetails = document.getElementById('notify-details');
+    const notifyDetailsWrap = document.getElementById('notify-details-wrap');
     const fields = {
         id: document.getElementById('reminder-id'),
         medicine: document.getElementById('medicine'),
@@ -182,33 +187,45 @@ document.addEventListener('DOMContentLoaded', () => {
     populateZones();
     syncScheduleMode();
 
-    // Due reminders always show in the in-app banner; a browser notification is added only if allowed.
+    // Due reminders always show in the in-app banner. A browser notification is added only when the
+    // user turned it on here AND the browser allows it, and it says only "a reminder is due" unless
+    // they chose to show medicine names (see notification-prefs.js).
     function checkDue() {
         const now = new Date();
         const due = R.getDueReminders(reminders, now, timeZone);
         if (!due.length) return;
 
-        due.forEach((r) => {
-            const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, timeZone)).date;
-            const message = R.buildReminderMessage(r);
+        const result = NP.deliver(due, window.Notification, NP.loadPrefs(localStorage));
+        result.inApp.forEach((message) => {
             const line = document.createElement('p');
             line.textContent = message;
             bannerMessages.appendChild(line);
-            if (R.getNotificationPermission(window.Notification) === 'granted') {
-                try {
-                    new Notification('Medicine reminder', { body: message });
-                } catch (e) { /* the banner is the fallback */ }
-            }
+        });
+        due.forEach((r) => {
+            const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, timeZone)).date;
             reminders = R.markNotified(reminders, r.id, date, now.getTime());
         });
         banner.hidden = false;
         persist();
     }
 
+    // Shows what will actually happen: the user's choice combined with the browser's permission.
     function renderNotifyPanel() {
-        const permission = R.getNotificationPermission(window.Notification);
-        notifyStatus.textContent = R.getPermissionMessage(permission);
-        notifyBtn.hidden = permission !== 'default';
+        const prefs = NP.loadPrefs(localStorage);
+        const permission = NP.getPermission(window.Notification);
+        const plan = NP.getPlan(prefs, permission);
+
+        notifyExplain.textContent = NP.EXPLANATION;
+        notifyStatus.textContent = plan.message;
+
+        // Offer "turn on" unless the browser cannot or will not show them.
+        notifyBtn.hidden = !(plan.state === 'off' || plan.state === 'needs-permission') || permission === 'denied';
+        notifyBtn.textContent = plan.state === 'needs-permission' ? 'Ask my browser for permission' : 'Turn on browser notifications';
+        notifyOffBtn.hidden = !(plan.state === 'active' || plan.state === 'blocked' || plan.state === 'needs-permission');
+
+        notifyDetailsWrap.hidden = plan.state === 'unsupported';
+        document.getElementById('notify-details-label').textContent = NP.DETAILS_WARNING;
+        notifyDetails.checked = prefs.showDetails;
     }
 
     form?.addEventListener('submit', (e) => {
@@ -250,8 +267,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     notifyBtn?.addEventListener('click', () => {
-        if (!window.Notification) return;
-        Promise.resolve(Notification.requestPermission()).then(renderNotifyPanel, renderNotifyPanel);
+        NP.enableBrowserNotifications(window.Notification, localStorage).then(renderNotifyPanel, renderNotifyPanel);
+    });
+
+    notifyOffBtn?.addEventListener('click', () => {
+        NP.disableBrowserNotifications(window.Notification, localStorage);
+        renderNotifyPanel();
+    });
+
+    notifyDetails?.addEventListener('change', () => {
+        NP.setShowDetails(window.Notification, localStorage, notifyDetails.checked);
+        renderNotifyPanel();
     });
 
     banner?.addEventListener('click', (e) => {
