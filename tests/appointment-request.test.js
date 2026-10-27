@@ -314,7 +314,10 @@ describe('page wiring', () => {
             assert.ok(html.includes('id="' + id + '-error"'), id + ' error element');
         });
         assert.ok(html.includes('id="time-window-error"'));
-        assert.ok(script.includes("setAttribute('aria-invalid', 'true')"));
+        // aria-invalid and the error summary come from the shared helper (see form-validation.test.js).
+        const helper = fs.readFileSync(path.join(__dirname, '..', 'assets/js/form-errors.js'), 'utf8');
+        assert.ok(helper.includes("setAttribute('aria-invalid', 'true')"));
+        assert.match(script, /FormErrors\.applyErrors/);
         assert.match(script, /\.focus\(\)/);
     });
 
