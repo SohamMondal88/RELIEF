@@ -65,6 +65,15 @@
       lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }
 
+  // Number(null), Number('') and Number([]) are all 0, which would turn a malformed
+  // geocoder or storage value into a real-looking point at 0,0. Accept only numbers
+  // and non-empty numeric strings.
+  function toCoord(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    return NaN;
+  }
+
   // Keep roughly 1 km precision (2 decimals); nearby listings do not need more.
   function roundCoord(n) {
     return Math.round(n * 100) / 100;
@@ -172,11 +181,11 @@
     var lat;
     var lng;
     if (Array.isArray(value)) {
-      lat = Number(value[0]);
-      lng = Number(value[1]);
+      lat = toCoord(value[0]);
+      lng = toCoord(value[1]);
     } else if (value && typeof value === 'object') {
-      lat = Number(value.lat);
-      lng = Number(value.lng);
+      lat = toCoord(value.lat);
+      lng = toCoord(value.lng);
     } else {
       return null;
     }
@@ -284,8 +293,8 @@
       })
       .then(function (results) {
         var first = Array.isArray(results) ? results[0] : null;
-        var lat = first ? Number(first.lat) : NaN;
-        var lng = first ? Number(first.lon) : NaN;
+        var lat = first ? toCoord(first.lat) : NaN;
+        var lng = first ? toCoord(first.lon) : NaN;
         if (!isValidCoord(lat, lng)) throw makeError('notfound');
         return { lat: lat, lng: lng, label: q, source: 'manual' };
       });
