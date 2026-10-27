@@ -297,6 +297,86 @@ test('A.5: Confirming action initiates request and prevents duplicate submission
   assert.strictEqual(callCount, 1, 'Repeated confirmation activation must not produce duplicate network requests');
 });
 
+// Issue #73: one click on the SOS button reaches openConfirmationDialog twice (the button's own handler and
+// the document-level handler), so opening the dialog has to be safe to repeat.
+function setupOpenTwice() {
+  const { MockDocument, MockElement, elements } = createMockDOM();
+  global.document = MockDocument;
+
+  const keydown = { live: 0, added: 0 };
+  const addListener = MockDocument.addEventListener;
+  const removeListener = MockDocument.removeEventListener;
+  MockDocument.addEventListener = (event, fn) => {
+    if (event === 'keydown') { keydown.live++; keydown.added++; }
+    addListener(event, fn);
+  };
+  MockDocument.removeEventListener = (event, fn) => {
+    if (event === 'keydown') keydown.live--;
+    removeListener(event, fn);
+  };
+
+  const trigger = new MockElement('relief-emergency-sos-trigger', 'button');
+  MockDocument.body.appendChild(trigger);
+  trigger.focus();
+
+  const controller = new EmergencySOS.EmergencySOSController({
+    triggerId: 'relief-emergency-sos-trigger',
+    endpoint: 'https://example.com/api/sos',
+    fetchFn: async () => ({ ok: true, json: async () => ({ delivered: true }) })
+  });
+  return { MockDocument, trigger, controller, elements, keydown };
+}
+
+test('A.6: Opening the dialog twice keeps the SOS button as the element to refocus', () => {
+  const { MockDocument, trigger, controller, elements } = setupOpenTwice();
+
+  controller.openConfirmationDialog();
+  assert.strictEqual(MockDocument.activeElement, elements['relief-sos-cancel-btn'], 'focus moves into the dialog');
+  controller.openConfirmationDialog(); // the duplicate call from the second click handler
+
+  assert.strictEqual(controller.previouslyFocusedElement, trigger, 'the saved element must be the SOS button, not something inside the dialog');
+  controller.closeDialog(true);
+  assert.strictEqual(MockDocument.activeElement, trigger, 'closing returns focus to the SOS button');
+});
+
+test('A.7: Opening the dialog twice adds one keydown listener and closing removes it', () => {
+  const { controller, keydown } = setupOpenTwice();
+
+  controller.openConfirmationDialog();
+  controller.openConfirmationDialog();
+  assert.strictEqual(keydown.live, 1, 'only one keydown listener may be active');
+
+  controller.closeDialog(true);
+  assert.strictEqual(keydown.live, 0, 'no keydown listener may be left behind after closing');
+});
+
+test('A.8: A repeated open does not render the dialog again or change the state', () => {
+  const { controller } = setupOpenTwice();
+  let renders = 0;
+  const render = controller.renderDialog.bind(controller);
+  controller.renderDialog = (container) => { renders++; return render(container); };
+
+  controller.openConfirmationDialog();
+  controller.openConfirmationDialog();
+
+  assert.strictEqual(renders, 1, 'the dialog is rendered once');
+  assert.strictEqual(controller.state, EmergencySOS.SOS_STATES.AWAITING_CONFIRMATION);
+});
+
+test('A.9: The dialog can be reopened after it was closed', () => {
+  const { MockDocument, trigger, controller, keydown } = setupOpenTwice();
+
+  controller.openConfirmationDialog();
+  controller.closeDialog(true);
+  trigger.focus();
+  controller.openConfirmationDialog();
+
+  assert.strictEqual(controller.state, EmergencySOS.SOS_STATES.AWAITING_CONFIRMATION);
+  assert.strictEqual(keydown.live, 1);
+  controller.closeDialog(true);
+  assert.strictEqual(MockDocument.activeElement, trigger);
+});
+
 // =========================================================================
 // SECTION B: DELIVERY-STATE & HONEST RESULT TESTS
 // =========================================================================
