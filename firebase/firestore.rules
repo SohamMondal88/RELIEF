@@ -1,0 +1,103 @@
+rules_version = '2';
+
+// Server-side protection for the collections that assets/js/api.js writes to.
+// Deploy with: firebase deploy --only firestore:rules (see docs/FIREBASE_SECURITY.md).
+//
+// Principles
+//  - Everything is denied unless a rule below allows it.
+//  - A signed-in user can only touch their own documents.
+//  - Writes are validated here, so calling Firestore directly (skipping the site)
+//    cannot store oversized, forged or privileged data.
+//  - Status and timestamps are set at creation and cannot be edited by the client.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Documents that carry a userId field (appointments, requests, deliveries).
+    function ownsDoc() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function createsOwnDoc() {
+      return signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    function maxFields(n) {
+      return request.resource.data.keys().size() <= n;
+    }
+
+    // Fields a user must never be able to grant themselves.
+    function noPrivilegedFields() {
+      return !request.resource.data.keys().hasAny(['role', 'roles', 'isAdmin', 'admin', 'verified', 'moderator']);
+    }
+
+    function shortText(field, max) {
+      return !(field in request.resource.data)
+        || (request.resource.data[field] is string && request.resource.data[field].size() <= max);
+    }
+
+    // ---- Accounts -------------------------------------------------------
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && maxFields(20)
+        && noPrivilegedFields()
+        && shortText('name', 100)
+        && shortText('email', 254);
+    }
+
+    match /patients/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && maxFields(40)
+        && noPrivilegedFields()
+        && shortText('name', 100);
+    }
+
+    // ---- Requests created by signed-in users ----------------------------
+
+    match /appointments/{id} {
+      allow read, delete: if ownsDoc();
+      allow create: if createsOwnDoc()
+        && maxFields(25)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && shortText('notes', 1000);
+      allow update: if false; // status changes belong to a trusted server
+    }
+
+    match /emergencyRequests/{id} {
+      allow read, delete: if ownsDoc();
+      allow create: if createsOwnDoc()
+        && maxFields(10)
+        && request.resource.data.status == 'requested'
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.type is string
+        && request.resource.data.type.size() <= 40;
+      allow update: if false;
+    }
+
+    match /medicineDeliveries/{id} {
+      allow read, delete: if ownsDoc();
+      allow create: if createsOwnDoc()
+        && maxFields(25)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+    }
+
+    // ---- Everything else is closed --------------------------------------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
