@@ -171,6 +171,7 @@ Treat the repository as a frontend project with demonstration flows unless a fea
 - The Rasa URL requires a compatible local service.
 - A successful UI interaction does not prove that an external provider, healthcare professional, pharmacy, ambulance, or emergency service received a request.
 - Do not describe symptom guidance as a medical diagnosis or claim clinical validation without evidence.
+- Changing, adding or translating a first aid article? Use the [First Aid Article Review Checklist](FIRST_AID_REVIEW_CHECKLIST.md) and update its register. `node --test` fails if an article is missing from the register or a page claims medical approval.
 
 Do not use the demo for real patient records or real emergency response.
 
