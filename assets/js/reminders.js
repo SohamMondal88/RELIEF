@@ -15,6 +15,10 @@
     const STATUSES = ['active', 'paused', 'completed'];
     const MAX_NAME_LENGTH = 80;
     const MAX_INSTRUCTIONS_LENGTH = 300;
+    const MAX_ID_LENGTH = 64;
+    const MAX_TIMEZONE_LENGTH = 64;
+    const MAX_HISTORY_ITEMS = 200;
+    const MAX_HISTORY_TEXT = 200;
 
     const REMINDER_DISCLAIMER = 'These reminders only repeat what you type in. RELIEF does not suggest medicines, doses or schedules, so follow your doctor or pharmacist for that.';
     const PERSISTENCE_NOTE = 'Reminders are saved only in this browser on this device. Clearing site data or switching browser or device removes them, and nothing is synced to an account.';
@@ -74,22 +78,31 @@
             .replace(/'/g, '&#39;');
     }
 
+    /** Cuts text to max characters without leaving half of an emoji (a lone surrogate) at the end. */
+    function clip(value, max) {
+        const text = String(value == null ? '' : value);
+        if (text.length <= max) return text;
+        const last = text.charCodeAt(max - 1);
+        return text.slice(0, last >= 0xD800 && last <= 0xDBFF ? max - 1 : max);
+    }
+
     // ---------- storage ----------
 
     /** Turns a stored entry into the current shape. Old entries were only { medicine, time }. */
     function normalizeReminder(raw, index) {
         if (!raw || typeof raw !== 'object') return null;
-        const medicine = String(raw.medicine || '').trim();
+        // Stored data is not trusted: the form limits are applied again when it is read back.
+        const medicine = clip(String(raw.medicine || '').trim(), MAX_NAME_LENGTH);
         if (!medicine || !isValidTime(raw.time)) return null;
         return {
-            id: typeof raw.id === 'string' && raw.id ? raw.id : `legacy-${index}`,
+            id: typeof raw.id === 'string' && raw.id ? clip(raw.id, MAX_ID_LENGTH) : `legacy-${index}`,
             medicine,
-            instructions: typeof raw.instructions === 'string' ? raw.instructions : '',
+            instructions: typeof raw.instructions === 'string' ? clip(raw.instructions, MAX_INSTRUCTIONS_LENGTH) : '',
             time: raw.time,
             startDate: isValidDate(raw.startDate) ? raw.startDate : '',
             endDate: isValidDate(raw.endDate) ? raw.endDate : '',
             status: STATUSES.includes(raw.status) ? raw.status : 'active',
-            timeZone: typeof raw.timeZone === 'string' ? raw.timeZone : '',
+            timeZone: typeof raw.timeZone === 'string' ? clip(raw.timeZone, MAX_TIMEZONE_LENGTH) : '',
             lastNotifiedOn: isValidDate(raw.lastNotifiedOn) ? raw.lastNotifiedOn : ''
         };
     }
@@ -99,6 +112,24 @@
             const parsed = JSON.parse(storage.getItem(REMINDERS_KEY) || '[]');
             if (!Array.isArray(parsed)) return [];
             return parsed.map(normalizeReminder).filter(Boolean);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /**
+     * Reads the activity list. Missing data gives the fallback; broken, oversized or
+     * wrongly shaped data gives a short clean list instead of an error.
+     */
+    function loadHistory(storage, key, fallback) {
+        try {
+            const parsed = JSON.parse(storage.getItem(key));
+            if (parsed === null) return fallback.slice();
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+                .filter((h) => h && typeof h === 'object' && !Array.isArray(h))
+                .slice(0, MAX_HISTORY_ITEMS)
+                .map((h) => ({ date: clip(h.date, 10), event: clip(h.event, MAX_HISTORY_TEXT), status: clip(h.status, MAX_HISTORY_TEXT) }));
         } catch (e) {
             return [];
         }
@@ -307,7 +338,11 @@
         isValidTime,
         isValidDate,
         escapeHtml,
+        clip,
+        MAX_NAME_LENGTH,
+        MAX_INSTRUCTIONS_LENGTH,
         normalizeReminder,
+        loadHistory,
         loadReminders,
         saveReminders,
         validateReminderInput,
