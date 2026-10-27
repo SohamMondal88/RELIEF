@@ -27,6 +27,7 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 | `relief_saved_facilities` | Name, address, phone, coordinates and save date of facilities you saved | Saved hospitals work offline | Until you remove one or delete your data | No |
 | `userLocation` | Latitude and longitude rounded to 2 decimals (about 1 km), the text you typed for a manual location, source (`gps` or `manual`), save and expiry time | Centres the hospital, pharmacy and ambulance pages on you | Device location expires after 1 day, typed location after 7 days. An expired value is removed the next time a page reads it | Yes |
 | `selectedDoctor` | The doctor card (name, specialty, image) you picked from the directory | Passes your choice to the appointment page | Until you pick another doctor or delete your data | No |
+| `relief_notification_prefs_v1` | Two yes/no choices: browser notifications on or off, and whether they may show medicine names | Respects your notification choices on the dashboard | Until you delete your data | No |
 | `relief_lang` | Language code (`en` or `bn`) | Remembers your language | Until you delete your data | No |
 | `relief_last_online_sync` | A timestamp | Offline banner says when the saved copy was refreshed | Overwritten on every online page load | No |
 | `relief_formguard_contact` | Timestamps of recent contact attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |

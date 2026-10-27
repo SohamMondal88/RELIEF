@@ -8,16 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const bannerMessages = document.getElementById('reminder-banner-messages');
     const submitBtn = document.getElementById('reminder-submit');
     const cancelBtn = document.getElementById('reminder-cancel');
+    const NP = window.ReliefNotificationPrefs;
     const notifyStatus = document.getElementById('notify-status');
+    const notifyExplain = document.getElementById('notify-explain');
     const notifyBtn = document.getElementById('notify-enable');
+    const notifyOffBtn = document.getElementById('notify-disable');
+    const notifyDetails = document.getElementById('notify-details');
+    const notifyDetailsWrap = document.getElementById('notify-details-wrap');
     const fields = {
         id: document.getElementById('reminder-id'),
         medicine: document.getElementById('medicine'),
         instructions: document.getElementById('instructions'),
         time: document.getElementById('time'),
         startDate: document.getElementById('start-date'),
-        endDate: document.getElementById('end-date')
+        endDate: document.getElementById('end-date'),
+        modeLocal: document.getElementById('schedule-local'),
+        modeFixed: document.getElementById('schedule-fixed'),
+        zone: document.getElementById('schedule-zone'),
+        zoneWrap: document.getElementById('schedule-zone-wrap')
     };
+    const explainEl = document.getElementById('schedule-explain');
+    const savedEl = document.getElementById('reminder-saved');
 
     const historyKey = 'relief_history_v1';
     const timeZone = R ? R.getLocalTimeZone() : 'UTC';
@@ -39,9 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
         instructions: { focusId: 'instructions', errorId: 'instructions-error' },
         time: { focusId: 'time', errorId: 'time-error' },
         startDate: { focusId: 'start-date', errorId: 'start-date-error' },
-        endDate: { focusId: 'end-date', errorId: 'end-date-error' }
+        endDate: { focusId: 'end-date', errorId: 'end-date-error' },
+        scheduleMode: { focusId: 'schedule-local', groupId: 'schedule-group' },
+        scheduleTimeZone: { focusId: 'schedule-zone', errorId: 'schedule-zone-error' }
     };
-    const ERROR_ORDER = ['medicine', 'instructions', 'time', 'startDate', 'endDate'];
+    const ERROR_ORDER = ['medicine', 'instructions', 'time', 'startDate', 'endDate', 'scheduleMode', 'scheduleTimeZone'];
     const FE = window.ReliefFormErrors;
 
     // Inline message per field, aria-invalid, and a summary. Focus goes to the summary when
@@ -85,13 +98,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <li class="reminder-item reminder-${state}">
                 <div>
                     <strong>${esc(r.medicine)}</strong> <span class="pill">${STATE_LABELS[state]}</span>
-                    <div class="muted">Daily at ${esc(r.time)}</div>
+                    <div class="muted">${esc(scheduleLabel(r))}</div>
                     ${r.instructions ? `<div class="muted">${esc(r.instructions)}</div>` : ''}
                     ${range ? `<div class="muted">${esc(range)}</div>` : ''}
                     ${tzWarn ? `<div class="muted">${esc(tzWarn)}</div>` : ''}
                 </div>
                 <div class="reminder-actions">${actions}</div>
             </li>`;
+    }
+
+    function scheduleLabel(r) {
+        return r.scheduleMode === 'fixed'
+            ? `Daily at ${r.time} in ${r.timeZone}`
+            : `Daily at ${r.time} on this device's clock`;
     }
 
     function render() {
@@ -112,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetForm() {
         form.reset();
         fields.id.value = '';
+        syncScheduleMode();
         submitBtn.textContent = 'Save Reminder';
         cancelBtn.hidden = true;
         showErrors({});
@@ -123,37 +143,89 @@ document.addEventListener('DOMContentLoaded', () => {
             instructions: fields.instructions.value,
             time: fields.time.value,
             startDate: fields.startDate.value,
-            endDate: fields.endDate.value
+            endDate: fields.endDate.value,
+            scheduleMode: fields.modeFixed.checked ? 'fixed' : 'local',
+            scheduleTimeZone: fields.modeFixed.checked ? fields.zone.value : ''
         };
     }
 
-    // Due reminders always show in the in-app banner; a browser notification is added only if allowed.
+    // ---- schedule: which clock, and a plain explanation before saving ----
+
+    function populateZones() {
+        let zones = [];
+        try {
+            zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+        } catch (e) { zones = []; }
+        if (!zones.length) zones = ['Asia/Kolkata', 'Asia/Dhaka', 'Asia/Dubai', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Australia/Sydney', 'UTC'];
+        if (zones.indexOf(timeZone) === -1) zones = [timeZone].concat(zones);
+        fields.zone.innerHTML = '';
+        zones.forEach((z) => {
+            const option = document.createElement('option');
+            option.value = z;
+            option.textContent = z;
+            fields.zone.appendChild(option);
+        });
+        fields.zone.value = timeZone;
+    }
+
+    function updateExplanation() {
+        explainEl.textContent = R.explainSchedule(readForm(), new Date(), timeZone);
+    }
+
+    function syncScheduleMode() {
+        fields.zoneWrap.hidden = !fields.modeFixed.checked;
+        if (!fields.modeFixed.checked) fields.zone.value = timeZone;
+        updateExplanation();
+    }
+
+    ['input', 'change'].forEach((name) => {
+        fields.time.addEventListener(name, updateExplanation);
+        fields.startDate.addEventListener(name, updateExplanation);
+        fields.zone.addEventListener(name, updateExplanation);
+    });
+    [fields.modeLocal, fields.modeFixed].forEach((radio) => radio.addEventListener('change', syncScheduleMode));
+    populateZones();
+    syncScheduleMode();
+
+    // Due reminders always show in the in-app banner. A browser notification is added only when the
+    // user turned it on here AND the browser allows it, and it says only "a reminder is due" unless
+    // they chose to show medicine names (see notification-prefs.js).
     function checkDue() {
         const now = new Date();
         const due = R.getDueReminders(reminders, now, timeZone);
         if (!due.length) return;
 
-        const date = R.getLocalParts(now, timeZone).date;
-        due.forEach((r) => {
-            const message = R.buildReminderMessage(r);
+        const result = NP.deliver(due, window.Notification, NP.loadPrefs(localStorage));
+        result.inApp.forEach((message) => {
             const line = document.createElement('p');
             line.textContent = message;
             bannerMessages.appendChild(line);
-            if (R.getNotificationPermission(window.Notification) === 'granted') {
-                try {
-                    new Notification('Medicine reminder', { body: message });
-                } catch (e) { /* the banner is the fallback */ }
-            }
-            reminders = R.markNotified(reminders, r.id, date);
+        });
+        due.forEach((r) => {
+            const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, timeZone)).date;
+            reminders = R.markNotified(reminders, r.id, date, now.getTime());
         });
         banner.hidden = false;
         persist();
     }
 
+    // Shows what will actually happen: the user's choice combined with the browser's permission.
     function renderNotifyPanel() {
-        const permission = R.getNotificationPermission(window.Notification);
-        notifyStatus.textContent = R.getPermissionMessage(permission);
-        notifyBtn.hidden = permission !== 'default';
+        const prefs = NP.loadPrefs(localStorage);
+        const permission = NP.getPermission(window.Notification);
+        const plan = NP.getPlan(prefs, permission);
+
+        notifyExplain.textContent = NP.EXPLANATION;
+        notifyStatus.textContent = plan.message;
+
+        // Offer "turn on" unless the browser cannot or will not show them.
+        notifyBtn.hidden = !(plan.state === 'off' || plan.state === 'needs-permission') || permission === 'denied';
+        notifyBtn.textContent = plan.state === 'needs-permission' ? 'Ask my browser for permission' : 'Turn on browser notifications';
+        notifyOffBtn.hidden = !(plan.state === 'active' || plan.state === 'blocked' || plan.state === 'needs-permission');
+
+        notifyDetailsWrap.hidden = plan.state === 'unsupported';
+        document.getElementById('notify-details-label').textContent = NP.DETAILS_WARNING;
+        notifyDetails.checked = prefs.showDetails;
     }
 
     form?.addEventListener('submit', (e) => {
@@ -173,9 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
         reminders = result.reminders;
         const r = result.reminder;
         logHistory(editId ? 'Medication reminder updated' : 'Medication reminder created', `${r.medicine} at ${r.time}`);
+        const firstLine = R.explainSchedule({ ...readForm(), scheduleMode: r.scheduleMode, scheduleTimeZone: r.scheduleMode === 'fixed' ? r.timeZone : '' }, new Date(), timeZone).split('First reminder:')[1];
         resetForm();
         render();
         checkDue();
+        savedEl.textContent = `Reminder saved.${firstLine ? ' First reminder:' + firstLine : ''}`;
+        savedEl.hidden = false;
     });
 
     cancelBtn?.addEventListener('click', resetForm);
@@ -192,8 +267,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     notifyBtn?.addEventListener('click', () => {
-        if (!window.Notification) return;
-        Promise.resolve(Notification.requestPermission()).then(renderNotifyPanel, renderNotifyPanel);
+        NP.enableBrowserNotifications(window.Notification, localStorage).then(renderNotifyPanel, renderNotifyPanel);
+    });
+
+    notifyOffBtn?.addEventListener('click', () => {
+        NP.disableBrowserNotifications(window.Notification, localStorage);
+        renderNotifyPanel();
+    });
+
+    notifyDetails?.addEventListener('change', () => {
+        NP.setShowDetails(window.Notification, localStorage, notifyDetails.checked);
+        renderNotifyPanel();
     });
 
     banner?.addEventListener('click', (e) => {
@@ -220,6 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
             fields.time.value = current.time;
             fields.startDate.value = current.startDate;
             fields.endDate.value = current.endDate;
+            fields.modeFixed.checked = current.scheduleMode === 'fixed';
+            fields.modeLocal.checked = current.scheduleMode !== 'fixed';
+            if (current.scheduleMode === 'fixed') fields.zone.value = current.timeZone;
+            syncScheduleMode();
             submitBtn.textContent = 'Update Reminder';
             cancelBtn.hidden = false;
             showErrors({});

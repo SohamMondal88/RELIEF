@@ -56,10 +56,18 @@
                 <button type="button" class="btn" data-dismiss>Dismiss</button>
             </div>
 
-            <div class="notify-panel">
-                <strong>Notifications</strong>
+            <div class="notify-panel" id="notify-panel" role="group" aria-labelledby="notify-heading">
+                <strong id="notify-heading">Notifications</strong>
+                <p id="notify-explain" class="muted"></p>
                 <p id="notify-status" class="muted" aria-live="polite"></p>
-                <button type="button" class="btn" id="notify-enable" hidden>Allow browser notifications</button>
+                <div class="notify-actions">
+                    <button type="button" class="btn" id="notify-enable" hidden>Turn on browser notifications</button>
+                    <button type="button" class="btn" id="notify-disable" hidden>Turn off browser notifications</button>
+                </div>
+                <label class="notify-details" id="notify-details-wrap" hidden>
+                    <input type="checkbox" id="notify-details">
+                    <span id="notify-details-label"></span>
+                </label>
             </div>
 
             <form id="reminder-form" novalidate>
@@ -85,11 +93,24 @@
                 <input id="end-date" type="date" aria-describedby="end-date-error">
                 <p class="field-error" id="end-date-error" hidden></p>
 
+                <fieldset class="schedule-group" id="schedule-group" aria-describedby="schedule-explain">
+                    <legend>Which clock should this follow?</legend>
+                    <label class="schedule-option"><input type="radio" name="schedule-mode" id="schedule-local" value="local" checked> This device's clock (recommended)</label>
+                    <label class="schedule-option"><input type="radio" name="schedule-mode" id="schedule-fixed" value="fixed"> A fixed time zone</label>
+                    <div id="schedule-zone-wrap" hidden>
+                        <label for="schedule-zone">Time zone</label>
+                        <select id="schedule-zone" aria-describedby="schedule-zone-error"></select>
+                        <p class="field-error" id="schedule-zone-error" hidden></p>
+                    </div>
+                </fieldset>
+                <p id="schedule-explain" class="muted schedule-explain" aria-live="polite"></p>
+
                 <div class="error-summary" id="reminder-error-summary" role="alert" tabindex="-1" hidden></div>
 
                 <button class="btn btn-primary" id="reminder-submit" type="submit" style="margin-top: 10px;">Save Reminder</button>
                 <button class="btn" id="reminder-cancel" type="button" hidden>Cancel edit</button>
             </form>
+            <p id="reminder-saved" class="reminder-saved" role="status" aria-live="polite" hidden></p>
             <p id="reminder-persistence" class="muted reminder-note"></p>
             <ul id="reminder-list" class="reminder-list"></ul>
         </article>
@@ -159,6 +180,7 @@
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
 <script src="../assets/js/reminders.js"></script>
+<script src="../assets/js/notification-prefs.js"></script>
 <script src="../assets/js/form-errors.js"></script>
 <script src="../assets/js/session-guard.js"></script>
 <script src="../assets/js/main.js"></script>
