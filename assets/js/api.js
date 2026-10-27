@@ -313,16 +313,22 @@ const ReliefAPI = (function() {
             const user = await getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
-            const docRef = await db.collection('appointments').add({
+            // The request's own reference is the document id, so sending the same request twice
+            // (a double tap, a retry after a dropped connection) cannot create a second booking:
+            // the rules refuse a create on an id that already exists.
+            const ref = appointmentData && appointmentData.id
+                ? db.collection('appointments').doc(String(appointmentData.id))
+                : db.collection('appointments').doc();
+            await ref.set({
                 ...appointmentData,
                 userId: user.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'pending'
+                status: 'submitted'
             });
 
             return {
                 success: true,
-                appointmentId: docRef.id,
+                appointmentId: ref.id,
                 ...appointmentData
             };
         } catch (error) {
