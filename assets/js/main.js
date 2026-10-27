@@ -23,9 +23,18 @@ function saveSessions(sessions) {
     }
 }
 
+function absoluteSessionMs() {
+    const guard = typeof window !== 'undefined' ? window.ReliefSessionGuard : undefined;
+    return guard ? guard.resolveConfig(undefined, window.ReliefSessionConfig).absoluteTimeoutMs : 1000 * 60 * 60 * 24 * 7;
+}
+
 function getActiveSession() {
     const now = Date.now();
-    const validSessions = loadSessions().filter(session => session.expiresAt > now);
+    // The policy (idle timeout, absolute lifetime, clock changes) lives in session-guard.js.
+    const guard = typeof window !== 'undefined' ? window.ReliefSessionGuard : undefined;
+    const validSessions = loadSessions().filter(session => (
+        guard ? guard.evaluateSession(session, now).valid : session.expiresAt > now
+    ));
 
     if (validSessions.length === 0) {
         return null;
@@ -98,7 +107,7 @@ const ReliefSession = {
             deviceType: getDeviceType(),
             createdAt: now,
             lastActiveAt: now,
-            expiresAt: now + (1000 * 60 * 60 * 24 * 30)
+            expiresAt: now + absoluteSessionMs()
         };
 
         const sessions = loadSessions().filter(item => item.expiresAt > now).slice(-9);
@@ -517,6 +526,8 @@ function handleSignup(name, email, password) {
 // Handle logout
 function handleLogout() {
     const finalizeLogout = () => {
+        // Tell the other open tabs first, so they stop showing protected content.
+        window.ReliefSessionGuard?.signOutEverywhere?.();
         window.ReliefSession?.clearSessions?.();
         updateAuthUI(null);
         window.location.href = window.location.pathname.includes('/pages/') ? '../index.html' : 'index.html';
