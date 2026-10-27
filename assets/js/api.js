@@ -477,6 +477,16 @@ const ReliefAPI = (function() {
         backendRequest('/v1/facility-corrections', { method: 'POST', body: correction });
 
     /**
+     * Sends a contact form message to the RELIEF team. POST {backend}/v1/contact-messages
+     * message: { name, email, subject, message, consent }
+     * Resolves with { status: 'received' } only when the backend stored or forwarded it
+     * (docs/FORM_PROTECTION.md, Contact form delivery). Rejects with code 'backend-unavailable'
+     * when no backend is configured, so the page must not claim the message was sent.
+     */
+    const submitContactMessage = (message) =>
+        backendRequest('/v1/contact-messages', { method: 'POST', body: message });
+
+    /**
      * Moderators only. GET {backend}/v1/facility-corrections?status=pending|approved|rejected
      * Resolves with an array (or { corrections: [] }) of correction records.
      */
@@ -525,6 +535,9 @@ const ReliefAPI = (function() {
         // Data Storage
         savePatientData,
         getPatientData,
+
+        // Contact form (see docs/FORM_PROTECTION.md)
+        submitContactMessage,
 
         // Facility corrections (moderated, see docs/FACILITY_CORRECTIONS.md)
         submitFacilityCorrection,

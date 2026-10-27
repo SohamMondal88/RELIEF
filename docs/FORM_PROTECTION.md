@@ -65,7 +65,30 @@ Real enforcement belongs where data is accepted. For this project that means:
 
 The server-side side of this is in [FIREBASE_SECURITY.md](FIREBASE_SECURITY.md): ready-to-deploy Firestore rules (`firebase/firestore.rules`), opt-in App Check, and the console settings to switch on.
 
-The contact form is currently a simulated submission. When it is connected to a real backend, add the matching rules in the same change (section 4 of that page).
+The contact form no longer pretends. See "Contact form delivery" below. When a real backend is connected, add the matching rules in the same change (section 4 of that page).
+
+## Contact form delivery
+
+The contact form (`pages/contact.html`, `assets/js/contact.js`, `assets/js/contact-send.js`) only says "Message sent" when the RELIEF backend confirmed that it has the message. This repo has no backend, so by default the page shows that the message was **not** sent, keeps what the visitor typed, and offers the email address and phone number that are already on the page (the email link opens the visitor's own mail app with their text filled in, the page sends nothing itself).
+
+The backend URL is the same one the other features use: set `window.RELIEF_BACKEND_URL` or `<meta name="relief-backend-url">` (see `assets/js/api.js`). The page then calls `ReliefAPI.submitContactMessage()`:
+
+```
+POST {backend}/v1/contact-messages
+{ "name": "...", "email": "...", "subject": "", "message": "...", "consent": true }
+```
+
+| Answer | What the page shows |
+|---|---|
+| `2xx` JSON `{ "status": "received" }` | "Message sent" |
+| `2xx` anything else | "may not have been sent" (not a success) |
+| `429` | not sent, too many messages |
+| other `4xx` | not sent, the service did not accept it |
+| `5xx`, timeout, offline, no backend | not sent, with the email and phone fallback |
+
+The backend must answer `received` only after the message is stored or forwarded, and must repeat the validation (lengths: name 100, email 254, subject 40, message 2000, `consent` true) and the rate limit, because the browser checks can be bypassed.
+
+The rate limit, double-submit lock, honeypot and minimum fill time from `form-guard.js` still apply to every attempt, sent or not.
 
 ## Tests
 
