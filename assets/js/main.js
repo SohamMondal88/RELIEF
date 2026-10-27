@@ -158,22 +158,36 @@ if (typeof document !== 'undefined') {
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+            if (targetId === '#') {
+                e.preventDefault();
+                return;
+            }
+
+            // A skip link has to move keyboard focus, not just the scroll position. Leave it to
+            // the browser, which scrolls to the target and starts the next Tab from there
+            // (every page marks its <main> with tabindex="-1" so focus lands on it).
+            if (this.classList.contains('skip-link')) return;
+
+            e.preventDefault();
 
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
+                const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
+                    behavior: reduceMotion ? 'auto' : 'smooth'
                 });
 
                 // Close mobile menu if open
-                if (navLinks && navLinks.classList.contains('active')) {
-                    hamburger.classList.remove('active');
-                    navLinks.classList.remove('active');
+                const openMenu = document.querySelector('.nav-links.active');
+                const menuButton = document.querySelector('.hamburger');
+                if (openMenu) {
+                    openMenu.classList.remove('active');
+                    if (menuButton) {
+                        menuButton.classList.remove('active');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                    }
                 }
             }
         });

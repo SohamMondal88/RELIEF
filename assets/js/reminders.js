@@ -297,8 +297,35 @@
         return `Created in ${reminder.timeZone}. It now follows this device's clock (${currentTimeZone}).`;
     }
 
+    // ---------- wording for assistive technology (used by dashboard.js) ----------
+
+    const ACTION_LABELS = { edit: 'Edit', pause: 'Pause', resume: 'Resume', done: 'Done', remove: 'Remove' };
+    const ACTION_RESULTS = {
+        pause: 'paused',
+        resume: 'resumed',
+        done: 'marked done',
+        remove: 'removed'
+    };
+
+    // The visible button text is just "Pause", so every row would read the same to a screen reader.
+    // The accessible name starts with the visible word (WCAG 2.5.3) and adds which medicine it is for.
+    function describeAction(action, medicine) {
+        const label = ACTION_LABELS[action] || String(action);
+        const name = String(medicine || '').trim();
+        return name ? `${label}: ${name}` : label;
+    }
+
+    // Sentence for the status line after an action, e.g. "Metformin paused."
+    function describeResult(action, medicine) {
+        const name = String(medicine || '').trim() || 'Reminder';
+        const result = ACTION_RESULTS[action];
+        return result ? `${name} ${result}.` : '';
+    }
+
     const api = {
         REMINDERS_KEY,
+        describeAction,
+        describeResult,
         REMINDER_DISCLAIMER,
         PERSISTENCE_NOTE,
         TIMEZONE_NOTE,

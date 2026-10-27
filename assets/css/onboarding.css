@@ -173,7 +173,7 @@ body.relief-onboarding-open {
     width: 4.25rem;
     height: 4.25rem;
     border-radius: 18px;
-    background: linear-gradient(135deg, #00b894 0%, #0984e3 100%);
+    background: linear-gradient(135deg, #007a63 0%, #0767b1 100%);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -216,7 +216,7 @@ body.relief-onboarding-open {
 }
 
 .relief-onboarding-highlight i {
-    color: #00b894;
+    color: #007a63;
     font-size: 1rem;
     flex-shrink: 0;
 }
@@ -226,7 +226,7 @@ body.relief-onboarding-open {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.875rem;
-    color: #0984e3;
+    color: #0767b1;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.15s ease;
@@ -234,7 +234,7 @@ body.relief-onboarding-open {
 
 .relief-onboarding-feature-link:hover,
 .relief-onboarding-feature-link:focus-visible {
-    color: #00997b;
+    color: #005c4a;
     text-decoration: underline;
     outline: 2px solid #0984e3;
     outline-offset: 2px;
@@ -262,7 +262,7 @@ body.relief-onboarding-open {
 
 .relief-onboarding-dot.active {
     width: 24px;
-    background: #0984e3;
+    background: #0767b1;
 }
 
 .relief-onboarding-dot:focus-visible {
@@ -331,7 +331,7 @@ body.relief-onboarding-open {
 
 .relief-onboarding-btn-next,
 .relief-onboarding-btn-finish {
-    background: linear-gradient(135deg, #00b894 0%, #00997b 100%);
+    background: linear-gradient(135deg, #007a63 0%, #005c4a 100%);
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
 }
@@ -343,7 +343,7 @@ body.relief-onboarding-open {
     background: linear-gradient(135deg, #00a884 0%, #00876c 100%);
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 184, 148, 0.35);
-    outline: 2px solid #00997b;
+    outline: 2px solid #005c4a;
     outline-offset: 2px;
 }
 
@@ -357,9 +357,9 @@ body.relief-onboarding-open {
     font-weight: 600;
     font-size: 0.9rem;
     font-family: inherit;
-    border: 2px solid var(--secondary-color, #0984e3);
+    border: 2px solid var(--secondary-color, #0767b1);
     background: #ffffff;
-    color: var(--secondary-color, #0984e3);
+    color: var(--secondary-color, #0767b1);
     cursor: pointer;
     transition: var(--transition, all 0.3s ease);
     margin-right: 6px;
@@ -368,7 +368,7 @@ body.relief-onboarding-open {
 
 .btn-tour-nav:hover,
 .btn-tour-nav:focus-visible {
-    background: var(--secondary-color, #0984e3);
+    background: var(--secondary-color, #0767b1);
     color: #ffffff;
     outline: 2px solid var(--secondary-dark, #0767b1);
     outline-offset: 2px;
@@ -390,7 +390,7 @@ body.relief-onboarding-open {
 
 .footer-tour-link:hover,
 .footer-tour-link:focus-visible {
-    color: var(--primary-color, #00b894);
+    color: var(--primary-color, #007a63);
     outline: 2px solid #00b894;
     outline-offset: 2px;
 }
