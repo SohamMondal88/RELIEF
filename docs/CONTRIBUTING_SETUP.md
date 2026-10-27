@@ -120,7 +120,9 @@ The browser tests start their own static server. To use one you already run (for
 
 `sw.js` at the repository root caches the first aid and hospitals pages plus the few css/js files they need, so that guidance and saved facilities still open after one successful online visit. It is registered from `assets/js/main.js`, so it needs `https://` or `http://localhost` (it will not register from `file://`).
 
-- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Pages use network-first (fresh copy when online, saved copy when offline). Css, js and the logo use cache-first.
+The full list of what is saved, the offline limits, the install manifest, Vercel notes and the offline and update checks are in [OFFLINE_AND_INSTALL.md](OFFLINE_AND_INSTALL.md).
+
+- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Every saved file is network-first (fresh copy when online, saved copy when offline). A page that is not saved and cannot be reached shows `pages/offline.html`.
 - **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
