@@ -24,6 +24,13 @@ async function openHome(page) {
   await expect(page.locator('.main-content')).toBeVisible({ timeout: 8000 });
 }
 
+// Call before page.goto. Brings back the first-visit tour that fixtures.js switches off.
+async function showTour(page) {
+  await page.addInitScript(() => {
+    try { localStorage.removeItem('relief_onboarding_status'); } catch (e) { /* storage blocked */ }
+  });
+}
+
 async function signUp(page, { name = 'Test Person', email = 'test.person@example.com', password = 'secret123' } = {}) {
   await page.goto('/pages/signup.html');
   await page.getByLabel('Full Name').fill(name);
@@ -42,4 +49,4 @@ async function relief(page) {
   return page.evaluate(() => window.__relief);
 }
 
-module.exports = { useGeolocation, openHome, signUp, storedJson, relief };
+module.exports = { useGeolocation, openHome, showTour, signUp, storedJson, relief };

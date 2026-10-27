@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
         minFillMs: 0
     });
     window.ReliefFormGuard?.attachHoneypot(signupForm);
+    // Editing a field clears its error mark and the message that described it.
+    signupForm.querySelectorAll('input').forEach(function(input) {
+        input.addEventListener('input', clearFieldErrors);
+    });
 
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -26,13 +30,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('signup-password').value;
         const confirmPassword = document.getElementById('signup-confirm-password').value;
 
+        clearFieldErrors();
+
         if (password !== confirmPassword) {
             showAlert('danger', 'Passwords do not match.');
+            markInvalid(document.getElementById('signup-confirm-password'), true);
             return;
         }
 
         if (password.length < 6) {
             showAlert('danger', 'Password must be at least 6 characters.');
+            markInvalid(document.getElementById('signup-password'), true);
             return;
         }
 
@@ -49,7 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 : await attempt().then((value) => ({ ok: true, value }), (error) => ({ ok: false, message: error.message }));
 
             if (!outcome.ok) {
-                showAlert('danger', outcome.message || 'Signup failed. Please try again.');
+                const message = outcome.message || 'Signup failed. Please try again.';
+                showAlert('danger', message);
+                if (/email/i.test(message)) markInvalid(document.getElementById('signup-email'), true);
                 return;
             }
 
@@ -72,22 +82,41 @@ async function createUser(name, email, password) {
     return window.ReliefAuth.signup(name, email, password);
 }
 
+const FORM_MESSAGE_ID = 'form-message';
+
+function markInvalid(field, focus) {
+    if (!field) return;
+    field.setAttribute('aria-invalid', 'true');
+    field.setAttribute('aria-describedby', FORM_MESSAGE_ID);
+    if (focus) field.focus();
+}
+
+function clearFieldErrors() {
+    document.querySelectorAll('#signup-form [aria-invalid]').forEach(function(field) {
+        field.removeAttribute('aria-invalid');
+        field.removeAttribute('aria-describedby');
+    });
+    const old = document.getElementById(FORM_MESSAGE_ID);
+    if (old && old.classList.contains('alert-danger')) old.remove();
+}
+
+// Errors use role="alert" so a screen reader reads them out when they appear, and they stay until
+// the person edits a field or submits again (the old 5 second timeout removed them too soon).
+// Success uses role="status" because the page is about to redirect.
 function showAlert(type, message) {
-    const existingAlert = document.querySelector('.alert');
+    const existingAlert = document.getElementById(FORM_MESSAGE_ID);
     if (existingAlert) {
         existingAlert.remove();
     }
 
     const alertDiv = document.createElement('div');
+    alertDiv.id = FORM_MESSAGE_ID;
     alertDiv.className = `alert alert-${type} mt-3`;
+    alertDiv.setAttribute('role', type === 'danger' ? 'alert' : 'status');
     alertDiv.textContent = message;
 
     const form = document.getElementById('signup-form');
     if (form) {
         form.appendChild(alertDiv);
     }
-
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
 }

@@ -28,7 +28,7 @@
     </div>
 </header>
 
-<main class="wrap dashboard-main" id="main-content" data-protected>
+<main class="wrap dashboard-main" id="main-content" data-protected tabindex="-1">
     <section class="hero hero-gradient">
         <div>
             <h1>Your Health Continuity Center</h1>
@@ -91,7 +91,8 @@
                 <button class="btn" id="reminder-cancel" type="button" hidden>Cancel edit</button>
             </form>
             <p id="reminder-persistence" class="muted reminder-note"></p>
-            <ul id="reminder-list" class="reminder-list"></ul>
+            <p id="reminder-status" class="muted reminder-status" role="status" aria-live="polite"></p>
+            <ul id="reminder-list" class="reminder-list" tabindex="-1" aria-label="Your medicine reminders"></ul>
         </article>
 
         <article class="card panel-soft">
@@ -118,7 +119,7 @@
                 <h2>Relief Assistant</h2>
                 <span class="pill">Guide (offline)</span>
             </div>
-            <div id="chatbot-messages" class="chat-window" aria-live="polite"></div>
+            <div id="chatbot-messages" class="chat-window" role="log" aria-live="polite" aria-label="Conversation with Relief Assistant" tabindex="0"></div>
             <p class="chat-note">This guide is not a doctor and cannot give medical advice. What you type stays on this page: it is not saved, sent or logged. In an emergency call your local emergency services.</p>
             <div class="chat-quick-actions">
                 <button type="button" class="chip" data-chat="Find nearby hospitals">Nearby hospitals</button>

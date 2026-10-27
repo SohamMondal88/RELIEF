@@ -1,17 +1,17 @@
 /* Global Styles with Modern Color Palette */
 :root {
-    --primary-color: #00b894;
-    --primary-dark: #00997b;
-    --secondary-color: #0984e3;
-    --secondary-dark: #0767b1;
-    --accent-color: #fd79a8;
-    --accent-dark: #e84393;
+    --primary-color: #007a63;
+    --primary-dark: #005c4a;
+    --secondary-color: #0767b1;
+    --secondary-dark: #054e88;
+    --accent-color: #c2185b;
+    --accent-dark: #9b1049;
     --dark-color: #2d3436;
-    --dark-light: #636e72;
+    --dark-light: #55606a;
     --light-color: #f5f6fa;
     --light-dark: #dfe6e9;
-    --danger-color: #d63031;
-    --success-color: #00b894;
+    --danger-color: #c0282a;
+    --success-color: #007a63;
     --warning-color: #fdcb6e;
     --info-color: #74b9ff;
 
@@ -70,6 +70,13 @@ html {
 :focus-visible {
     outline: 2px solid var(--primary-color, #00b894);
     outline-offset: 2px;
+}
+
+/* The skip link target only takes focus from the link or a script, so it needs no ring */
+main[tabindex="-1"]:focus,
+.form-step[tabindex="-1"]:focus,
+.results-content[tabindex="-1"]:focus {
+    outline: none;
 }
 
 /* Accessibility: Respect Reduced Motion Preferences */
@@ -221,6 +228,15 @@ a:hover {
 
 .btn-signup:hover {
     background: var(--white);
+    color: var(--primary-color);
+}
+
+/* .nav-links a is more specific than .btn-signup and made the label dark on the filled button */
+.nav-links a.btn-signup {
+    color: var(--white);
+}
+
+.nav-links a.btn-signup:hover {
     color: var(--primary-color);
 }
 
@@ -589,7 +605,7 @@ a:hover {
 }
 
 .checklist-header h4 {
-    color: #b75e00;
+    color: #9a4d00;
     font-size: 1.1rem;
     margin-bottom: 0.25rem;
 }
@@ -642,7 +658,7 @@ a:hover {
 }
 
 .checklist-disclaimer i {
-    color: #b75e00;
+    color: #9a4d00;
     margin-right: 0.3rem;
 }
 
@@ -866,7 +882,8 @@ a:hover {
 .form-group select:focus,
 .form-group input[type="text"]:focus {
     border-color: var(--primary-color);
-    outline: none;
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 /* Duration Options */
@@ -1264,7 +1281,6 @@ a:hover {
     cursor: pointer;
     font-size: 0.95rem;
     color: var(--dark-color);
-    outline: none;
     user-select: none;
 }
 

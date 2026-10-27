@@ -46,7 +46,7 @@ test.describe('landing page and primary navigation', () => {
 
   test('hero buttons open the symptom checker and the doctors page', async ({ page }) => {
     await openHome(page);
-    await page.getByRole('link', { name: 'Check your symptoms' }).click();
+    await page.getByRole('link', { name: 'Check Symptoms' }).click();
     await expect(page).toHaveURL(/pages\/symptoms\.html$/);
     await page.goBack();
     await expect(page.locator('.main-content')).toBeVisible({ timeout: 8000 });
