@@ -12,7 +12,7 @@ function loadSessions() {
         if (typeof localStorage === 'undefined') return [];
         return JSON.parse(localStorage.getItem(RELIEF_SESSION_STORAGE_KEY) || '[]');
     } catch (error) {
-        console.error('Failed to parse stored sessions:', error);
+        console.error('Failed to parse stored sessions:', error && error.name);
         return [];
     }
 }
@@ -401,7 +401,7 @@ function checkAuthStatus() {
         }
         updateAuthUI(user);
     }).catch(error => {
-        console.error('Error checking auth status:', error);
+        console.error('Error checking auth status:', error && error.name);
         updateAuthUI(null);
     });
 }
@@ -541,7 +541,7 @@ function handleLogout() {
     ReliefAPI.logout()
         .then(finalizeLogout)
         .catch(error => {
-            console.error('Logout failed:', error);
+            console.error('Logout failed:', error && error.name);
             finalizeLogout();
         });
 }
@@ -579,7 +579,7 @@ function getLocation() {
                     resolve({ lat, lng });
                 },
                 error => {
-                    console.error('Error getting location:', error);
+                    console.error('Error getting location:', error && error.code);
                     reject(error);
                 }
             );
@@ -671,7 +671,7 @@ function initOfflineSupport() {
     if (RELIEF_SW_URL && 'serviceWorker' in navigator &&
         (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
         navigator.serviceWorker.register(RELIEF_SW_URL).catch((error) => {
-            console.error('Service worker registration failed:', error);
+            console.error('Service worker registration failed:', error && error.name);
         });
     }
 }

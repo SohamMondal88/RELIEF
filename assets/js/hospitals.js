@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             localStorage.setItem(SAVED_KEY, JSON.stringify(items));
         } catch (error) {
-            console.error('Could not save facility:', error);
+            console.error('Could not save facility:', error && error.name);
         }
     }
 
