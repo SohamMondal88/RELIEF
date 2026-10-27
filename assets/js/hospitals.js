@@ -346,7 +346,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return res.json();
             })
             .then(data => {
-                facilities = U.normalizeFacilities(data);
+                // Records that break the data contract are left out instead of breaking the page.
+                const checked = window.FacilitySchema ? window.FacilitySchema.validateDataset(data) : null;
+                if (checked && !checked.ok) throw new Error('Facility data is not usable: ' + checked.problems.join('; '));
+                if (checked && checked.quarantined.length > 0) {
+                    console.warn('Skipped ' + checked.quarantined.length + ' facility record(s) that break the data contract:',
+                        checked.quarantined.map(q => (q.id || '#' + q.index) + ' (' + q.errors.join(', ') + ')'));
+                }
+                facilities = U.normalizeFacilities(checked ? checked.accepted : data);
                 populateFilters();
                 applyFilters();
                 // The correction form (facility-corrections-ui.js) fills its list from this.

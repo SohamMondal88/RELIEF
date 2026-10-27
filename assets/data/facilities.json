@@ -1,5 +1,6 @@
 {
   "_note": "Records carried over from the previous hardcoded list. None are verified yet; district holds the place name from that list.",
+  "schemaVersion": 1,
   "facilities": [
     {
       "id": "fac-001",
