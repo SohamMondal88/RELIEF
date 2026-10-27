@@ -8,6 +8,8 @@ in the Firebase console.
 > No page loads Firebase today (see [PRIVACY_AND_DATA.md](PRIVACY_AND_DATA.md)). Do this
 > before connecting a real project.
 
+For admin and moderator controls (which ones are real, what a server must check, and how to add roles with custom claims) see [ADMIN_ACCESS.md](ADMIN_ACCESS.md).
+
 ## 1. Firestore Security Rules
 
 `firebase/firestore.rules` covers every collection that `assets/js/api.js` writes to:
