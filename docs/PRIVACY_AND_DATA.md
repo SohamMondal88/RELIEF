@@ -29,6 +29,9 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 | `selectedDoctor` | The doctor card (name, specialty, image) you picked from the directory | Passes your choice to the appointment page | Until you pick another doctor or delete your data | No |
 | `relief_lang` | Language code (`en` or `bn`) | Remembers your language | Until you delete your data | No |
 | `relief_last_online_sync` | A timestamp | Offline banner says when the saved copy was refreshed | Overwritten on every online page load | No |
+| `relief_formguard_contact` | Timestamps of recent contact attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
+| `relief_formguard_login` | Timestamps of recent login attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
+| `relief_formguard_signup` | Timestamps of recent signup attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
 
 Other things in the browser, none of which hold personal data:
 
