@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "synthetic": true,
+  "_note": "SYNTHETIC TEST DATA. Every name, number, address and link here is made up. None of it describes a real provider and none of it may be shown to a visitor as verified information. Documented in docs/PROVIDER_TEST_FIXTURES.md.",
+  "hospitals": [
+    {
+      "id": "synthetic-hospital-001",
+      "synthetic": true,
+      "name": "Sample District Hospital",
+      "type": "hospital",
+      "district": "Exampleganj",
+      "address": "1 Sample Road, Exampleganj",
+      "phone": "+91 33 5550 0201",
+      "hours": "Open 24 hours",
+      "services": ["Emergency Care", "Surgery"],
+      "lat": 23.23,
+      "lng": 87.07,
+      "website": "https://hospital.example.org"
+    },
+    {
+      "id": "synthetic-hospital-002",
+      "synthetic": true,
+      "name": "Sample Primary Health Centre",
+      "type": "phc",
+      "district": "Samplepur",
+      "address": null,
+      "phone": "(033) 5550-0202",
+      "hours": "Mon-Sat 9:00-15:00",
+      "services": ["Maternity"],
+      "lat": 23.33,
+      "lng": 86.36
+    },
+    {
+      "id": "synthetic-hospital-003",
+      "synthetic": true,
+      "name": "Sample Walk-in Clinic",
+      "type": "clinic",
+      "district": "Exampleganj",
+      "address": "Demo Lane, Exampleganj",
+      "phone": null,
+      "hours": null,
+      "services": []
+    }
+  ],
+  "doctors": [
+    {
+      "id": "synthetic-doctor-001",
+      "synthetic": true,
+      "name": "Dr. Sample Rao",
+      "specialty": "Cardiology",
+      "district": "Exampleganj",
+      "facilityId": "synthetic-hospital-001",
+      "phone": "+91 33 5550 0211",
+      "hours": "Mon-Fri 10:00-14:00",
+      "website": "https://doctors.example.org/sample-rao"
+    },
+    {
+      "id": "synthetic-doctor-002",
+      "synthetic": true,
+      "name": "Dr. Example Das",
+      "specialty": "General Practice",
+      "district": "Samplepur",
+      "facilityId": null,
+      "phone": null,
+      "hours": null
+    }
+  ],
+  "pharmacies": [
+    {
+      "id": "synthetic-pharmacy-001",
+      "synthetic": true,
+      "name": "Placeholder Pharmacy",
+      "type": "pharmacy",
+      "district": "Exampleganj",
+      "address": "2 Sample Road, Exampleganj",
+      "phone": "+91 33 5550 0221",
+      "hours": "8:00-21:00",
+      "services": ["Dispensing"],
+      "lat": 23.24,
+      "lng": 87.08
+    },
+    {
+      "id": "synthetic-pharmacy-002",
+      "synthetic": true,
+      "name": "Demo Night Chemist",
+      "type": "pharmacy",
+      "district": "Samplepur",
+      "address": null,
+      "phone": "+91 33 5550 0222",
+      "hours": "Open 24 hours",
+      "services": ["Dispensing", "Home Delivery"]
+    }
+  ],
+  "ambulances": [
+    {
+      "id": "synthetic-ambulance-001",
+      "synthetic": true,
+      "name": "Example Emergency Ambulance",
+      "serviceType": "emergency",
+      "district": "Exampleganj",
+      "phone": "+91 33 5550 0231",
+      "hours": "Open 24 hours",
+      "responseTime": "10-15 minutes",
+      "lat": 23.22,
+      "lng": 87.06,
+      "website": "https://ambulance.example.org"
+    },
+    {
+      "id": "synthetic-ambulance-002",
+      "synthetic": true,
+      "name": "Demo Patient Transport",
+      "serviceType": "non-emergency",
+      "district": "Samplepur",
+      "phone": "+91 33 5550 0232",
+      "hours": "Mon-Sat 7:00-19:00",
+      "responseTime": null
+    }
+  ]
+}
