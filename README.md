@@ -374,6 +374,7 @@ To keep the project maintainable, contributors should follow these principles.
 - Describe any required configuration changes.
 - Disclose any known limitations.
 - Do not claim tests passed unless they were actually run.
+- For healthcare content or UI changes, go through the [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## 🌱 Good First Contributions
 
