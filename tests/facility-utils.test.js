@@ -7,12 +7,15 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const U = require('../assets/js/facility-utils.js');
+const fx = require('./helpers/provider-fixtures');
 
-const sample = U.normalizeFacilities([
-  { id: 'a', name: 'Alpha Hospital', type: 'hospital', district: 'Bankura', services: ['Emergency Care', 'Surgery'], lat: 23.23, lng: 87.07, verified: true, source: 'WB Health Dept', lastChecked: '2026-10-01' },
-  { id: 'b', name: 'Beta PHC', type: 'phc', district: 'Purulia', services: ['Maternity'], lat: 23.33, lng: 86.36 },
-  { id: 'c', name: 'Gamma Clinic', type: 'clinic', district: 'Bankura', services: [] }
-]);
+// Synthetic records from tests/fixtures/providers (see docs/PROVIDER_TEST_FIXTURES.md).
+// hospital 001 has coordinates and services, PHC 002 is nearer to Purulia, clinic 003 has no coordinates.
+// The fixtures are never verified, so the one verified record is made here on purpose, for the label test only.
+const [A, B, C] = ['synthetic-hospital-001', 'synthetic-hospital-002', 'synthetic-hospital-003'];
+const sample = U.normalizeFacilities(fx.hospitals.map((h) =>
+  h.id === A ? Object.assign({}, h, { verified: true, source: 'https://example.org/test-list', lastChecked: '2026-10-01' }) : h
+));
 
 test('normalizeFacilities fills missing fields and drops invalid records', () => {
   const list = U.normalizeFacilities({ facilities: [{ name: 'X' }, null, { id: 1 }] });
@@ -45,44 +48,44 @@ test('parseUserLocation accepts object, array and JSON string; rejects bad input
 });
 
 test('search covers name, district and services', () => {
-  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'alpha' }).map(f => f.id), ['a']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'purulia' }).map(f => f.id), ['b']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'maternity' }).map(f => f.id), ['b']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'bankura surgery' }).map(f => f.id), ['a']);
+  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'district hospital' }).map(f => f.id), [A]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'samplepur' }).map(f => f.id), [B]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'maternity' }).map(f => f.id), [B]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { search: 'exampleganj surgery' }).map(f => f.id), [A]);
   assert.strictEqual(U.filterFacilities(sample, { search: '   ' }).length, 3);
   assert.strictEqual(U.filterFacilities(sample, { search: 'zzz' }).length, 0);
 });
 
 test('type, district, service and verified filters combine', () => {
-  assert.deepStrictEqual(U.filterFacilities(sample, { type: 'phc' }).map(f => f.id), ['b']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { district: 'Bankura' }).map(f => f.id), ['a', 'c']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { service: 'Surgery' }).map(f => f.id), ['a']);
-  assert.deepStrictEqual(U.filterFacilities(sample, { verifiedOnly: true }).map(f => f.id), ['a']);
-  assert.strictEqual(U.filterFacilities(sample, { district: 'Bankura', type: 'phc' }).length, 0);
+  assert.deepStrictEqual(U.filterFacilities(sample, { type: 'phc' }).map(f => f.id), [B]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { district: 'Exampleganj' }).map(f => f.id), [A, C]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { service: 'Surgery' }).map(f => f.id), [A]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { verifiedOnly: true }).map(f => f.id), [A]);
+  assert.strictEqual(U.filterFacilities(sample, { district: 'Exampleganj', type: 'phc' }).length, 0);
 });
 
 test('filter options come from the data', () => {
   const o = U.getFilterOptions(sample);
   assert.deepStrictEqual(o.types, ['clinic', 'hospital', 'phc']);
-  assert.deepStrictEqual(o.districts, ['Bankura', 'Purulia']);
+  assert.deepStrictEqual(o.districts, ['Exampleganj', 'Samplepur']);
   assert.deepStrictEqual(o.services, ['Emergency Care', 'Maternity', 'Surgery']);
 });
 
 test('sort by distance uses the user location and puts unlocated records last', () => {
   const nearPurulia = { lat: 23.3, lng: 86.4 };
   const sorted = U.sortFacilities(sample, 'distance', nearPurulia);
-  assert.deepStrictEqual(sorted.map(f => f.id), ['b', 'a', 'c']);
+  assert.deepStrictEqual(sorted.map(f => f.id), [B, A, C]);
   assert.ok(sorted[0].distanceKm < sorted[1].distanceKm);
   assert.strictEqual(sorted[2].distanceKm, null);
 });
 
 test('sort by distance without a location falls back to name; name sort works', () => {
-  assert.deepStrictEqual(U.sortFacilities(sample, 'distance', null).map(f => f.id), ['a', 'b', 'c']);
-  assert.deepStrictEqual(U.sortFacilities(sample, 'name', { lat: 1, lng: 1 }).map(f => f.id), ['a', 'b', 'c']);
+  assert.deepStrictEqual(U.sortFacilities(sample, 'distance', null).map(f => f.id), [A, B, C]);
+  assert.deepStrictEqual(U.sortFacilities(sample, 'name', { lat: 1, lng: 1 }).map(f => f.id), [A, B, C]);
 });
 
 test('verification label shows source and date only for verified records', () => {
-  assert.strictEqual(U.verificationLabel(sample[0]), 'Verified - source: WB Health Dept - checked 2026-10-01');
+  assert.strictEqual(U.verificationLabel(sample[0]), 'Verified - source: https://example.org/test-list - checked 2026-10-01');
   assert.strictEqual(U.verificationLabel(sample[1]), 'Not verified');
 });
 
