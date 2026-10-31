@@ -7,6 +7,8 @@
 //     (clicks are recorded instead) and geolocation is "denied" unless a test opts in
 //   - an uncaught page error fails the test, and on failure the console output, blocked requests and
 //     recorded emergency actions are attached to the report next to the trace and screenshot
+//   - first-party requests that failed (4xx, 5xx or a dropped connection) and console errors are recorded in
+//     `problems` but do not fail a test by themselves. The smoke helpers in helpers.js turn them into failures.
 const base = require('@playwright/test');
 const { expect } = base;
 
@@ -39,7 +41,11 @@ const GUARD_SCRIPT = () => {
 const test = base.test.extend({
   // Regular expressions for page errors a spec knowingly tolerates (each one should point at a known bug).
   allowedPageErrors: [[], { option: true }],
-  problems: [async ({}, use) => { await use({ pageErrors: [], console: [], blocked: [] }); }, { scope: 'test' }],
+  problems: [async ({}, use) => {
+    // consoleErrors: { text, url } with the address the browser says the message came from.
+    // firstParty: { url, status, failure } for requests to this site that came back 4xx, 5xx or never arrived.
+    await use({ pageErrors: [], console: [], blocked: [], consoleErrors: [], firstParty: [] });
+  }, { scope: 'test' }],
 
   page: async ({ page, baseURL, problems, allowedPageErrors }, use, testInfo) => {
     const origin = new URL(baseURL).origin;
@@ -53,6 +59,19 @@ const test = base.test.extend({
     page.on('pageerror', (error) => problems.pageErrors.push(error.message));
     page.on('console', (msg) => {
       if (msg.type() === 'error' || msg.type() === 'warning') problems.console.push(msg.type() + ': ' + msg.text());
+      if (msg.type() === 'error') problems.consoleErrors.push({ text: msg.text(), url: msg.location().url || '' });
+    });
+    page.on('response', (response) => {
+      const url = new URL(response.url());
+      if (url.origin === origin && response.status() >= 400) {
+        problems.firstParty.push({ url: url.pathname, status: response.status(), failure: '' });
+      }
+    });
+    page.on('requestfailed', (request) => {
+      const url = new URL(request.url());
+      if (url.origin === origin) {
+        problems.firstParty.push({ url: url.pathname, status: 0, failure: (request.failure() || {}).errorText || 'failed' });
+      }
     });
 
     await use(page);
