@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "smoke:deploy": "node .github/scripts/deploy-smoke-check.js"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
