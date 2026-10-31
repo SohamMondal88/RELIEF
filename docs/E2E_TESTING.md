@@ -31,6 +31,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |
 | `e2e/sos.spec.js` | SOS dialog (focus, Escape, Tab trap), no backend configured, server error, unconfirmed 200, dropped connection, Retry, confirmed success with a mocked location, denied location, offline, closing while a request is in flight |
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
+| `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 
 ## Rules the tests follow
@@ -39,7 +40,30 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 - **No real network.** Every request that leaves the local site (fonts, icons, map tiles, Leaflet, Nominatim) is blocked. Tests that need an answer from one of them mock it.
 - **Clean state.** Every test gets a fresh browser context, so localStorage starts empty.
 - **Uncaught page errors fail the test**, unless a spec lists the error in `allowedPageErrors` next to a comment about the bug.
+- **Broken files of our own and console errors are recorded** in `problems.firstParty` and `problems.consoleErrors` (see `fixtures.js`). They only fail a test when the test asks, as the smoke check does.
 - Reduced motion is switched on, because the sign-up form floats forever and Playwright otherwise waits for it to "settle" before clicking.
+
+## Smoke checks
+
+`e2e/smoke.spec.js` uses the helpers in `e2e/helpers.js` (`SMOKE_ROUTES`, `expectCleanRoute`, `routeProblems`). For each route it waits until the page is ready and the network is quiet, then fails if any of these happened:
+
+- an uncaught page error
+- a request to our own site that came back 4xx or 5xx or never arrived (a missing script, stylesheet, image or data file)
+- a `console.error` from the page
+
+All problems of a route are listed together and each line names the route and the URL, for example `doctors (/pages/doctors.html): own file failed: /assets/images/doctor1.jpg (HTTP 404)`.
+
+Outside services are handled the same way every run. `fixtures.js` blocks every request that leaves the site, so the browser's "Failed to load resource" console line for those is expected and not counted. Files that only Vercel serves (`/_vercel/...`, the analytics script) are answered with an empty script by the smoke spec, so a local server does not 404 on them.
+
+To add a route, add it to `SMOKE_ROUTES` with something that only exists once the page is ready. To tolerate a problem that is already known, add a regular expression to `KNOWN` in `smoke.spec.js` with a comment about the bug, and delete it in the pull request that fixes the bug. Do not allow-list a problem you have not looked at.
+
+Known problems the smoke check currently tolerates:
+
+| Where | What is wrong |
+|---|---|
+| `home` | `assets/css/style.css` line 1120 has `url('assets/images/pattern.png')`, which resolves to `/assets/css/assets/images/pattern.png`; the file does not exist in `assets/images/` either |
+| `doctors` | `assets/js/doctors.js` points at `../assets/images/doctor1.jpg` to `doctor6.jpg`, which are not in the repository |
+| `ambulances` | `ambulances.js` throws "L is not defined" when the Leaflet script did not load (the same bug as the `test.fixme` in `sos.spec.js`) |
 
 ## When a test fails
 
