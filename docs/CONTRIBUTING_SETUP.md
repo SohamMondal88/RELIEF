@@ -13,7 +13,7 @@ Install or have access to:
 - A current web browser
 - An internet connection for external resources and integrations
 
-Node.js 20 or newer is only needed to run the automated tests (section 4, "Run the automated tests"). The basic static preview below needs no Node.js or npm.
+Use Node.js 20 or newer and npm for the preview server and automated tests below. Check `node --version` and `npm --version` first. Python 3 is needed for the repository link checker.
 
 ## 2. Fork and clone the repository
 
@@ -90,9 +90,18 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
 
 ## 4. Preview the website locally
 
-### Option A: Open the entry page
+### Reproducible HTTP preview
 
-For a basic static preview, open `index.html` in your browser.
+Run these commands from the repository root, containing `index.html`, `pages/`, `assets/` and `package.json`:
+
+```bash
+npm ci
+node e2e/static-server.js 4173
+```
+
+Keep that terminal running. Open `http://127.0.0.1:4173/` and a nested page such as `http://127.0.0.1:4173/pages/hospitals.html`; check that both load their styles and scripts. Serve the repository root, not the `pages/` directory. Press Ctrl+C to stop the server. For another port, use `node e2e/static-server.js 8000`.
+
+No database, API keys, real patient data or account is required for static preview or the mocked tests. External resources may need the network; loading a page does not verify an external integration. Direct `file://` access is insufficient for fetch and service-worker checks. RELIEF has no `dev` or `build` npm script.
 
 ### Option B: Use VS Code Live Server
 
@@ -108,13 +117,43 @@ Test relevant pages and flows manually in the browser as well, and check the bro
 ### Run the automated tests
 
 ```bash
-npm ci                      # once: installs Playwright, the only dev dependency
+npm ci                      # installs exact lockfile versions, not browser binaries
 npm test                    # unit tests (node:test), no browser needed
-npx playwright install chromium   # once: downloads the test browser
+npm run test:e2e:install     # Chromium and OS dependencies; may require sudo
 npm run test:e2e            # browser tests of the main user journeys
 ```
 
 The browser tests start their own static server. To use one you already run (for example `python3 -m http.server 8000`), set `E2E_BASE_URL=http://localhost:8000`. Details, mocks and debugging with traces are in [E2E_TESTING.md](E2E_TESTING.md).
+
+Run tests in another terminal at the same repository root. If OS libraries are already installed, `npx playwright install chromium` downloads just the browser version matching this checkout. Do not accidentally reuse a server running a different checkout on the same port.
+
+```bash
+# Linux / macOS / Git Bash: select an already-running preview server
+E2E_BASE_URL=http://127.0.0.1:8000 npm run test:e2e
+```
+
+```powershell
+# Windows PowerShell: select an already-running preview server
+$env:E2E_BASE_URL = "http://127.0.0.1:8000"
+npm run test:e2e
+Remove-Item Env:E2E_BASE_URL
+```
+
+For one spec, use `npm run test:e2e -- e2e/firstaid-offline.spec.js`. Use `npm run test:e2e -- --list` to check discovery without launching Chromium. The fixtures mock permissions and external services; do not grant real geolocation or notification access to make tests pass.
+
+Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that is your Python 3 command), the README's JavaScript syntax checks, and `git diff --check`. These complement browser tests; passing a link checker does not establish that a user flow works.
+
+### Setup troubleshooting
+
+| Symptom | Action |
+|---|---|
+| `npm ci` fails | Check the root directory and supported Node version. Preserve the error; do not regenerate the lockfile or run `npm audit fix` as a setup workaround. |
+| Port in use or wrong content | Stop the other server or choose a free port and update `E2E_BASE_URL`. |
+| Chromium executable missing | Run the browser installation command after `npm ci`. |
+| Browser OS libraries missing | Use `npm run test:e2e:install` on a supported machine with permission to install libraries. |
+| CSS/JS 404 on nested pages | Serve the root and inspect the failing asset URL in developer tools. |
+| Connection refused with `E2E_BASE_URL` | Start that server; setting this variable disables Playwright's built-in server. |
+| Errors in untouched code | Record the failing tests and commit, compare with a clean checkout, and disclose baseline failures in the PR. Do not disable checks. |
 
 ### Offline support (service worker)
 
