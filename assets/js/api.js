@@ -76,24 +76,37 @@ const ReliefAPI = (function() {
         return String(base || '').trim().replace(/\/+$/, '');
     };
 
-    const backendRequest = async (path, options = {}) => {
-        const base = backendBase();
-        if (!base) throw backendError('backend-unavailable', 'No RELIEF backend is configured.');
-        // Plain http is only allowed for a local backend, so nothing sensitive crosses the network unencrypted.
-        if (!/^https:\/\//i.test(base) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(base)) {
-            throw backendError('backend-unavailable', 'The RELIEF backend URL must use https.');
-        }
-        if (typeof fetch !== 'function') throw backendError('backend-unavailable', 'fetch is not available.');
+    // Shared failure handling (classification, retries, redacted logging). Loaded before this file
+    // on pages; in Node tests it is required. When it is missing, requests still work, just
+    // without retries and with the plain error codes above.
+    const resilience = (typeof ReliefResilience !== 'undefined' && ReliefResilience)
+        || (typeof require === 'function' && typeof module !== 'undefined' ? (() => {
+            try { return require('./request-resilience.js'); } catch (e) { return null; }
+        })() : null);
 
+    // One attempt. Throws ReliefBackendError with: code, reason, status, requestId, retryAfterMs, sent.
+    //   reason: not-configured | bad-config | offline | timeout | network | server | bad-answer
+    const backendAttempt = async (base, path, options, idempotencyKey) => {
+        const method = (options.method || 'GET').toUpperCase();
         const hasBody = options.body !== undefined;
+        const headers = { Accept: 'application/json' };
+        if (hasBody) headers['Content-Type'] = 'application/json';
+        if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            throw backendError('backend-unavailable', 'You appear to be offline.', { reason: 'offline', sent: false });
+        }
+
         const controller = typeof AbortController === 'function' ? new AbortController() : null;
-        const timer = controller ? setTimeout(() => controller.abort(), options.timeoutMs || 8000) : null;
+        let timedOut = false;
+        const timer = controller ? setTimeout(() => { timedOut = true; controller.abort(); }, options.timeoutMs || 8000) : null;
+        let response;
         try {
-            const response = await fetch(base + path, {
-                method: options.method || 'GET',
+            response = await fetch(base + path, {
+                method,
                 credentials: 'include',
                 cache: 'no-store',
-                headers: hasBody ? { Accept: 'application/json', 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                headers,
                 body: hasBody ? JSON.stringify(options.body) : undefined,
                 signal: controller ? controller.signal : undefined
             });
@@ -102,21 +115,68 @@ const ReliefAPI = (function() {
             if (/json/i.test(type)) {
                 try { data = await response.json(); } catch (e) { data = null; }
             }
+            const requestId = resilience ? resilience.extractRequestId(response, data) : null;
             if (!response.ok) {
                 const status = response.status;
-                if (status === 401) throw backendError('unauthenticated', 'Sign in required.', { status });
-                if (status === 403) throw backendError('forbidden', 'Not allowed.', { status });
-                if (status === 429) throw backendError('rate-limited', 'Too many requests.', { status });
-                if (status >= 400 && status < 500) throw backendError('rejected', 'The request was rejected.', { status, details: data });
-                throw backendError('backend-unavailable', 'The RELIEF backend returned ' + status + '.', { status });
+                const retryAfterMs = resilience && response.headers && response.headers.get
+                    ? resilience.parseRetryAfter(response.headers.get('retry-after')) : null;
+                const extra = { status, requestId, retryAfterMs, sent: true };
+                if (status === 401) throw backendError('unauthenticated', 'Sign in required.', extra);
+                if (status === 403) throw backendError('forbidden', 'Not allowed.', extra);
+                if (status === 429) throw backendError('rate-limited', 'Too many requests.', extra);
+                if (status === 408) throw backendError('backend-unavailable', 'The request timed out.', Object.assign(extra, { reason: 'timeout' }));
+                if (status >= 400 && status < 500) throw backendError('rejected', 'The request was rejected.', Object.assign(extra, { details: data }));
+                throw backendError('backend-unavailable', 'The RELIEF backend returned ' + status + '.', Object.assign(extra, { reason: 'server' }));
             }
-            if (data === null) throw backendError('backend-unavailable', 'The RELIEF backend sent an unusable answer.');
+            if (data === null) throw backendError('backend-unavailable', 'The RELIEF backend sent an unusable answer.', { reason: 'bad-answer', requestId, status: response.status, sent: true });
             return data;
         } catch (error) {
             if (error && error.name === 'ReliefBackendError') throw error;
-            throw backendError('backend-unavailable', 'Could not reach the RELIEF backend.');
+            if (timedOut || (error && error.name === 'AbortError')) {
+                throw backendError('backend-unavailable', 'The RELIEF backend did not answer in time.', { reason: 'timeout', sent: true });
+            }
+            const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+            throw backendError('backend-unavailable', 'Could not reach the RELIEF backend.', { reason: offline ? 'offline' : 'network', sent: true });
         } finally {
             if (timer) clearTimeout(timer);
+        }
+    };
+
+    /**
+     * options: { method, body, timeoutMs, retries, idempotencyKey }
+     *  - Reads are retried for transient failures.
+     *  - Writes get an Idempotency-Key header. Pass the SAME idempotencyKey when the user presses
+     *    "Try again" so the server can tell it is a repeat, not a second submission.
+     *    A write is retried automatically only if it never left the browser.
+     */
+    const backendRequest = async (path, options = {}) => {
+        const base = backendBase();
+        if (!base) throw backendError('backend-unavailable', 'No RELIEF backend is configured.', { reason: 'not-configured', sent: false });
+        // Plain http is only allowed for a local backend, so nothing sensitive crosses the network unencrypted.
+        if (!/^https:\/\//i.test(base) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(base)) {
+            throw backendError('backend-unavailable', 'The RELIEF backend URL must use https.', { reason: 'bad-config', sent: false });
+        }
+        if (typeof fetch !== 'function') throw backendError('backend-unavailable', 'fetch is not available.', { reason: 'bad-config', sent: false });
+
+        const method = (options.method || 'GET').toUpperCase();
+        const isWrite = !(method === 'GET' || method === 'HEAD');
+        const idempotencyKey = isWrite
+            ? (options.idempotencyKey || (resilience ? resilience.newIdempotencyKey() : null))
+            : null;
+
+        try {
+            if (!resilience) return await backendAttempt(base, path, options, idempotencyKey);
+            return await resilience.retry(() => backendAttempt(base, path, options, idempotencyKey), {
+                method,
+                retries: typeof options.retries === 'number' ? options.retries : (isWrite ? 1 : 2),
+                // The key lets the server recognise a repeat, but we do not assume every
+                // backend honours it, so writes stay conservative (see isSafeToRetry).
+                idempotent: false
+            });
+        } catch (error) {
+            if (error && idempotencyKey) error.idempotencyKey = idempotencyKey;
+            if (resilience) resilience.logError('backend ' + method + ' ' + resilience.safeUrl(path), error);
+            throw error;
         }
     };
 
@@ -206,6 +266,50 @@ const ReliefAPI = (function() {
 
             const userDoc = await db.collection('users').doc(user.uid).get();
             return userDoc.exists ? { uid: user.uid, ...userDoc.data() } : null;
+        } catch (error) {
+            return handleError(error);
+        }
+    };
+
+    // Account deletion (Issue #29). Best effort from the browser, see docs/PRIVACY_AND_DATA.md.
+    // It needs a recent sign-in (checked first, so a refused request deletes nothing), removes
+    // the documents this file writes for the user, then deletes the auth user. It resolves
+    // { success: true } only after the auth user is gone, and throws on any failure.
+    // A deployment should move this to a trusted server so backups and logs are covered too.
+    const RECENT_LOGIN_MS = 5 * 60 * 1000;
+    const USER_DATA_COLLECTIONS = ['appointments', 'emergencyRequests', 'medicineDeliveries'];
+
+    const deleteAccount = async () => {
+        try {
+            const user = auth && auth.currentUser;
+            if (!user) {
+                const noUser = new Error('Not signed in');
+                noUser.code = 'auth/no-current-user';
+                throw noUser;
+            }
+
+            const lastSignIn = Date.parse(user.metadata && user.metadata.lastSignInTime);
+            if (!lastSignIn || Date.now() - lastSignIn > RECENT_LOGIN_MS) {
+                const stale = new Error('Recent sign-in required');
+                stale.code = 'auth/requires-recent-login';
+                throw stale;
+            }
+
+            const refs = [db.collection('users').doc(user.uid), db.collection('patients').doc(user.uid)];
+            for (const name of USER_DATA_COLLECTIONS) {
+                const snapshot = await db.collection(name).where('userId', '==', user.uid).get();
+                snapshot.docs.forEach(doc => refs.push(doc.ref));
+            }
+
+            // A Firestore batch holds at most 500 writes.
+            for (let i = 0; i < refs.length; i += 400) {
+                const batch = db.batch();
+                refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+                await batch.commit();
+            }
+
+            await user.delete();
+            return { success: true, documentsRemoved: refs.length };
         } catch (error) {
             return handleError(error);
         }
@@ -473,8 +577,8 @@ const ReliefAPI = (function() {
      * facility record. POST {backend}/v1/facility-corrections
      * correction: { facilityId, field, proposedValue, sourceUrl, contact }
      */
-    const submitFacilityCorrection = (correction) =>
-        backendRequest('/v1/facility-corrections', { method: 'POST', body: correction });
+    const submitFacilityCorrection = (correction, options = {}) =>
+        backendRequest('/v1/facility-corrections', { method: 'POST', body: correction, idempotencyKey: options.idempotencyKey });
 
     /**
      * Moderators only. GET {backend}/v1/facility-corrections?status=pending|approved|rejected
@@ -490,8 +594,8 @@ const ReliefAPI = (function() {
      * decision: { decision: 'approve' | 'reject', reason, evidence }
      * Approving needs evidence, rejecting needs a reason. A decision is final.
      */
-    const reviewFacilityCorrection = (id, decision) =>
-        backendRequest('/v1/facility-corrections/' + encodeURIComponent(id) + '/decision', { method: 'POST', body: decision });
+    const reviewFacilityCorrection = (id, decision, options = {}) =>
+        backendRequest('/v1/facility-corrections/' + encodeURIComponent(id) + '/decision', { method: 'POST', body: decision, idempotencyKey: options.idempotencyKey });
 
     // Public API
     return {
