@@ -34,6 +34,8 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 | `relief_formguard_contact` | Timestamps of recent contact attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
 | `relief_formguard_login` | Timestamps of recent login attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
 | `relief_formguard_signup` | Timestamps of recent signup attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |
+| `relief_demo_facility_corrections` | Suggested facility corrections, including facility and field details, current and proposed values, source URL, optional contact detail and moderation history | Stores correction suggestions locally when the backend is unavailable in demo mode | Until removed or browser data is deleted | Yes |
+| `relief_correction_submissions` | Submission timestamps and fingerprints used for duplicate and rate-limit checks; no raw form content | Prevents repeated correction submissions | Entries older than 7 days are filtered out; at most 50 kept | No |
 
 Other things in the browser, none of which hold personal data:
 

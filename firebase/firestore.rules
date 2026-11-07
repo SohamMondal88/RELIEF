@@ -43,6 +43,29 @@ service cloud.firestore {
         || (request.resource.data[field] is string && request.resource.data[field].size() <= max);
     }
 
+    // ---- Roles ----------------------------------------------------------
+    // One document per user in /roles/{uid}: { role: 'volunteer' | 'provider' | 'admin' }.
+    // A user with no document is a public user. Only an admin can write a role, and
+    // the first admin is provisioned outside the client (firebase/ROLES.md).
+
+    function roleOf(uid) {
+      return exists(/databases/$(database)/documents/roles/$(uid))
+        ? get(/databases/$(database)/documents/roles/$(uid)).data.role
+        : 'public';
+    }
+
+    function isAdmin() {
+      return signedIn() && roleOf(request.auth.uid) == 'admin';
+    }
+
+    function isProvider() {
+      return signedIn() && roleOf(request.auth.uid) in ['provider', 'admin'];
+    }
+
+    function isVolunteer() {
+      return signedIn() && roleOf(request.auth.uid) in ['volunteer', 'admin'];
+    }
+
     // ---- Accounts -------------------------------------------------------
 
     match /users/{uid} {
@@ -92,6 +115,35 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt == request.time;
       allow update: if false;
+    }
+
+    // ---- Role management (admin only) -----------------------------------
+
+    match /roles/{uid} {
+      allow get: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      // The role must be one of the known values, and an admin cannot change their own
+      // role (so the last admin cannot lock everyone out by accident).
+      allow create, update: if isAdmin()
+        && uid != request.auth.uid
+        && request.resource.data.keys().hasOnly(['role', 'updatedBy', 'updatedAt'])
+        && request.resource.data.role in ['public', 'volunteer', 'provider', 'admin']
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin() && uid != request.auth.uid;
+    }
+
+    // Append-only record of privileged actions. Holds who, what and when, never health details.
+    match /auditLog/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['actor', 'action', 'target', 'at'])
+        && request.resource.data.actor == request.auth.uid
+        && request.resource.data.action in ['role.set', 'role.remove']
+        && request.resource.data.target is string
+        && request.resource.data.target.size() <= 128
+        && request.resource.data.at == request.time;
+      allow update, delete: if false;
     }
 
     // ---- Everything else is closed --------------------------------------
