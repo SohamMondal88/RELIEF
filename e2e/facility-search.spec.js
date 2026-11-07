@@ -185,17 +185,38 @@ test.describe('device location (mocked)', () => {
 });
 
 test.describe('when the facility list cannot load', () => {
-  test('shows an error with Retry, and Retry loads the list once the network is back', async ({ page }) => {
+  test('shows an error with Try again, and it loads the list once the network is back', async ({ page }) => {
     await page.route('**/assets/data/facilities.json', (route) => route.abort());
     await page.goto('/pages/hospitals.html');
-    const error = page.locator('.error-state');
-    await expect(error).toHaveAttribute('role', 'alert');
-    await expect(error).toContainText('The facility list could not be loaded');
+    const error = page.locator('.state-error');
+    await expect(error).toHaveAttribute('role', 'alert', { timeout: 15000 });
+    await expect(error).toContainText('Try again');
+    await expect(error).toContainText('emergency number');
     await expect(cards(page)).toHaveCount(0);
 
     await page.unroute('**/assets/data/facilities.json');
-    await error.getByRole('button', { name: 'Retry' }).click();
+    await error.getByRole('button', { name: 'Try again' }).click();
     await expect(cards(page)).toHaveCount(FACILITIES.length);
     await expect(error).toHaveCount(0);
+  });
+
+  test('a temporary server error is retried automatically and the list still loads', async ({ page }) => {
+    let calls = 0;
+    await page.route('**/assets/data/facilities.json', (route) => {
+      calls += 1;
+      if (calls === 1) return route.fulfill({ status: 503, body: 'down' });
+      return route.continue();
+    });
+    await page.goto('/pages/hospitals.html');
+    await expect(cards(page)).toHaveCount(FACILITIES.length, { timeout: 15000 });
+    expect(calls).toBeGreaterThanOrEqual(2);
+  });
+
+  test('a missing file (404) is not retried and says what happened', async ({ page }) => {
+    let calls = 0;
+    await page.route('**/assets/data/facilities.json', (route) => { calls += 1; return route.fulfill({ status: 404, body: 'no' }); });
+    await page.goto('/pages/hospitals.html');
+    await expect(page.locator('.state-error')).toBeVisible();
+    expect(calls).toBe(1);
   });
 });
