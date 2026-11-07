@@ -597,6 +597,25 @@ const ReliefAPI = (function() {
     const reviewFacilityCorrection = (id, decision, options = {}) =>
         backendRequest('/v1/facility-corrections/' + encodeURIComponent(id) + '/decision', { method: 'POST', body: decision, idempotencyKey: options.idempotencyKey });
 
+    // Health events. The backend controls moderation and event status.
+
+    // Public events. Rejected submissions must never be returned.
+    const listHealthEvents = () => backendRequest('/v1/health-events');
+
+    // Organiser submission. The server always starts it as unverified.
+    const submitHealthEvent = (event) =>
+        backendRequest('/v1/health-events/submissions', { method: 'POST', body: event });
+
+    // Moderator review queue.
+    const listHealthEventSubmissions = (filter = {}) => {
+        const query = filter.status ? '?status=' + encodeURIComponent(filter.status) : '';
+        return backendRequest('/v1/health-events/submissions' + query);
+    };
+
+    // Moderators confirm or reject a submission. Decisions are final.
+    const reviewHealthEventSubmission = (id, decision) =>
+        backendRequest('/v1/health-events/submissions/' + encodeURIComponent(id) + '/decision', { method: 'POST', body: decision });
+
     // Public API
     return {
         // Authentication
@@ -633,7 +652,13 @@ const ReliefAPI = (function() {
         // Facility corrections (moderated, see docs/FACILITY_CORRECTIONS.md)
         submitFacilityCorrection,
         listFacilityCorrections,
-        reviewFacilityCorrection
+        reviewFacilityCorrection,
+
+        // Health events (moderated, see docs/HEALTH_EVENTS.md)
+        listHealthEvents,
+        submitHealthEvent,
+        listHealthEventSubmissions,
+        reviewHealthEventSubmission
     };
 })();
 
