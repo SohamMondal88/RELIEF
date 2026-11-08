@@ -246,15 +246,19 @@ describe('GitHub Issue #19: medicine reminders', () => {
             assert.strictEqual(R.getLocalParts(new Date('2026-10-24T18:30:00Z'), 'Asia/Kolkata').time, '00:00');
         });
 
+        // Saved just after midnight, so 08:00 has not passed yet on the day being tested.
+        // (A reminder saved after its time has passed waits until tomorrow, see reminder-timezone.test.js.)
+        const EARLY = { ...CTX, now: new Date('2026-10-23T18:30:00Z') };
+
         it('is due once the clock time is reached, in the device zone', () => {
-            const list = R.addReminder([], base({ time: '08:00' }), CTX).reminders;
+            const list = R.addReminder([], base({ time: '08:00' }), EARLY).reminders;
             // 07:59 IST: not yet, 08:00 IST: due
             assert.strictEqual(R.getDueReminders(list, new Date('2026-10-24T02:29:00Z'), TZ).length, 0);
             assert.strictEqual(R.getDueReminders(list, new Date('2026-10-24T02:30:00Z'), TZ).length, 1);
         });
 
         it('the same instant is due in one zone and not yet in another', () => {
-            const list = R.addReminder([], base({ time: '08:00' }), CTX).reminders;
+            const list = R.addReminder([], base({ time: '08:00' }), EARLY).reminders;
             const instant = new Date('2026-10-24T14:00:00Z'); // 19:30 in Kolkata, 07:00 in Los Angeles
             assert.strictEqual(R.getDueReminders(list, instant, 'Asia/Kolkata').length, 1);
             assert.strictEqual(R.getDueReminders(list, instant, 'America/Los_Angeles').length, 0);

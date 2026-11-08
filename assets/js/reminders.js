@@ -15,10 +15,20 @@
     const STATUSES = ['active', 'paused', 'completed'];
     const MAX_NAME_LENGTH = 80;
     const MAX_INSTRUCTIONS_LENGTH = 300;
+    const MAX_ID_LENGTH = 64;
+    const MAX_TIMEZONE_LENGTH = 64;
+    const MAX_HISTORY_ITEMS = 200;
+    const MAX_HISTORY_TEXT = 200;
 
     const REMINDER_DISCLAIMER = 'These reminders only repeat what you type in. RELIEF does not suggest medicines, doses or schedules, so follow your doctor or pharmacist for that.';
     const PERSISTENCE_NOTE = 'Reminders are saved only in this browser on this device. Clearing site data or switching browser or device removes them, and nothing is synced to an account.';
-    const TIMEZONE_NOTE = 'Times are the clock time on this device. Reminders only fire while this dashboard is open in a tab, and if your device time zone changes they follow the new local clock time.';
+    const TIMEZONE_NOTE = 'Reminders use the clock time on this device and follow it if your time zone changes, unless you choose a fixed time zone. They only fire while this dashboard is open in a tab. See docs/REMINDER_SCHEDULING.md for the rules.';
+
+    // A reminder never fires twice within this time. This protects against a repeat when the
+    // device moves west across the date line or the time zone is changed after it fired.
+    const MIN_GAP_MS = 6 * 60 * 60 * 1000;
+
+    const SCHEDULE_MODES = ['local', 'fixed'];
 
     // ---------- date and time helpers ----------
 
@@ -28,6 +38,29 @@
         } catch (e) {
             return 'UTC';
         }
+    }
+
+    /** True when the runtime knows this IANA time zone name. */
+    function isValidTimeZone(timeZone) {
+        if (typeof timeZone !== 'string' || !timeZone.trim()) return false;
+        try {
+            new Intl.DateTimeFormat('en-CA', { timeZone: timeZone });
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * The time zone a reminder is scheduled in: its own zone when fixed, otherwise the
+     * device's current zone. An unknown zone name falls back to the device zone.
+     */
+    function getEffectiveTimeZone(reminder, deviceTimeZone) {
+        const device = isValidTimeZone(deviceTimeZone) ? deviceTimeZone : getLocalTimeZone();
+        if (reminder && reminder.scheduleMode === 'fixed' && isValidTimeZone(reminder.timeZone)) {
+            return reminder.timeZone;
+        }
+        return device;
     }
 
     /** Returns { date: 'YYYY-MM-DD', time: 'HH:MM' } for an instant in the given IANA time zone. */
@@ -74,22 +107,31 @@
             .replace(/'/g, '&#39;');
     }
 
+    /** Cuts text to max characters without leaving half of an emoji (a lone surrogate) at the end. */
+    function clip(value, max) {
+        const text = String(value == null ? '' : value);
+        if (text.length <= max) return text;
+        const last = text.charCodeAt(max - 1);
+        return text.slice(0, last >= 0xD800 && last <= 0xDBFF ? max - 1 : max);
+    }
+
     // ---------- storage ----------
 
     /** Turns a stored entry into the current shape. Old entries were only { medicine, time }. */
     function normalizeReminder(raw, index) {
         if (!raw || typeof raw !== 'object') return null;
-        const medicine = String(raw.medicine || '').trim();
+        // Stored data is not trusted: the form limits are applied again when it is read back.
+        const medicine = clip(String(raw.medicine || '').trim(), MAX_NAME_LENGTH);
         if (!medicine || !isValidTime(raw.time)) return null;
         return {
-            id: typeof raw.id === 'string' && raw.id ? raw.id : `legacy-${index}`,
+            id: typeof raw.id === 'string' && raw.id ? clip(raw.id, MAX_ID_LENGTH) : `legacy-${index}`,
             medicine,
-            instructions: typeof raw.instructions === 'string' ? raw.instructions : '',
+            instructions: typeof raw.instructions === 'string' ? clip(raw.instructions, MAX_INSTRUCTIONS_LENGTH) : '',
             time: raw.time,
             startDate: isValidDate(raw.startDate) ? raw.startDate : '',
             endDate: isValidDate(raw.endDate) ? raw.endDate : '',
             status: STATUSES.includes(raw.status) ? raw.status : 'active',
-            timeZone: typeof raw.timeZone === 'string' ? raw.timeZone : '',
+            timeZone: typeof raw.timeZone === 'string' ? clip(raw.timeZone, MAX_TIMEZONE_LENGTH) : '',
             lastNotifiedOn: isValidDate(raw.lastNotifiedOn) ? raw.lastNotifiedOn : ''
         };
     }
@@ -99,6 +141,24 @@
             const parsed = JSON.parse(storage.getItem(REMINDERS_KEY) || '[]');
             if (!Array.isArray(parsed)) return [];
             return parsed.map(normalizeReminder).filter(Boolean);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /**
+     * Reads the activity list. Missing data gives the fallback; broken, oversized or
+     * wrongly shaped data gives a short clean list instead of an error.
+     */
+    function loadHistory(storage, key, fallback) {
+        try {
+            const parsed = JSON.parse(storage.getItem(key));
+            if (parsed === null) return fallback.slice();
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+                .filter((h) => h && typeof h === 'object' && !Array.isArray(h))
+                .slice(0, MAX_HISTORY_ITEMS)
+                .map((h) => ({ date: clip(h.date, 10), event: clip(h.event, MAX_HISTORY_TEXT), status: clip(h.status, MAX_HISTORY_TEXT) }));
         } catch (e) {
             return [];
         }
@@ -122,9 +182,21 @@
      */
     function validateReminderInput(input, ctx) {
         const context = ctx || {};
-        const today = context.today || getLocalParts(context.now || new Date(), context.timeZone).date;
         const src = input || {};
         const errors = {};
+
+        const scheduleMode = src.scheduleMode === 'fixed' ? 'fixed' : 'local';
+        const fixedZone = String(src.scheduleTimeZone || '').trim();
+        if (src.scheduleMode !== undefined && src.scheduleMode !== '' && SCHEDULE_MODES.indexOf(src.scheduleMode) === -1) {
+            errors.scheduleMode = 'Choose whether the reminder follows this device or a fixed time zone.';
+        }
+        if (scheduleMode === 'fixed' && !isValidTimeZone(fixedZone)) {
+            errors.scheduleTimeZone = 'Choose a time zone from the list.';
+        }
+        // "Today" is the date in the zone the reminder runs in, so an end date behaves the same
+        // for a fixed zone as it will when the reminder fires.
+        const scheduleZone = scheduleMode === 'fixed' && !errors.scheduleTimeZone ? fixedZone : context.timeZone;
+        const today = context.today || getLocalParts(context.now || new Date(), scheduleZone).date;
 
         const medicine = String(src.medicine || '').trim().replace(/\s+/g, ' ');
         const instructions = String(src.instructions || '').trim();
@@ -151,7 +223,7 @@
         return {
             valid: Object.keys(errors).length === 0,
             errors,
-            value: { medicine, instructions, time, startDate, endDate }
+            value: { medicine, instructions, time, startDate, endDate, scheduleMode, scheduleTimeZone: scheduleMode === 'fixed' ? fixedZone : '' }
         };
     }
 
@@ -164,6 +236,28 @@
             normalizeName(r.medicine) === name &&
             r.time === candidate.time
         ) || null;
+    }
+
+    /** Maps validated form values to the saved fields. For a fixed reminder timeZone is the fixed zone. */
+    function scheduleFields(value, ctx) {
+        const deviceZone = (ctx && ctx.timeZone) || getLocalTimeZone();
+        const { scheduleTimeZone, ...rest } = value;
+        return {
+            ...rest,
+            timeZone: value.scheduleMode === 'fixed' ? scheduleTimeZone : deviceZone
+        };
+    }
+
+    /**
+     * When a reminder is saved for a time that already passed today, the first reminder is tomorrow.
+     * Returns today's date (in the schedule's zone) to mark today as done, or '' when today still counts.
+     */
+    function skipPassedToday(reminder, ctx) {
+        const context = ctx || {};
+        const zone = getEffectiveTimeZone(reminder, context.timeZone);
+        const local = getLocalParts(context.now || new Date(), zone);
+        if (reminder.startDate && local.date < reminder.startDate) return '';
+        return reminder.time < local.time ? local.date : '';
     }
 
     // ---------- create / edit / pause / complete ----------
@@ -186,11 +280,12 @@
         }
         const reminder = {
             id: makeId(ctx),
-            ...check.value,
+            ...scheduleFields(check.value, ctx),
             status: 'active',
-            timeZone: (ctx && ctx.timeZone) || getLocalTimeZone(),
-            lastNotifiedOn: ''
+            lastNotifiedOn: '',
+            lastNotifiedAtMs: 0
         };
+        reminder.lastNotifiedOn = skipPassedToday(reminder, ctx) || '';
         return { ok: true, errors: {}, reminders: [...reminders, reminder], reminder };
     }
 
@@ -206,11 +301,16 @@
         }
         const updated = {
             ...existing,
-            ...check.value,
-            timeZone: (ctx && ctx.timeZone) || getLocalTimeZone(),
-            // a changed time should be allowed to fire again today
-            lastNotifiedOn: check.value.time === existing.time ? existing.lastNotifiedOn : ''
+            ...scheduleFields(check.value, ctx)
         };
+        const scheduleChanged = check.value.time !== existing.time ||
+            updated.scheduleMode !== existing.scheduleMode ||
+            (updated.scheduleMode === 'fixed' && updated.timeZone !== existing.timeZone);
+        if (scheduleChanged) {
+            // A new schedule starts clean. A time that has already passed today waits until tomorrow.
+            updated.lastNotifiedOn = skipPassedToday(updated, ctx) || '';
+            updated.lastNotifiedAtMs = 0;
+        }
         return { ok: true, errors: {}, reminders: reminders.map((r) => (r.id === id ? updated : r)), reminder: updated };
     }
 
@@ -235,30 +335,43 @@
         return { ok: true, errors: {}, reminders: reminders.filter((r) => r.id !== id), reminder: existing };
     }
 
-    function markNotified(reminders, id, date) {
-        return reminders.map((r) => (r.id === id ? { ...r, lastNotifiedOn: date } : r));
+    /** Records that a reminder fired: the local date it was for and the instant (ms) it fired. */
+    function markNotified(reminders, id, date, atMs) {
+        const at = Number.isFinite(atMs) ? atMs : Date.now();
+        return reminders.map((r) => (r.id === id ? { ...r, lastNotifiedOn: date, lastNotifiedAtMs: at } : r));
     }
 
     // ---------- scheduling ----------
 
     /** One of: completed, paused, upcoming (start date not reached), expired (end date passed), active. */
-    function getReminderState(reminder, now, timeZone) {
+    function getReminderState(reminder, now, deviceTimeZone) {
         if (reminder.status === 'completed') return 'completed';
         if (reminder.status === 'paused') return 'paused';
-        const today = getLocalParts(now, timeZone).date;
+        // Start and end dates are read in the zone the reminder runs in.
+        const today = getLocalParts(now, getEffectiveTimeZone(reminder, deviceTimeZone)).date;
         if (reminder.startDate && today < reminder.startDate) return 'upcoming';
         if (reminder.endDate && today > reminder.endDate) return 'expired';
         return 'active';
     }
 
-    /** Active reminders whose time has been reached today and that were not already shown today. */
-    function getDueReminders(reminders, now, timeZone) {
-        const local = getLocalParts(now, timeZone);
-        return reminders.filter((r) =>
-            getReminderState(r, now, timeZone) === 'active' &&
-            r.time <= local.time &&
-            r.lastNotifiedOn !== local.date
-        );
+    /**
+     * Active reminders whose time has been reached in their own zone, that did not already fire
+     * for that date, and that did not fire within the last MIN_GAP_MS.
+     *
+     * "Reached" means the zone's clock is at or past the set time, so a time skipped by a
+     * daylight saving change fires right after the gap, and a time that happens twice fires once.
+     * If the device clock was moved back (the last firing is "in the future") the gap check is
+     * skipped, because a repeated reminder is safer than a missed one.
+     */
+    function getDueReminders(reminders, now, deviceTimeZone) {
+        const nowMs = now.getTime();
+        return reminders.filter((r) => {
+            if (getReminderState(r, now, deviceTimeZone) !== 'active') return false;
+            const local = getLocalParts(now, getEffectiveTimeZone(r, deviceTimeZone));
+            if (r.time > local.time || r.lastNotifiedOn === local.date) return false;
+            const since = nowMs - (r.lastNotifiedAtMs || 0);
+            return !(r.lastNotifiedAtMs && since >= 0 && since < MIN_GAP_MS);
+        });
     }
 
     function countActive(reminders, now, timeZone) {
@@ -291,23 +404,61 @@
         return `Reminder: ${reminder.medicine} (set for ${reminder.time}).${note}`;
     }
 
-    /** Returns a warning when the device time zone differs from the one saved with the reminder. */
+    /** Returns a note when the device time zone differs from the one saved with the reminder. */
     function getTimeZoneWarning(reminder, currentTimeZone) {
         if (!reminder.timeZone || reminder.timeZone === currentTimeZone) return '';
+        if (reminder.scheduleMode === 'fixed') {
+            return `Fixed to ${reminder.timeZone}. This device is in ${currentTimeZone}, so it fires at ${localEquivalent(reminder, new Date(), currentTimeZone)} here today.`;
+        }
         return `Created in ${reminder.timeZone}. It now follows this device's clock (${currentTimeZone}).`;
+    }
+
+    // ---------- wording for assistive technology (used by dashboard.js) ----------
+
+    const ACTION_LABELS = { edit: 'Edit', pause: 'Pause', resume: 'Resume', done: 'Done', remove: 'Remove' };
+    const ACTION_RESULTS = {
+        pause: 'paused',
+        resume: 'resumed',
+        done: 'marked done',
+        remove: 'removed'
+    };
+
+    // The visible button text is just "Pause", so every row would read the same to a screen reader.
+    // The accessible name starts with the visible word (WCAG 2.5.3) and adds which medicine it is for.
+    function describeAction(action, medicine) {
+        const label = ACTION_LABELS[action] || String(action);
+        const name = String(medicine || '').trim();
+        return name ? `${label}: ${name}` : label;
+    }
+
+    // Sentence for the status line after an action, e.g. "Metformin paused."
+    function describeResult(action, medicine) {
+        const name = String(medicine || '').trim() || 'Reminder';
+        const result = ACTION_RESULTS[action];
+        return result ? `${name} ${result}.` : '';
     }
 
     const api = {
         REMINDERS_KEY,
+        describeAction,
+        describeResult,
         REMINDER_DISCLAIMER,
         PERSISTENCE_NOTE,
         TIMEZONE_NOTE,
+        MIN_GAP_MS,
+        SCHEDULE_MODES,
         getLocalTimeZone,
+        isValidTimeZone,
+        getEffectiveTimeZone,
         getLocalParts,
         isValidTime,
         isValidDate,
         escapeHtml,
+        clip,
+        MAX_NAME_LENGTH,
+        MAX_INSTRUCTIONS_LENGTH,
         normalizeReminder,
+        loadHistory,
         loadReminders,
         saveReminders,
         validateReminderInput,
@@ -324,7 +475,9 @@
         getNotificationPermission,
         getPermissionMessage,
         buildReminderMessage,
-        getTimeZoneWarning
+        getTimeZoneWarning,
+        localEquivalent,
+        explainSchedule
     };
 
     if (typeof module !== 'undefined' && module.exports) {

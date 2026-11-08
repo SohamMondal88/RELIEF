@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var currentStep = 0;
     var sending = false;
     var lastErrorCount = 0;
+    var Status = window.ReliefAppointmentStatus;
     var FormErrors = window.ReliefFormErrors;
 
     // Where each validated field lives on the page: the element to focus,
@@ -213,7 +214,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'Your request for ' + request.doctorName + ' has been submitted. It is not a confirmed appointment yet. ' +
             'The provider will confirm the actual date and time with you by email or phone.');
         addParagraph(box, 'request-success-text',
-            'Reference: ' + request.id + '. If this is an emergency, do not wait. Call your local emergency number.');
+            'Reference: ' + Status.displayReference(request.id) + '. Quote it if you contact the provider. You can follow this request, or cancel it, under "Your appointment requests" below. ' +
+            'If this is an emergency, do not wait. Call your local emergency number.');
         title.focus();
     }
 
@@ -239,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var saved = Request.saveRequest(window.localStorage, request);
         if (saved.ok) {
             showSuccess(request);
+            document.dispatchEvent(new CustomEvent('relief:request-saved', { detail: { id: request.id } }));
             return;
         }
         setSending(false);

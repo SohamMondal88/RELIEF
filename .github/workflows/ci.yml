@@ -77,6 +77,10 @@ jobs:
       - name: Unit tests
         run: node --test
 
+      - name: Facility review audit log is append-only (pull requests)
+        if: github.event_name == 'pull_request'
+        run: node scripts/facility-review.js check --base-ref origin/${{ github.base_ref }}
+
   e2e:
     name: Browser tests (Playwright)
     runs-on: ubuntu-latest

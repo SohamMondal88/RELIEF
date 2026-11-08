@@ -1,0 +1,60 @@
+/* Styles for pages/offline.html. Kept tiny and self-contained so the page works from the saved copy. */
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #fdf8f2;
+    color: #1f2937;
+    line-height: 1.5;
+}
+
+.offline-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+
+.offline-wrap img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+}
+
+.offline-wrap h1 {
+    margin: 12px 0 8px;
+    font-size: 1.6rem;
+}
+
+.offline-emergency {
+    border-left: 4px solid #c0392b;
+    background: #fff5f5;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+}
+
+.offline-emergency a {
+    color: #c0392b;
+    font-weight: 700;
+}
+
+.offline-links a {
+    display: inline-block;
+    margin: 4px 8px 4px 0;
+    padding: 10px 16px;
+    min-height: 24px;
+    border-radius: 8px;
+    background: #00997b;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.offline-links a:focus-visible,
+.offline-emergency a:focus-visible {
+    outline: 3px solid #0767b1;
+    outline-offset: 2px;
+}
+
+.offline-wrap ul {
+    padding-left: 20px;
+}

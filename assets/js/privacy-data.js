@@ -54,6 +54,14 @@
       retention: 'Each session expires 30 days after sign-in; at most the 10 newest are kept. Logout clears all of them.'
     },
     {
+      key: 'relief_schema_version',
+      label: 'Stored data version',
+      category: 'technical',
+      personal: false,
+      holds: 'A number (the layout version of the saved reminders, timeline, requests and facilities).',
+      retention: 'Until you delete your data. It is written again the next time a page that keeps saved data opens.'
+    },
+    {
       key: 'relief_reminders_v1',
       label: 'Medicine reminders',
       category: 'health',
@@ -86,6 +94,22 @@
       retention: 'Until you remove the facility or delete your data.'
     },
     {
+      key: 'relief_demo_facility_corrections',
+      label: 'Demo facility correction queue',
+      category: 'health',
+      personal: true,
+      holds: 'Facility corrections you suggested (facility, field, proposed value, optional source link), an optional email or phone, status and decision log.',
+      retention: 'Until deleted. Only written in demo mode (localhost, file:// or an explicit demo flag) when the backend cannot be reached. The contact detail is wiped when a moderator decides.'
+    },
+    {
+      key: 'relief_correction_submissions',
+      label: 'Facility correction rate-limit log',
+      category: 'technical',
+      personal: false,
+      holds: 'Submission time and a short fingerprint of each correction you sent, used for the rate limit and duplicate check.',
+      retention: 'Entries older than 7 days are dropped on the next write; at most 50 are kept. Until deleted otherwise.'
+    },
+    {
       key: 'userLocation',
       label: 'Saved location',
       category: 'location',
@@ -100,6 +124,14 @@
       personal: false,
       holds: 'The doctor card (name, specialty, image) from the directory that you picked to book.',
       retention: 'Kept until overwritten by the next pick or until you delete your data.'
+    },
+    {
+      key: 'relief_notification_prefs_v1',
+      label: 'Notification choices',
+      category: 'preferences',
+      personal: false,
+      holds: 'Two yes/no choices: whether browser notifications are on, and whether they may show medicine names.',
+      retention: 'Until you delete your data.'
     },
     {
       key: 'relief_lang',
@@ -140,6 +172,22 @@
       personal: false,
       holds: 'Timestamps of recent attempts only, used to slow down repeated submissions. No form content.',
       retention: 'Entries older than the limit window (1 to 10 minutes) are ignored and removed. Included in deletion.'
+    },
+        {
+      key: 'relief_demo_facility_corrections',
+      label: 'Demo facility corrections',
+      category: 'health',
+      personal: true,
+      holds: 'Suggested facility corrections, including facility and field details, current and proposed values, source URL, optional contact detail, status and moderation history.',
+      retention: 'Until removed or browser data is deleted. Written only in demo mode when the backend cannot be reached.'
+    },
+    {
+      key: 'relief_correction_submissions',
+      label: 'Facility correction submission limiter',
+      category: 'technical',
+      personal: false,
+      holds: 'Submission timestamps and fingerprints used to prevent duplicate and excessive correction submissions. No raw form content.',
+      retention: 'Entries older than 7 days are filtered out; at most the 50 newest entries are kept. Included in data deletion.'
     }
   ];
 

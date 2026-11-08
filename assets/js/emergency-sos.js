@@ -125,6 +125,13 @@
   const EMERGENCY_DISCLAIMER =
     'DISCLAIMER: Relief is a healthcare companion web tool and does NOT replace official local emergency dispatch services. In a life-threatening emergency, always dial your local emergency number (such as 112 in India or 911 in the US) directly from a telephone. SOS delivery over the web depends entirely on network connectivity and server availability.';
 
+  /** True only for finite numbers inside -90..90 / -180..180. NaN, Infinity, strings and null are not. */
+  function isValidCoordinate(lat, lng) {
+    return typeof lat === 'number' && typeof lng === 'number' &&
+      Number.isFinite(lat) && Number.isFinite(lng) &&
+      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  }
+
   /**
    * Generates an SMS fallback body and link for situations where
    * internet access is weak or unavailable.
@@ -136,7 +143,7 @@
     const timestamp = new Date().toISOString();
     let bodyText = `EMERGENCY SOS - ${userName} requires urgent medical assistance. Time: ${timestamp}.`;
 
-    if (opts.location && typeof opts.location.lat === 'number' && typeof opts.location.lng === 'number') {
+    if (opts.location && isValidCoordinate(opts.location.lat, opts.location.lng)) {
       const lat = opts.location.lat.toFixed(6);
       const lng = opts.location.lng.toFixed(6);
       bodyText += ` Location: https://maps.google.com/?q=${lat},${lng} (Lat:${lat}, Lng:${lng})`;
@@ -198,6 +205,16 @@
           clearTimeout(timer);
 
           if (!position || !position.coords) {
+            return reject({
+              code: 'INVALID_POSITION',
+              message: 'Invalid location data received.',
+              isPermissionDenied: false,
+              isTimeout: false,
+              isUnavailable: true
+            });
+          }
+
+          if (!isValidCoordinate(position.coords.latitude, position.coords.longitude)) {
             return reject({
               code: 'INVALID_POSITION',
               message: 'Invalid location data received.',
@@ -461,10 +478,15 @@
      */
     openConfirmationDialog() {
       if (this.state === SOS_STATES.SENDING) return;
+      // One click on the SOS button reaches this method twice (the button's own handler and the document
+      // handler). If the dialog is already open, stop here: re-rendering would also save the dialog's own
+      // Cancel button as the element to refocus and add a second keydown listener.
+      if (this.state === SOS_STATES.AWAITING_CONFIRMATION) return;
 
       this.state = SOS_STATES.AWAITING_CONFIRMATION;
       this.lastResult = null;
-      this.previouslyFocusedElement = document.activeElement;
+      // Only remember the element that had focus before the dialog, never something inside it.
+      if (!this.handleKeyDown) this.previouslyFocusedElement = document.activeElement;
 
       let modalContainer = document.getElementById('relief-sos-dialog-container');
       if (!modalContainer) {
@@ -488,7 +510,8 @@
         if (dialogCard) dialogCard.focus();
       }
 
-      // Attach keyboard navigation listeners
+      // Attach keyboard navigation listeners (never more than one)
+      if (this.handleKeyDown) document.removeEventListener('keydown', this.handleKeyDown);
       this.handleKeyDown = this.onKeyDown.bind(this);
       document.addEventListener('keydown', this.handleKeyDown);
 
@@ -881,6 +904,7 @@
     REGIONAL_EMERGENCY_DATA,
     EMERGENCY_DISCLAIMER,
     buildSMSFallback,
+    isValidCoordinate,
     fetchLocation,
     dispatchSOS,
     EmergencySOSController,

@@ -8,6 +8,7 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const fx = require('./helpers/provider-fixtures');
 
 const {
     validateRequest,
@@ -24,7 +25,7 @@ const NOW = new Date(2026, 9, 14, 10, 0, 0);
 
 function validInput(overrides) {
     return Object.assign({
-        doctor: { id: 3, name: 'Dr. Asha Rao', specialty: 'Cardiology', location: 'Pune', rating: 4.5, reviews: 120, image: 'x.jpg' },
+        doctor: fx.get('doctor', 'synthetic-doctor-001'),
         date: '2026-10-16',
         timeWindow: 'morning',
         name: 'Ravi Kumar',
@@ -149,16 +150,17 @@ describe('phone numbers', () => {
 });
 
 describe('buildRequest', () => {
-    it('always sets status to requested', () => {
+    it('always starts as submitted, never confirmed', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
-        assert.strictEqual(req.status, 'requested');
+        assert.strictEqual(req.status, 'submitted');
+        assert.deepStrictEqual(req.statusHistory, [{ status: 'submitted', at: NOW.toISOString(), by: 'patient' }]);
     });
 
     it('keeps only the fields that are needed', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
         assert.deepStrictEqual(Object.keys(req).sort(), [
             'consentGiven', 'createdAt', 'doctorId', 'doctorName', 'id', 'notes', 'patientEmail',
-            'patientName', 'patientPhone', 'preferredDate', 'preferredWindow', 'specialty', 'status'
+            'patientName', 'patientPhone', 'preferredDate', 'preferredWindow', 'specialty', 'status', 'statusHistory'
         ]);
         const text = JSON.stringify(req);
         assert.ok(!/videoUrl|image|rating|reviews|location/.test(text));
@@ -245,7 +247,7 @@ describe('storage', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
         assert.deepStrictEqual(saveRequest(storage, req), { ok: true });
         assert.strictEqual(loadRequests(storage).length, 1);
-        assert.strictEqual(JSON.parse(storage.data[STORAGE_KEY])[0].status, 'requested');
+        assert.strictEqual(JSON.parse(storage.data[STORAGE_KEY])[0].status, 'submitted');
     });
 
     it('blocks a second identical save (double submit)', () => {

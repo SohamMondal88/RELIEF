@@ -74,6 +74,18 @@
     return NaN;
   }
 
+  /**
+   * The one place that decides whether a latitude/longitude pair can be used for a map
+   * or a distance. Accepts numbers and non-empty numeric strings; returns { lat, lng } as
+   * numbers, or null for NaN, Infinity, null, booleans, empty strings, objects and anything
+   * outside -90..90 / -180..180 (both ends included).
+   */
+  function normalizeCoords(lat, lng) {
+    var a = toCoord(lat);
+    var b = toCoord(lng);
+    return isValidCoord(a, b) ? { lat: a, lng: b } : null;
+  }
+
   // Keep roughly 1 km precision (2 decimals); nearby listings do not need more.
   function roundCoord(n) {
     return Math.round(n * 100) / 100;
@@ -205,9 +217,12 @@
     };
   }
 
+  /** Saves a valid location and returns the record. Bad coordinates are not stored: returns null. */
   function saveLocation(loc, options) {
     var opts = options || {};
-    var record = buildRecord(loc, opts.now);
+    var coords = loc ? normalizeCoords(loc.lat, loc.lng) : null;
+    if (!coords) return null;
+    var record = buildRecord(Object.assign({}, loc, coords), opts.now);
     var store = getStorage(opts.storage);
     try {
       if (store) store.setItem(STORAGE_KEY, JSON.stringify(record));
@@ -308,6 +323,7 @@
     MANUAL_TTL_MS: MANUAL_TTL_MS,
     messageFor: messageFor,
     isValidCoord: isValidCoord,
+    normalizeCoords: normalizeCoords,
     getPosition: getPosition,
     getPositionWithRetry: getPositionWithRetry,
     buildRecord: buildRecord,
