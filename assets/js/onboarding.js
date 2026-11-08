@@ -169,11 +169,58 @@
     return href;
   }
 
+  // Keyboard focus helpers (pure, so they are unit tested)
+
+  // Which element should get focus when Tab or Shift+Tab is pressed inside the dialog?
+  // Returns the element to focus, or null when the browser's own move stays inside the dialog.
+  // `focusables` are the dialog's tabbable elements in order, `active` the focused element.
+  function getTabTarget(focusables, active, shift, container) {
+    var list = focusables || [];
+    if (!list.length) return container || null;
+    var first = list[0];
+    var last = list[list.length - 1];
+    var idx = list.indexOf(active);
+    if (idx === -1) return shift ? last : first; // focus is on the dialog card or outside it
+    if (shift && active === first) return last;
+    if (!shift && active === last) return first;
+    return null;
+  }
+
+  var TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function getTabbable(root) {
+    if (!root || !root.querySelectorAll) return [];
+    return Array.prototype.filter.call(root.querySelectorAll(TABBABLE), function (el) {
+      return !(el.style && el.style.display === 'none') && !el.hidden;
+    });
+  }
+
+  // Everything behind a modal dialog must not take focus or be read. `inert` does both.
+  var inertedSiblings = [];
+
+  function inertBackground(d, except) {
+    inertedSiblings = [];
+    if (!d || !d.body || !d.body.children) return;
+    Array.prototype.forEach.call(d.body.children, function (el) {
+      if (el === except || !el.setAttribute || (el.hasAttribute && el.hasAttribute('inert'))) return;
+      el.setAttribute('inert', '');
+      inertedSiblings.push(el);
+    });
+  }
+
+  function restoreBackground() {
+    inertedSiblings.forEach(function (el) {
+      if (el.removeAttribute) el.removeAttribute('inert');
+    });
+    inertedSiblings = [];
+  }
+
   // Active UI Controller
   var currentStep = 0;
   var isOpen = false;
   var dialogEl = null;
   var triggerEl = null;
+  var returnFocusEl = null; // what had focus when the tour opened by itself (no trigger button)
   var activeStorage = null;
   var keydownHandler = null;
 
@@ -215,7 +262,7 @@
               '<span id="relief-onboarding-feature-text"></span> &rarr;' +
             '</a>' +
           '</div>' +
-          '<div class="relief-onboarding-dots" id="relief-onboarding-dots" role="tablist" aria-label="Tour step indicators"></div>' +
+          '<div class="relief-onboarding-dots" id="relief-onboarding-dots" role="group" aria-label="Tour step indicators"></div>' +
           '<div class="relief-onboarding-actions">' +
             '<button type="button" class="relief-onboarding-btn relief-onboarding-btn-skip" data-action="skip" data-i18n="onboarding.skip">Skip Tour</button>' +
             '<div class="relief-onboarding-actions-right">' +
@@ -289,8 +336,7 @@
         var dot = d.createElement('button');
         dot.type = 'button';
         dot.className = 'relief-onboarding-dot' + (i === stepIndex ? ' active' : '');
-        dot.setAttribute('role', 'tab');
-        dot.setAttribute('aria-selected', i === stepIndex ? 'true' : 'false');
+        if (i === stepIndex) dot.setAttribute('aria-current', 'step');
         dot.setAttribute('aria-label', 'Go to step ' + (i + 1));
         dot.addEventListener('click', function () {
           goToStep(i, d);
@@ -322,10 +368,15 @@
 
     if (trigger) triggerEl = trigger;
     if (storage) activeStorage = storage;
+    if (!isOpen) {
+      var current = d.activeElement;
+      returnFocusEl = current && current !== d.body ? current : null;
+    }
 
     if (!dialogEl || !d.getElementById('relief-onboarding-container')) {
       dialogEl = createDialogDOM(d);
       d.body.appendChild(dialogEl);
+      inertBackground(d, dialogEl);
 
       // Event delegation inside dialog
       dialogEl.addEventListener('click', function (e) {
@@ -372,6 +423,12 @@
         if (!isOpen) return;
         if (e.key === 'Escape') {
           close('skip', d);
+        } else if (e.key === 'Tab') {
+          var target = getTabTarget(getTabbable(dialogEl), d.activeElement, e.shiftKey, dialogEl && dialogEl.querySelector ? dialogEl.querySelector('.relief-onboarding-dialog') : null);
+          if (target && target.focus) {
+            e.preventDefault();
+            target.focus();
+          }
         } else if (e.key === 'ArrowRight') {
           next(d);
         } else if (e.key === 'ArrowLeft') {
@@ -410,12 +467,18 @@
     }
 
     isOpen = false;
+    restoreBackground();
 
-    // Restore focus to trigger if available
-    if (triggerEl && typeof triggerEl.focus === 'function') {
-      triggerEl.focus();
-      triggerEl = null;
+    // Give focus back to the button that opened the tour, or to whatever had it before an
+    // automatic open. If that element is gone, the page's main area is better than <body>.
+    var back = triggerEl || returnFocusEl;
+    triggerEl = null;
+    returnFocusEl = null;
+    var stillThere = back && d && d.body && d.body.contains ? d.body.contains(back) : !!back;
+    if (!stillThere) {
+      back = d && d.getElementById ? d.getElementById('main-content') : null;
     }
+    if (back && typeof back.focus === 'function') back.focus();
 
     return true;
   }
@@ -514,6 +577,7 @@
     prev: prev,
     goToStep: goToStep,
     getCurrentStep: function () { return currentStep; },
-    isTourOpen: function () { return isOpen; }
+    isTourOpen: function () { return isOpen; },
+    getTabTarget: getTabTarget
   };
 });

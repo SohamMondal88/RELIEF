@@ -461,16 +461,22 @@ const ReliefAPI = (function() {
             const user = await getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
-            const docRef = await db.collection('appointments').add({
+            // The request's own reference is the document id, so sending the same request twice
+            // (a double tap, a retry after a dropped connection) cannot create a second booking:
+            // the rules refuse a create on an id that already exists.
+            const ref = appointmentData && appointmentData.id
+                ? db.collection('appointments').doc(String(appointmentData.id))
+                : db.collection('appointments').doc();
+            await ref.set({
                 ...appointmentData,
                 userId: user.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'pending'
+                status: 'submitted'
             });
 
             return {
                 success: true,
-                appointmentId: docRef.id,
+                appointmentId: ref.id,
                 ...appointmentData
             };
         } catch (error) {
@@ -625,6 +631,16 @@ const ReliefAPI = (function() {
         backendRequest('/v1/facility-corrections', { method: 'POST', body: correction, idempotencyKey: options.idempotencyKey });
 
     /**
+     * Sends a contact form message to the RELIEF team. POST {backend}/v1/contact-messages
+     * message: { name, email, subject, message, consent }
+     * Resolves with { status: 'received' } only when the backend stored or forwarded it
+     * (docs/FORM_PROTECTION.md, Contact form delivery). Rejects with code 'backend-unavailable'
+     * when no backend is configured, so the page must not claim the message was sent.
+     */
+    const submitContactMessage = (message) =>
+        backendRequest('/v1/contact-messages', { method: 'POST', body: message });
+
+    /**
      * Moderators only. GET {backend}/v1/facility-corrections?status=pending|approved|rejected
      * Resolves with an array (or { corrections: [] }) of correction records.
      */
@@ -692,6 +708,9 @@ const ReliefAPI = (function() {
         // Data Storage
         savePatientData,
         getPatientData,
+
+        // Contact form (see docs/FORM_PROTECTION.md)
+        submitContactMessage,
 
         // Facility corrections (moderated, see docs/FACILITY_CORRECTIONS.md)
         submitFacilityCorrection,
