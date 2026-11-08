@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Accessibility statement | RELIEF</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 1rem; color: #172c35; background: #f7faf9; font: 1rem/1.7 system-ui, sans-serif; }
+        main, header, footer { max-width: 48rem; margin: 0 auto; }
+        main { padding-block: 1.5rem; }
+        h1, h2 { line-height: 1.3; }
+        a { color: #005c4b; text-underline-offset: .2em; overflow-wrap: anywhere; }
+        a:focus-visible { outline: 3px solid #005c4b; outline-offset: 4px; }
+        .skip-link { position: absolute; top: -10rem; }
+        .skip-link:focus { position: static; }
+        nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+        nav a { padding-block: .5rem; }
+        .notice { border-left: .3rem solid #005c4b; padding: 1rem; background: #e5f3ed; }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header>
+        <nav aria-label="Accessibility page navigation">
+            <a href="../index.html">RELIEF home</a>
+            <a href="ambulances.html">Emergency resources</a>
+        </nav>
+    </header>
+    <main id="main-content" tabindex="-1">
+        <h1>Accessibility statement</h1>
+        <p>RELIEF aims to make its information usable with a keyboard, assistive technology, zoom and small screens. This statement describes our goals and known limitations. It is not a claim of full WCAG compliance or an independent accessibility audit.</p>
+        <p class="notice">RELIEF is an informational demonstration, not an emergency dispatch or medical service. Emergency resources should remain available without signing in or granting location permission. In an emergency, use your local emergency service directly.</p>
+        <h2>Our goals</h2>
+        <ul>
+            <li>Clear headings, meaningful links, labelled form controls and visible keyboard focus.</li>
+            <li>Content that remains readable when zoomed or viewed on a narrow screen.</li>
+            <li>Respect for reduced-motion preferences, and status information that does not depend only on color or animation.</li>
+            <li>Useful directory lists and manual location options when maps or location permission are unavailable.</li>
+        </ul>
+        <h2>Known limitations</h2>
+        <ul>
+            <li>We have not completed a whole-site screen-reader or WCAG conformance audit. Some pages may still have contrast, focus, form-feedback or layout problems.</li>
+            <li>Third-party maps, fonts, icons and integrations can fail or have accessibility limitations. Their availability is outside this project's control.</li>
+            <li>Language coverage and translation quality vary between pages. Some interface text is English only.</li>
+            <li>Demonstration contact, booking and account flows do not establish that a message or request reached a healthcare provider.</li>
+        </ul>
+        <h2>Report an accessibility barrier</h2>
+        <p>Use the project's existing <a href="https://github.com/SohamMondal88/RELIEF/issues">GitHub issue tracker</a> to report a barrier. A GitHub account is needed to submit an issue. Include the page URL, what you tried, what happened, and your browser, device or assistive technology if you are comfortable sharing them.</p>
+        <p>Do not include patient information, passwords, exact location or other private details. Redact screenshots before posting: GitHub issues are public. We do not promise a response deadline or claim that the demonstration contact form is a working feedback channel.</p>
+        <h2>Ways to use the site</h2>
+        <p>Use Tab and Shift+Tab to move between controls, Enter to follow a link, and your browser's zoom controls to enlarge text. For missing maps, try the text directory and manual location controls. If a feature remains inaccessible, report the specific barrier; this page does not replace assistance from a healthcare professional.</p>
+    </main>
+    <footer><p><a href="../index.html">Back to RELIEF home</a> · <a href="privacy-policy.html">Privacy information</a></p></footer>
+</body>
+</html>

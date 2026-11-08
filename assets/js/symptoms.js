@@ -451,8 +451,14 @@ if (typeof document !== 'undefined') {
         const emergencyCheckboxes = document.querySelectorAll('input[name="emergency_sign"]');
         let currentStep = 0;
 
-        // Display initial step
-        showStep(currentStep);
+        // Name each step for assistive technology, then show the first one without taking focus.
+        steps.forEach((step, index) => {
+            const heading = stepIndicators[index] ? stepIndicators[index].querySelector('p') : null;
+            step.setAttribute('role', 'group');
+            step.setAttribute('aria-label', 'Step ' + (index + 1) + ' of ' + steps.length + (heading ? ': ' + heading.textContent.trim() : ''));
+            step.setAttribute('tabindex', '-1');
+        });
+        showStep(currentStep, false);
 
         // Real-time emergency warning check on Step 1
         function checkRealtimeEmergency() {
@@ -486,7 +492,7 @@ if (typeof document !== 'undefined') {
         // Direct skip to emergency guidance from alert
         document.getElementById('btn-skip-to-emergency')?.addEventListener('click', function() {
             currentStep = 2; // Jump straight to results step
-            showStep(currentStep);
+            showStep(currentStep, true);
             updateStepIndicators();
         });
 
@@ -498,7 +504,7 @@ if (typeof document !== 'undefined') {
                     if (currentStep >= steps.length) {
                         currentStep = steps.length - 1;
                     }
-                    showStep(currentStep);
+                    showStep(currentStep, true);
                     updateStepIndicators();
                 }
             });
@@ -509,7 +515,7 @@ if (typeof document !== 'undefined') {
             button.addEventListener('click', function() {
                 currentStep--;
                 if (currentStep < 0) currentStep = 0;
-                showStep(currentStep);
+                showStep(currentStep, true);
                 updateStepIndicators();
             });
         });
@@ -523,7 +529,7 @@ if (typeof document !== 'undefined') {
             }
             const resultsContent = document.querySelector('.results-content');
             if (resultsContent) resultsContent.style.display = 'none';
-            showStep(currentStep);
+            showStep(currentStep, true);
             updateStepIndicators();
         });
 
@@ -537,13 +543,18 @@ if (typeof document !== 'undefined') {
             });
         });
 
-        function showStep(stepIndex) {
+        // moveFocus is true after a button press. The button that was pressed is inside the step
+        // that is now hidden, so without this keyboard focus falls back to the top of the page and
+        // a screen reader says nothing about the new step.
+        function showStep(stepIndex, moveFocus) {
             steps.forEach((step, index) => {
                 step.classList.toggle('active', index === stepIndex);
             });
 
             if (stepIndex === 2) {
-                renderAnalysisResults();
+                renderAnalysisResults(moveFocus);
+            } else if (moveFocus && steps[stepIndex]) {
+                steps[stepIndex].focus();
             }
         }
 
@@ -555,16 +566,21 @@ if (typeof document !== 'undefined') {
 
         function updateStepIndicators() {
             stepIndicators.forEach((indicator, index) => {
+                if (index === currentStep) indicator.setAttribute('aria-current', 'step');
+                else indicator.removeAttribute('aria-current');
                 indicator.classList.toggle('active', index === currentStep);
                 indicator.classList.toggle('completed', index < currentStep);
             });
         }
 
-        function renderAnalysisResults() {
+        function renderAnalysisResults(moveFocus) {
             const loading = document.querySelector('.loading');
             const results = document.querySelector('.results-content');
 
-            if (loading) loading.style.display = 'block';
+            if (loading) {
+                loading.style.display = 'block';
+                loading.setAttribute('role', 'status');
+            }
             if (results) results.style.display = 'none';
 
             // Gather inputs
@@ -675,7 +691,16 @@ if (typeof document !== 'undefined') {
                 }
 
                 if (loading) loading.style.display = 'none';
-                if (results) results.style.display = 'block';
+                if (results) {
+                    results.style.display = 'block';
+                    if (moveFocus) {
+                        // The results replace the loading text; start reading at the top of them.
+                        results.setAttribute('role', 'region');
+                        results.setAttribute('aria-label', 'Your guidance results');
+                        results.setAttribute('tabindex', '-1');
+                        results.focus();
+                    }
+                }
             }, 250);
         }
 

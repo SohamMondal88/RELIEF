@@ -67,6 +67,9 @@ test.describe('offline first aid', () => {
     });
     expect(cached).toContain('/pages/firstaid.html');
     expect(cached.some((p) => /dashboard|login|signup/.test(p))).toBe(false);
-    await expect(page.goto('/pages/dashboard.html')).rejects.toThrow();
+    // Not saved, so offline it shows the offline page instead of any account content.
+    await page.goto('/pages/dashboard.html');
+    await expect(page).toHaveURL(/\/pages\/offline\.html$/);
+    await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
   });
 });
