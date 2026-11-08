@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let reminders = R ? R.loadReminders(localStorage) : [];
     // Set after "Delete my account and data" so the page does not write its old state back.
     let dataDeleted = false;
-    // loadHistory (storage-schema.js) skips broken entries and returns null when nothing usable is stored.
-    const storedHistory = window.ReliefStorageSchema ? window.ReliefStorageSchema.loadHistory(localStorage) : null;
-    const history = storedHistory || [{"date":"2026-01-02","event":"Symptom check completed","status":"Advised doctor consult"},{"date":"2026-01-04","event":"Appointment booked","status":"Dr. A. Sen - 10:30 AM"}];
+    const sampleHistory = [{ date: '2026-01-02', event: 'Symptom check completed', status: 'Advised doctor consult' }, { date: '2026-01-04', event: 'Appointment booked', status: 'Dr. A. Sen - 10:30 AM' }];
+    // Broken or oversized stored data must not stop the rest of the page from loading.
+    const history = R ? R.loadHistory(localStorage, historyKey, sampleHistory) : sampleHistory;
 
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
 

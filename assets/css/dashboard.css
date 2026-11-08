@@ -71,6 +71,12 @@
     background: #fff;
 }
 
+/* A long medicine name or note wraps instead of pushing the card wider. */
+.reminder-item > div:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .reminder-note {
     font-size: 0.85rem;
     margin: 6px 0 10px;
