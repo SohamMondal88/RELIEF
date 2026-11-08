@@ -18,7 +18,13 @@
 
     const REMINDER_DISCLAIMER = 'These reminders only repeat what you type in. RELIEF does not suggest medicines, doses or schedules, so follow your doctor or pharmacist for that.';
     const PERSISTENCE_NOTE = 'Reminders are saved only in this browser on this device. Clearing site data or switching browser or device removes them, and nothing is synced to an account.';
-    const TIMEZONE_NOTE = 'Times are the clock time on this device. Reminders only fire while this dashboard is open in a tab, and if your device time zone changes they follow the new local clock time.';
+    const TIMEZONE_NOTE = 'Reminders use the clock time on this device and follow it if your time zone changes, unless you choose a fixed time zone. They only fire while this dashboard is open in a tab. See docs/REMINDER_SCHEDULING.md for the rules.';
+
+    // A reminder never fires twice within this time. This protects against a repeat when the
+    // device moves west across the date line or the time zone is changed after it fired.
+    const MIN_GAP_MS = 6 * 60 * 60 * 1000;
+
+    const SCHEDULE_MODES = ['local', 'fixed'];
 
     // ---------- date and time helpers ----------
 
@@ -28,6 +34,29 @@
         } catch (e) {
             return 'UTC';
         }
+    }
+
+    /** True when the runtime knows this IANA time zone name. */
+    function isValidTimeZone(timeZone) {
+        if (typeof timeZone !== 'string' || !timeZone.trim()) return false;
+        try {
+            new Intl.DateTimeFormat('en-CA', { timeZone: timeZone });
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * The time zone a reminder is scheduled in: its own zone when fixed, otherwise the
+     * device's current zone. An unknown zone name falls back to the device zone.
+     */
+    function getEffectiveTimeZone(reminder, deviceTimeZone) {
+        const device = isValidTimeZone(deviceTimeZone) ? deviceTimeZone : getLocalTimeZone();
+        if (reminder && reminder.scheduleMode === 'fixed' && isValidTimeZone(reminder.timeZone)) {
+            return reminder.timeZone;
+        }
+        return device;
     }
 
     /** Returns { date: 'YYYY-MM-DD', time: 'HH:MM' } for an instant in the given IANA time zone. */
@@ -89,8 +118,11 @@
             startDate: isValidDate(raw.startDate) ? raw.startDate : '',
             endDate: isValidDate(raw.endDate) ? raw.endDate : '',
             status: STATUSES.includes(raw.status) ? raw.status : 'active',
+            // Older reminders have no mode. They always followed the device clock, so 'local'.
+            scheduleMode: raw.scheduleMode === 'fixed' && isValidTimeZone(raw.timeZone) ? 'fixed' : 'local',
             timeZone: typeof raw.timeZone === 'string' ? raw.timeZone : '',
-            lastNotifiedOn: isValidDate(raw.lastNotifiedOn) ? raw.lastNotifiedOn : ''
+            lastNotifiedOn: isValidDate(raw.lastNotifiedOn) ? raw.lastNotifiedOn : '',
+            lastNotifiedAtMs: Number.isFinite(raw.lastNotifiedAtMs) && raw.lastNotifiedAtMs > 0 ? raw.lastNotifiedAtMs : 0
         };
     }
 
@@ -122,9 +154,21 @@
      */
     function validateReminderInput(input, ctx) {
         const context = ctx || {};
-        const today = context.today || getLocalParts(context.now || new Date(), context.timeZone).date;
         const src = input || {};
         const errors = {};
+
+        const scheduleMode = src.scheduleMode === 'fixed' ? 'fixed' : 'local';
+        const fixedZone = String(src.scheduleTimeZone || '').trim();
+        if (src.scheduleMode !== undefined && src.scheduleMode !== '' && SCHEDULE_MODES.indexOf(src.scheduleMode) === -1) {
+            errors.scheduleMode = 'Choose whether the reminder follows this device or a fixed time zone.';
+        }
+        if (scheduleMode === 'fixed' && !isValidTimeZone(fixedZone)) {
+            errors.scheduleTimeZone = 'Choose a time zone from the list.';
+        }
+        // "Today" is the date in the zone the reminder runs in, so an end date behaves the same
+        // for a fixed zone as it will when the reminder fires.
+        const scheduleZone = scheduleMode === 'fixed' && !errors.scheduleTimeZone ? fixedZone : context.timeZone;
+        const today = context.today || getLocalParts(context.now || new Date(), scheduleZone).date;
 
         const medicine = String(src.medicine || '').trim().replace(/\s+/g, ' ');
         const instructions = String(src.instructions || '').trim();
@@ -151,7 +195,7 @@
         return {
             valid: Object.keys(errors).length === 0,
             errors,
-            value: { medicine, instructions, time, startDate, endDate }
+            value: { medicine, instructions, time, startDate, endDate, scheduleMode, scheduleTimeZone: scheduleMode === 'fixed' ? fixedZone : '' }
         };
     }
 
@@ -164,6 +208,28 @@
             normalizeName(r.medicine) === name &&
             r.time === candidate.time
         ) || null;
+    }
+
+    /** Maps validated form values to the saved fields. For a fixed reminder timeZone is the fixed zone. */
+    function scheduleFields(value, ctx) {
+        const deviceZone = (ctx && ctx.timeZone) || getLocalTimeZone();
+        const { scheduleTimeZone, ...rest } = value;
+        return {
+            ...rest,
+            timeZone: value.scheduleMode === 'fixed' ? scheduleTimeZone : deviceZone
+        };
+    }
+
+    /**
+     * When a reminder is saved for a time that already passed today, the first reminder is tomorrow.
+     * Returns today's date (in the schedule's zone) to mark today as done, or '' when today still counts.
+     */
+    function skipPassedToday(reminder, ctx) {
+        const context = ctx || {};
+        const zone = getEffectiveTimeZone(reminder, context.timeZone);
+        const local = getLocalParts(context.now || new Date(), zone);
+        if (reminder.startDate && local.date < reminder.startDate) return '';
+        return reminder.time < local.time ? local.date : '';
     }
 
     // ---------- create / edit / pause / complete ----------
@@ -186,11 +252,12 @@
         }
         const reminder = {
             id: makeId(ctx),
-            ...check.value,
+            ...scheduleFields(check.value, ctx),
             status: 'active',
-            timeZone: (ctx && ctx.timeZone) || getLocalTimeZone(),
-            lastNotifiedOn: ''
+            lastNotifiedOn: '',
+            lastNotifiedAtMs: 0
         };
+        reminder.lastNotifiedOn = skipPassedToday(reminder, ctx) || '';
         return { ok: true, errors: {}, reminders: [...reminders, reminder], reminder };
     }
 
@@ -206,11 +273,16 @@
         }
         const updated = {
             ...existing,
-            ...check.value,
-            timeZone: (ctx && ctx.timeZone) || getLocalTimeZone(),
-            // a changed time should be allowed to fire again today
-            lastNotifiedOn: check.value.time === existing.time ? existing.lastNotifiedOn : ''
+            ...scheduleFields(check.value, ctx)
         };
+        const scheduleChanged = check.value.time !== existing.time ||
+            updated.scheduleMode !== existing.scheduleMode ||
+            (updated.scheduleMode === 'fixed' && updated.timeZone !== existing.timeZone);
+        if (scheduleChanged) {
+            // A new schedule starts clean. A time that has already passed today waits until tomorrow.
+            updated.lastNotifiedOn = skipPassedToday(updated, ctx) || '';
+            updated.lastNotifiedAtMs = 0;
+        }
         return { ok: true, errors: {}, reminders: reminders.map((r) => (r.id === id ? updated : r)), reminder: updated };
     }
 
@@ -235,30 +307,43 @@
         return { ok: true, errors: {}, reminders: reminders.filter((r) => r.id !== id), reminder: existing };
     }
 
-    function markNotified(reminders, id, date) {
-        return reminders.map((r) => (r.id === id ? { ...r, lastNotifiedOn: date } : r));
+    /** Records that a reminder fired: the local date it was for and the instant (ms) it fired. */
+    function markNotified(reminders, id, date, atMs) {
+        const at = Number.isFinite(atMs) ? atMs : Date.now();
+        return reminders.map((r) => (r.id === id ? { ...r, lastNotifiedOn: date, lastNotifiedAtMs: at } : r));
     }
 
     // ---------- scheduling ----------
 
     /** One of: completed, paused, upcoming (start date not reached), expired (end date passed), active. */
-    function getReminderState(reminder, now, timeZone) {
+    function getReminderState(reminder, now, deviceTimeZone) {
         if (reminder.status === 'completed') return 'completed';
         if (reminder.status === 'paused') return 'paused';
-        const today = getLocalParts(now, timeZone).date;
+        // Start and end dates are read in the zone the reminder runs in.
+        const today = getLocalParts(now, getEffectiveTimeZone(reminder, deviceTimeZone)).date;
         if (reminder.startDate && today < reminder.startDate) return 'upcoming';
         if (reminder.endDate && today > reminder.endDate) return 'expired';
         return 'active';
     }
 
-    /** Active reminders whose time has been reached today and that were not already shown today. */
-    function getDueReminders(reminders, now, timeZone) {
-        const local = getLocalParts(now, timeZone);
-        return reminders.filter((r) =>
-            getReminderState(r, now, timeZone) === 'active' &&
-            r.time <= local.time &&
-            r.lastNotifiedOn !== local.date
-        );
+    /**
+     * Active reminders whose time has been reached in their own zone, that did not already fire
+     * for that date, and that did not fire within the last MIN_GAP_MS.
+     *
+     * "Reached" means the zone's clock is at or past the set time, so a time skipped by a
+     * daylight saving change fires right after the gap, and a time that happens twice fires once.
+     * If the device clock was moved back (the last firing is "in the future") the gap check is
+     * skipped, because a repeated reminder is safer than a missed one.
+     */
+    function getDueReminders(reminders, now, deviceTimeZone) {
+        const nowMs = now.getTime();
+        return reminders.filter((r) => {
+            if (getReminderState(r, now, deviceTimeZone) !== 'active') return false;
+            const local = getLocalParts(now, getEffectiveTimeZone(r, deviceTimeZone));
+            if (r.time > local.time || r.lastNotifiedOn === local.date) return false;
+            const since = nowMs - (r.lastNotifiedAtMs || 0);
+            return !(r.lastNotifiedAtMs && since >= 0 && since < MIN_GAP_MS);
+        });
     }
 
     function countActive(reminders, now, timeZone) {
@@ -291,10 +376,59 @@
         return `Reminder: ${reminder.medicine} (set for ${reminder.time}).${note}`;
     }
 
-    /** Returns a warning when the device time zone differs from the one saved with the reminder. */
+    /** Returns a note when the device time zone differs from the one saved with the reminder. */
     function getTimeZoneWarning(reminder, currentTimeZone) {
         if (!reminder.timeZone || reminder.timeZone === currentTimeZone) return '';
+        if (reminder.scheduleMode === 'fixed') {
+            return `Fixed to ${reminder.timeZone}. This device is in ${currentTimeZone}, so it fires at ${localEquivalent(reminder, new Date(), currentTimeZone)} here today.`;
+        }
         return `Created in ${reminder.timeZone}. It now follows this device's clock (${currentTimeZone}).`;
+    }
+
+    /** The device clock time (HH:MM) at the moment a fixed-zone reminder's time is reached today. */
+    function localEquivalent(reminder, now, deviceTimeZone) {
+        const zone = getEffectiveTimeZone(reminder, deviceTimeZone);
+        const zoneNow = getLocalParts(now, zone);
+        const deviceNow = getLocalParts(now, deviceTimeZone);
+        const toMinutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+        const diff = toMinutes(deviceNow.time) - toMinutes(zoneNow.time);
+        const dayShift = Math.round((Date.parse(deviceNow.date) - Date.parse(zoneNow.date)) / 86400000);
+        const total = toMinutes(reminder.time) + diff + dayShift * 1440;
+        const wrapped = ((total % 1440) + 1440) % 1440;
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(Math.floor(wrapped / 60))}:${pad(wrapped % 60)}`;
+    }
+
+    /**
+     * Plain-language description of when a reminder will fire, shown before it is saved.
+     * Returns '' until a valid time is given.
+     */
+    function explainSchedule(input, now, deviceTimeZone) {
+        const src = input || {};
+        if (!isValidTime(src.time)) return '';
+        const device = isValidTimeZone(deviceTimeZone) ? deviceTimeZone : getLocalTimeZone();
+        const fixed = src.scheduleMode === 'fixed';
+        const zone = fixed ? String(src.scheduleTimeZone || '').trim() : device;
+        if (fixed && !isValidTimeZone(zone)) return 'Choose a time zone to see when this reminder will fire.';
+
+        const probe = { time: src.time, scheduleMode: fixed ? 'fixed' : 'local', timeZone: zone };
+        const startDate = isValidDate(src.startDate) ? src.startDate : '';
+        const local = getLocalParts(now, zone);
+        const futureStart = startDate && local.date < startDate;
+        const first = futureStart ? `on ${startDate}` : (src.time < local.time ? 'tomorrow' : 'today');
+
+        const lines = [];
+        if (fixed) {
+            lines.push(`Every day at ${src.time} in ${zone}.`);
+            if (zone !== device) lines.push(`That is ${localEquivalent(probe, now, device)} on this device now (${device}).`);
+            lines.push('It stays on that time zone if you travel.');
+        } else {
+            lines.push(`Every day at ${src.time} on this device's clock (${device}).`);
+            lines.push('If you travel or change the device time zone, it follows the new local time.');
+        }
+        lines.push('If daylight saving skips this time, it appears right after. If the time happens twice, it appears once.');
+        lines.push(`First reminder: ${first}${futureStart ? '' : ' at ' + src.time}.`);
+        return lines.join(' ');
     }
 
     const api = {
@@ -302,7 +436,11 @@
         REMINDER_DISCLAIMER,
         PERSISTENCE_NOTE,
         TIMEZONE_NOTE,
+        MIN_GAP_MS,
+        SCHEDULE_MODES,
         getLocalTimeZone,
+        isValidTimeZone,
+        getEffectiveTimeZone,
         getLocalParts,
         isValidTime,
         isValidDate,
@@ -324,7 +462,9 @@
         getNotificationPermission,
         getPermissionMessage,
         buildReminderMessage,
-        getTimeZoneWarning
+        getTimeZoneWarning,
+        localEquivalent,
+        explainSchedule
     };
 
     if (typeof module !== 'undefined' && module.exports) {
