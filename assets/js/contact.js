@@ -134,48 +134,117 @@ function resetErrors() {
     inputs.forEach(input => input.style.borderColor = '#ddd');
 }
 
-async function submitContactForm() {
-    if (!contactGuard) {
-        simulateFormSubmission();
-        return;
-    }
-
-    const outcome = await contactGuard.run(
-        () => simulateFormSubmission(),
-        { honeypot: contactForm.elements['website']?.value }
-    );
-
-    // A blocked attempt keeps the user's text and explains how to recover.
-    window.ReliefFormGuard.showGuardMessage(contactForm, outcome.ok ? '' : outcome.message);
+function readContactFields() {
+    return {
+        name: contactForm.elements['name'].value,
+        email: contactForm.elements['email'].value,
+        subject: contactForm.elements['subject'].value,
+        message: contactForm.elements['message'].value,
+        consent: contactForm.elements['consent'].checked
+    };
 }
 
-function simulateFormSubmission() {
+async function submitContactForm() {
+    clearSendFailure();
+
+    // The guard (rate limit, double submit, honeypot) still decides whether an attempt may go out.
+    // sendContactMessage() throws when the message did not really arrive, which the guard reports as "failed".
+    const outcome = contactGuard
+        ? await contactGuard.run(() => sendContactMessage(), { honeypot: contactForm.elements['website']?.value })
+        : await sendContactMessage().then(() => ({ ok: true }), (error) => ({ ok: false, reason: 'failed', error: error, message: error.message }));
+
+    if (outcome.ok) return;
+
+    // A blocked or failed attempt keeps the user's text and explains how to recover.
+    const failedToSend = outcome.reason === 'failed' && outcome.error && outcome.error.kind;
+    if (failedToSend) showSendFailure(outcome.error.message);
+    // The guard message (for example "Too many attempts") is shown when it is the reason, or on top of a failure.
+    const guardText = !failedToSend || outcome.retryAfterMs > 0 ? outcome.message : '';
+    if (contactGuard) window.ReliefFormGuard.showGuardMessage(contactForm, guardText);
+}
+
+// Sends the message through ReliefAPI. Shows the thank-you text only after the backend confirmed it.
+async function sendContactMessage() {
     const submitButton = contactForm.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
 
-    // Show loading state
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
-    // Simulate API call
-    return new Promise((resolve) => setTimeout(() => {
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'form-success';
-        successMessage.innerHTML = `
-            <div class="success-content">
-                <i class="fas fa-check-circle"></i>
-                <h3>Thank you for your message!</h3>
-                <p>We've received your inquiry and will respond within 24 hours.</p>
-            </div>
-        `;
+    try {
+        await window.ReliefContactSend.send(window.ReliefAPI, readContactFields());
+    } catch (error) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+        throw error;
+    }
 
-        contactForm.replaceWith(successMessage);
+    const successMessage = document.createElement('div');
+    successMessage.className = 'form-success';
+    successMessage.setAttribute('role', 'status');
+    successMessage.innerHTML = `
+        <div class="success-content">
+            <i class="fas fa-check-circle"></i>
+            <h3>Message sent</h3>
+            <p>Thank you. Your message was delivered to the RELIEF team.</p>
+        </div>
+    `;
+    contactForm.replaceWith(successMessage);
+}
 
-        // Reset form (in a real app, this would happen after actual submission)
-        contactForm.reset();
-        resolve();
-    }, 1500));
+// The contact details already on this page, so the fallback never invents an address.
+function contactDetail(selector) {
+    const link = document.querySelector(selector);
+    if (!link) return null;
+    return { value: link.getAttribute('href').replace(/^(mailto|tel):/, ''), text: link.textContent.trim() };
+}
+
+function clearSendFailure() {
+    const box = contactForm.querySelector('.contact-send-failure');
+    if (box) box.remove();
+}
+
+function showSendFailure(message) {
+    clearSendFailure();
+    const email = contactDetail('a.contact-link[href^="mailto:"]');
+    const phone = contactDetail('a.contact-link[href^="tel:"]');
+
+    const box = document.createElement('div');
+    box.className = 'contact-send-failure';
+    box.setAttribute('role', 'alert');
+
+    const text = document.createElement('p');
+    text.textContent = message + ' What you typed is still in the form.';
+    box.appendChild(text);
+
+    if (email || phone) {
+        const options = document.createElement('p');
+        options.append('You can reach the team another way: ');
+        if (email) {
+            const mail = document.createElement('a');
+            mail.href = window.ReliefContactSend.mailtoHref(email.value, readContactFields());
+            mail.textContent = 'open an email with your message to ' + email.text;
+            options.appendChild(mail);
+        }
+        if (email && phone) options.append(' or call ');
+        else if (phone) options.append('call ');
+        if (phone) {
+            const call = document.createElement('a');
+            call.href = 'tel:' + phone.value;
+            call.textContent = phone.text;
+            options.appendChild(call);
+        }
+        options.append('.');
+        box.appendChild(options);
+    }
+
+    const emergency = document.createElement('p');
+    emergency.textContent = 'This form is not for emergencies. In an emergency, call your local emergency number.';
+    box.appendChild(emergency);
+
+    const submit = contactForm.querySelector('button[type="submit"]');
+    submit.parentNode.insertBefore(box, submit);
+    box.scrollIntoView({ block: 'nearest' });
 }
 
 // FAQ Accordion Functionality

@@ -1888,3 +1888,27 @@ a:hover {
         font-size: 0.9rem;
     }
 }
+
+/* Shown when the message could not be sent (see contact.js). */
+.contact-send-failure {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #fff4e5;
+    color: #7a4100;
+    border: 1px solid #ffd8a8;
+    font-size: 0.9rem;
+}
+
+.contact-send-failure p {
+    margin: 0 0 0.5rem;
+}
+
+.contact-send-failure p:last-child {
+    margin-bottom: 0;
+}
+
+.contact-send-failure a {
+    color: inherit;
+    text-decoration: underline;
+}
