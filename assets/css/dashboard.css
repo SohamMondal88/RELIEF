@@ -409,3 +409,23 @@ select[aria-invalid="true"] {
 .reminder-saved[hidden] {
     display: none;
 }
+
+.notify-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.notify-actions[hidden],
+.notify-details[hidden] {
+    display: none;
+}
+
+.notify-details {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-weight: 400;
+}
