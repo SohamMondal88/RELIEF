@@ -32,6 +32,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/sos.spec.js` | SOS dialog (focus, Escape, Tab trap), no backend configured, server error, unconfirmed 200, dropped connection, Retry, confirmed success with a mocked location, denied location, offline, closing while a request is in flight |
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/accessibility.spec.js` | axe-core on 18 pages, skip link focus, tour dialog focus trap, refused login and signup messages, reminder errors and actions, assistant log, symptom checker steps, focus rings (Issue #51, see `docs/ACCESSIBILITY.md`) |
 
 ## Rules the tests follow
 

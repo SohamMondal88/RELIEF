@@ -1,6 +1,10 @@
 {
-  "_note": "Records carried over from the previous hardcoded list. None are verified yet; district holds the place name from that list.",
+  "_note": "Records carried over from the previous hardcoded list. None are verified yet; district holds the place name from that list. Review fields (reviewState, verifiedBy, source, lastChecked, reviewLog) follow docs/FACILITY_VERIFICATION_POLICY.md: change them with scripts/facility-review.js, not by hand.",
   "schemaVersion": 1,
+  "reviewPolicy": {
+    "maxAgeDays": 180,
+    "byType": {}
+  },
   "facilities": [
     {
       "id": "fac-001",
@@ -18,8 +22,11 @@
       "lat": 22.5726,
       "lng": 88.3639,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-002",
@@ -37,8 +44,11 @@
       "lat": 22.975,
       "lng": 88.4344,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-003",
@@ -56,8 +66,11 @@
       "lat": 23.2329,
       "lng": 87.0755,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-004",
@@ -75,8 +88,11 @@
       "lat": 22.7225,
       "lng": 88.4886,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-005",
@@ -94,8 +110,11 @@
       "lat": 23.2599,
       "lng": 87.857,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-006",
@@ -113,8 +132,11 @@
       "lat": 22.5726,
       "lng": 88.3639,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-007",
@@ -132,8 +154,11 @@
       "lat": 22.5587,
       "lng": 88.3509,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-008",
@@ -151,8 +176,11 @@
       "lat": 22.573,
       "lng": 88.3632,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-009",
@@ -170,8 +198,11 @@
       "lat": 22.975,
       "lng": 88.4344,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-010",
@@ -189,8 +220,11 @@
       "lat": 22.6711,
       "lng": 88.3744,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-011",
@@ -208,8 +242,11 @@
       "lat": 23.3338,
       "lng": 86.3648,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-012",
@@ -227,8 +264,11 @@
       "lat": 22.191,
       "lng": 88.1909,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-013",
@@ -246,8 +286,11 @@
       "lat": 22.346,
       "lng": 87.232,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-014",
@@ -265,8 +308,11 @@
       "lat": 22.5735,
       "lng": 88.3628,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-015",
@@ -284,8 +330,11 @@
       "lat": 23.2599,
       "lng": 87.857,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-016",
@@ -303,8 +352,11 @@
       "lat": 22.4485,
       "lng": 88.3045,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-017",
@@ -322,8 +374,11 @@
       "lat": 23.5204,
       "lng": 87.3119,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-018",
@@ -341,8 +396,11 @@
       "lat": 22.0257,
       "lng": 88.0583,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-019",
@@ -360,8 +418,11 @@
       "lat": 22.5735,
       "lng": 88.3628,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-020",
@@ -379,8 +440,11 @@
       "lat": 22.5356,
       "lng": 88.3494,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-021",
@@ -398,8 +462,11 @@
       "lat": 23.5204,
       "lng": 87.3119,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-022",
@@ -417,8 +484,11 @@
       "lat": 22.47,
       "lng": 88.17,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-023",
@@ -436,8 +506,11 @@
       "lat": 24.47,
       "lng": 88.07,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-024",
@@ -455,8 +528,11 @@
       "lat": 26.5167,
       "lng": 88.7333,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-025",
@@ -474,8 +550,11 @@
       "lat": 22.45,
       "lng": 86.98,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-026",
@@ -493,8 +572,11 @@
       "lat": 22.5958,
       "lng": 88.2636,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-027",
@@ -512,8 +594,11 @@
       "lat": 23.08,
       "lng": 88.52,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-028",
@@ -531,8 +616,11 @@
       "lat": 23.4,
       "lng": 88.5,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-029",
@@ -550,8 +638,11 @@
       "lat": 22.5726,
       "lng": 88.3639,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-030",
@@ -569,8 +660,11 @@
       "lat": 26.3167,
       "lng": 89.4333,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-031",
@@ -588,8 +682,11 @@
       "lat": 25,
       "lng": 88.15,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-032",
@@ -607,8 +704,11 @@
       "lat": 22.5738,
       "lng": 88.3611,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-033",
@@ -626,8 +726,11 @@
       "lat": 22.425,
       "lng": 87.32,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-034",
@@ -645,8 +748,11 @@
       "lat": 24.1,
       "lng": 88.25,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-035",
@@ -664,8 +770,11 @@
       "lat": 22.5745,
       "lng": 88.3622,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-036",
@@ -683,8 +792,11 @@
       "lat": 26.7271,
       "lng": 88.3953,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-037",
@@ -702,8 +814,11 @@
       "lat": 22.88,
       "lng": 87.78,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-038",
@@ -721,8 +836,11 @@
       "lat": 22.58,
       "lng": 88.45,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-039",
@@ -740,8 +858,11 @@
       "lat": 22.595,
       "lng": 88.37,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-040",
@@ -759,8 +880,11 @@
       "lat": 25.62,
       "lng": 88.12,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-041",
@@ -778,8 +902,11 @@
       "lat": 24.17,
       "lng": 87.78,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-042",
@@ -797,8 +924,11 @@
       "lat": 23.67,
       "lng": 87.72,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-043",
@@ -816,8 +946,11 @@
       "lat": 22.47,
       "lng": 88.11,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-044",
@@ -835,8 +968,11 @@
       "lat": 23.5204,
       "lng": 87.3119,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-045",
@@ -854,8 +990,11 @@
       "lat": 22.3,
       "lng": 87.92,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     },
     {
       "id": "fac-046",
@@ -873,8 +1012,11 @@
       "lat": 22.5726,
       "lng": 88.3639,
       "verified": false,
+      "reviewState": "pending",
+      "verifiedBy": null,
       "source": null,
-      "lastChecked": null
+      "lastChecked": null,
+      "reviewLog": []
     }
   ]
 }

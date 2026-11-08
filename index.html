@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Relief - Your complete healthcare companion offering symptom checking, doctor finding, hospital locating, and emergency services">
     <meta name="keywords" content="healthcare, doctor finder, symptom checker, hospital locator, medical assistance">
     <title data-i18n="home.title">Relief - Your Complete Healthcare Companion | Symptom Checker & Doctor Finder</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/onboarding.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/jpg" href="./assets/images/favicon.jpg">
@@ -50,6 +52,7 @@
                         <li><a href="pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a></li>
                         <li><a href="pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a></li>
                         <li><a href="pages/pharmacies.html" data-i18n="nav.pharmacies">Pharmacies</a></li>
+                        <li><a href="pages/health-events.html">Health camps &amp; events</a></li>
                         <li><a href="pages/ambulances.html" data-i18n="nav.ambulances">Ambulances</a></li></ul>
                 </li>
             </ul>
@@ -77,7 +80,7 @@
     </div>
 </nav>
 
-        <main id="main-content">
+        <main id="main-content" tabindex="-1">
         <!-- Hero Section -->
         <section class="hero">
             <div class="container">
@@ -95,8 +98,8 @@
                     </div>
 
                     <div class="hero-buttons">
-                        <a href="pages/symptoms.html" class="btn-primary" aria-label="Check your symptoms" data-i18n-attr="aria-label:home.hero.symptoms.aria">
-                            <i class="fas fa-stethoscope"></i> <span data-i18n="home.hero.symptoms">Check Symptoms</span>
+                        <a href="pages/symptoms.html" class="btn-primary">
+                            <i class="fas fa-stethoscope" aria-hidden="true"></i> <span data-i18n="home.hero.symptoms">Check Symptoms</span>
                         </a>
                         <a href="pages/doctors.html" class="btn-secondary" aria-label="Find a doctor near you" data-i18n-attr="aria-label:home.hero.doctor.aria">
                             <i class="fas fa-user-md"></i> <span data-i18n="home.hero.doctor">Find a Doctor</span>
@@ -448,6 +451,7 @@
                             <li><a href="pages/doctors.html" data-i18n="footer.doctors">Find Doctors</a></li>
                             <li><a href="pages/hospitals.html" data-i18n="footer.hospitals">Find Hospitals</a></li>
                             <li><a href="pages/pharmacies.html" data-i18n="footer.pharmacies">Find Pharmacies</a></li>
+                            <li><a href="pages/health-events.html">Health Camps &amp; Events</a></li>
                             <li><a href="pages/ambulances.html" data-i18n="footer.emergency">Emergency Services</a></li>
                             <li><button type="button" class="footer-tour-link" id="footer-revisit-tour" data-i18n="footer.tour"><i class="fas fa-compass" aria-hidden="true"></i> Quick Tour &amp; Guide</button></li>
                         </ul>

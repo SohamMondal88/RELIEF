@@ -1,16 +1,18 @@
 // Journey: Emergency SOS on the ambulances page.
 // No real call, SMS or request is ever made: tel: and sms: links are only inspected (never followed),
-// the SOS endpoint is a fake host answered by page.route, and geolocation is mocked.
+// the SOS endpoint is a same-origin path answered by page.route (the site's CSP only lets scripts
+// reach their own origin and nominatim, so a deployment has to use a same-origin endpoint or add its origin
+// to connect-src), and geolocation is mocked.
 const { test, expect } = require('./fixtures');
 const { useGeolocation, relief } = require('./helpers');
 
-const ENDPOINT = 'https://sos.mock.relief.test/api/sos';
+const ENDPOINT = '/api/sos';
 
 // Tests that need a configured endpoint set it before the page scripts run.
 async function configureEndpoint(page, handler) {
   await page.addInitScript((url) => { window.RELIEF_SOS_ENDPOINT = url; }, ENDPOINT);
   const requests = [];
-  await page.route(ENDPOINT, async (route) => {
+  await page.route('**' + ENDPOINT, async (route) => {
     requests.push({ headers: route.request().headers(), body: route.request().postDataJSON() });
     await handler(route);
   });
@@ -27,19 +29,20 @@ async function openDialog(page) {
 
 const confirm = (dialog) => dialog.getByRole('button', { name: 'Confirm Emergency SOS Request' });
 
-// Known bug: assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with
-// no network the ambulances page throws "L is not defined". hospitals.js already guards against this.
-// The SOS dialog does not depend on the map, so these tests tolerate that one error and the fixme below tracks it.
-test.use({ allowedPageErrors: [/^L is not defined$/] });
-
 test.afterEach(async ({ page }) => {
   // Whatever a test did, no phone call or SMS may have been started.
   const guard = await relief(page).catch(() => null);
   if (guard) expect(guard.opened, 'window.open calls').toEqual([]);
 });
 
-test.fixme('the ambulances page loads without page errors when the map library cannot load', async ({ page, problems }) => {
+// The fixture blocks every request that leaves the local site, so the Leaflet CDN script never loads here.
+// ambulances.js must still work and say that the map is missing (issue #75).
+test('the ambulances page works without the map library and says the map could not load', async ({ page, problems }) => {
   await page.goto('/pages/ambulances.html');
+  expect(problems.blocked.some((request) => request.includes('leaflet'))).toBe(true);
+  await expect(page.locator('.ambulance-item')).toHaveCount(4);
+  await expect(page.getByRole('status').filter({ hasText: 'The map could not be loaded' })).toBeVisible();
+  await expect(page.locator('#map')).toBeHidden();
   expect(problems.pageErrors).toEqual([]);
 });
 
@@ -73,11 +76,9 @@ test.describe('SOS confirmation dialog', () => {
     await expect(page.getByText('Processing Emergency SOS...')).toHaveCount(0);
   });
 
-  // Real bug found while writing these tests: a click on the SOS button runs the button's own handler and then
-  // the document-level handler in emergency-sos.js, so the dialog is opened twice. The second open records the
-  // dialog's Cancel button as "previously focused", so on close focus is lost instead of returning to the SOS
-  // button (and a second keydown listener is left behind). Remove .fixme once openConfirmationDialog is guarded.
-  test.fixme('closing the dialog returns focus to the SOS button', async ({ page }) => {
+  // Regression for issue #73: a click on the SOS button used to run both the button's own handler and the
+  // document-level handler, which opened the dialog twice and lost the element to refocus on close.
+  test('closing the dialog returns focus to the SOS button', async ({ page }) => {
     await openDialog(page);
     await page.keyboard.press('Escape');
     await expect(page.locator('#relief-emergency-sos-trigger')).toBeFocused();

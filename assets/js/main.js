@@ -1,3 +1,8 @@
+
+function reliefPrefersReducedMotion() {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 // Splash Screen
 
 const RELIEF_SESSION_STORAGE_KEY = 'relief_auth_sessions';
@@ -146,8 +151,8 @@ if (typeof document !== 'undefined') {
                 if (splashScreen.parentNode) {
                     splashScreen.parentNode.removeChild(splashScreen);
                 }
-            }, 500);
-        }, 3000);
+            }, reliefPrefersReducedMotion() ? 0 : 500);
+        }, reliefPrefersReducedMotion() ? 0 : 3000);
     } else if (mainContent) {
         mainContent.style.display = 'block';
     }
@@ -158,22 +163,36 @@ if (typeof document !== 'undefined') {
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+            if (targetId === '#') {
+                e.preventDefault();
+                return;
+            }
+
+            // A skip link has to move keyboard focus, not just the scroll position. Leave it to
+            // the browser, which scrolls to the target and starts the next Tab from there
+            // (every page marks its <main> with tabindex="-1" so focus lands on it).
+            if (this.classList.contains('skip-link')) return;
+
+            e.preventDefault();
 
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
+                const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
+                    behavior: reduceMotion ? 'auto' : 'smooth'
                 });
 
                 // Close mobile menu if open
-                if (navLinks && navLinks.classList.contains('active')) {
-                    hamburger.classList.remove('active');
-                    navLinks.classList.remove('active');
+                const openMenu = document.querySelector('.nav-links.active');
+                const menuButton = document.querySelector('.hamburger');
+                if (openMenu) {
+                    openMenu.classList.remove('active');
+                    if (menuButton) {
+                        menuButton.classList.remove('active');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                    }
                 }
             }
         });
@@ -187,7 +206,7 @@ if (typeof document !== 'undefined') {
             const elementPosition = element.getBoundingClientRect().top;
             const screenPosition = window.innerHeight / 1.3;
 
-            if (elementPosition < screenPosition) {
+            if (reliefPrefersReducedMotion() || elementPosition < screenPosition) {
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
             }
@@ -198,13 +217,16 @@ if (typeof document !== 'undefined') {
     const animatedElements = document.querySelectorAll('.feature-card, .section-title');
     if (animatedElements.length > 0) {
         animatedElements.forEach(element => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(20px)';
-            element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            element.style.opacity = reliefPrefersReducedMotion() ? '1' : '0';
+            element.style.transform = reliefPrefersReducedMotion() ? 'none' : 'translateY(20px)';
+            element.style.transition = reliefPrefersReducedMotion() ? 'none' : 'opacity 0.5s ease, transform 0.5s ease';
         });
 
         // Run on load and scroll
         window.addEventListener('load', animateOnScroll);
+        if (typeof window.matchMedia === 'function') {
+            window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change', animateOnScroll);
+        }
         window.addEventListener('scroll', animateOnScroll);
     }
 
@@ -371,7 +393,7 @@ function initializeBackToTopButton() {
     toggleVisibility();
 
     backToTopButton.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth' });
     });
 }
 
@@ -575,6 +597,11 @@ function getLocation() {
                 position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    const valid = [lat, lng].every(Number.isFinite) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+                    if (!valid) {
+                        reject(new Error('Invalid coordinates'));
+                        return;
+                    }
                     localStorage.setItem('userLocation', JSON.stringify({ lat, lng }));
                     resolve({ lat, lng });
                 },

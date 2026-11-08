@@ -1,17 +1,17 @@
 /* Global Styles with Modern Color Palette */
 :root {
-    --primary-color: #00b894;
-    --primary-dark: #00997b;
-    --secondary-color: #0984e3;
-    --secondary-dark: #0767b1;
-    --accent-color: #fd79a8;
-    --accent-dark: #e84393;
+    --primary-color: #007a63;
+    --primary-dark: #005c4a;
+    --secondary-color: #0767b1;
+    --secondary-dark: #054e88;
+    --accent-color: #c2185b;
+    --accent-dark: #9b1049;
     --dark-color: #2d3436;
-    --dark-light: #636e72;
+    --dark-light: #55606a;
     --light-color: #f5f6fa;
     --light-dark: #dfe6e9;
-    --danger-color: #d63031;
-    --success-color: #00b894;
+    --danger-color: #c0282a;
+    --success-color: #007a63;
     --warning-color: #fdcb6e;
     --info-color: #74b9ff;
 
@@ -70,6 +70,11 @@ html {
 :focus-visible {
     outline: 2px solid var(--primary-color, #00b894);
     outline-offset: 2px;
+}
+
+/* The skip link target only takes focus from the link or a script, so it needs no ring */
+main[tabindex="-1"]:focus {
+    outline: none;
 }
 
 /* Accessibility: Respect Reduced Motion Preferences */
@@ -221,6 +226,15 @@ a:hover {
 
 .btn-signup:hover {
     background: var(--white);
+    color: var(--primary-color);
+}
+
+/* .nav-links a (above) is more specific than .btn-signup and made the label dark on blue */
+.nav-links a.btn-signup {
+    color: var(--white);
+}
+
+.nav-links a.btn-signup:hover {
     color: var(--primary-color);
 }
 
@@ -523,7 +537,7 @@ a:hover {
     --primary-color: #4a6fa5;
     --primary-light: #6d8cc0;
     --primary-dark: #2d4a75;
-    --danger-color: #e74c3c;
+    --danger-color: #c0282a;
     --dark-color: #2c3e50;
     --light-color: #f8f9fa;
     --shadow-color: rgba(0, 0, 0, 0.1);
@@ -582,7 +596,7 @@ body {
     transform: translateZ(40px);
 }
 
-.auth-form h2 {
+.auth-form h1 {
     font-size: 2.25rem;
     margin-bottom: 2rem;
     color: var(--dark-color);
@@ -592,7 +606,7 @@ body {
     perspective: 1000px;
 }
 
-.auth-form h2::after {
+.auth-form h1::after {
     content: '';
     position: absolute;
     bottom: -10px;
@@ -635,11 +649,32 @@ body {
 
 .form-group input:focus {
     border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2),
-                inset 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* a 20% tint was the only focus cue here; keep a solid ring that passes 3:1 */
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
     background: white;
     transform: translateZ(25px);
+}
+
+/* Messages from login.js and signup.js. Before this there was no .alert rule on these pages,
+   so an error looked like loose text under the button. */
+.alert {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid currentColor;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.alert-danger {
+    color: #8f1d1f;
+    background: #fdecec;
+}
+
+.alert-success {
+    color: #0b5a3c;
+    background: #e6f7ee;
 }
 
 .error-message {
@@ -1037,7 +1072,7 @@ body {
         padding: 1.5rem;
     }
 
-    .auth-form h2 {
+    .auth-form h1 {
         font-size: 2rem;
     }
 

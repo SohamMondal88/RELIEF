@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us | ReliefConnect - Disaster Response Platform</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/contact.css">
@@ -61,7 +63,7 @@
     </nav>
     </div>
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
     <!-- Hero Section -->
     <section class="contact-hero">
         <div class="container">
@@ -115,7 +117,7 @@
             <div class="form-container">
                 <div class="form-header">
                     <h2>Send Us a Message</h2>
-                    <p>We typically respond within 24 hours</p>
+                    <p>Tell us how we can help</p>
                 </div>
                 <form id="contactForm" class="contact-form">
                     <div class="form-group">
@@ -353,6 +355,8 @@
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/form-guard.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/contact-send.js"></script>
     <script src="../assets/js/contact.js"></script>
 
     <script src="../assets/js/i18n.js"></script>

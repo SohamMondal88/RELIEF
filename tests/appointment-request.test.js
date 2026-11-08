@@ -149,16 +149,17 @@ describe('phone numbers', () => {
 });
 
 describe('buildRequest', () => {
-    it('always sets status to requested', () => {
+    it('always starts as submitted, never confirmed', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
-        assert.strictEqual(req.status, 'requested');
+        assert.strictEqual(req.status, 'submitted');
+        assert.deepStrictEqual(req.statusHistory, [{ status: 'submitted', at: NOW.toISOString(), by: 'patient' }]);
     });
 
     it('keeps only the fields that are needed', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
         assert.deepStrictEqual(Object.keys(req).sort(), [
             'consentGiven', 'createdAt', 'doctorId', 'doctorName', 'id', 'notes', 'patientEmail',
-            'patientName', 'patientPhone', 'preferredDate', 'preferredWindow', 'specialty', 'status'
+            'patientName', 'patientPhone', 'preferredDate', 'preferredWindow', 'specialty', 'status', 'statusHistory'
         ]);
         const text = JSON.stringify(req);
         assert.ok(!/videoUrl|image|rating|reviews|location/.test(text));
@@ -245,7 +246,7 @@ describe('storage', () => {
         const req = buildRequest(validInput(), { now: NOW, id: 'req-1' });
         assert.deepStrictEqual(saveRequest(storage, req), { ok: true });
         assert.strictEqual(loadRequests(storage).length, 1);
-        assert.strictEqual(JSON.parse(storage.data[STORAGE_KEY])[0].status, 'requested');
+        assert.strictEqual(JSON.parse(storage.data[STORAGE_KEY])[0].status, 'submitted');
     });
 
     it('blocks a second identical save (double submit)', () => {

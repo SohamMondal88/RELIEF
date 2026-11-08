@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Appointment | Relief</title>
     <link rel="stylesheet" href="../assets/css/appointments.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
 </head>
@@ -59,7 +60,7 @@
 </nav>
 </div>
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
     <!-- Appointment Booking Section -->
     <section class="appointment-booking">
         <div class="container">
@@ -174,6 +175,15 @@
     </main>
 
     <!-- Footer -->
+    <section class="my-requests" id="my-requests" aria-labelledby="my-requests-title">
+        <div class="container">
+            <h2 id="my-requests-title">Your appointment requests</h2>
+            <p class="my-requests-help" id="my-requests-help">A request is not a booking. The provider confirms the real date and time with you by the email or phone number you gave. To reach them yourself, use the contact details on the <a href="doctors.html">doctors page</a> and quote your reference.</p>
+            <p class="request-status" id="my-requests-status" role="status" aria-live="polite" hidden></p>
+            <ul class="request-list" id="my-requests-list" aria-describedby="my-requests-help"></ul>
+        </div>
+    </section>
+
     <footer class="footer" aria-label="Footer">
         <div class="container">
             <div class="footer-grid">
@@ -244,9 +254,11 @@
 
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/appointment-status.js"></script>
     <script src="../assets/js/form-errors.js"></script>
     <script src="../assets/js/appointment-request.js"></script>
     <script src="../assets/js/appointments.js"></script>
+    <script src="../assets/js/appointment-status-ui.js"></script>
 
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app-enhancements.js"></script>
