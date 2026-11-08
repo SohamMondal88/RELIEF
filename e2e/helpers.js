@@ -153,7 +153,24 @@ async function waitForOfflineCopy(page, path) {
   })).toBeGreaterThan(3);
 }
 
+
+// Public HTML routes exercised by the smoke suite. Keep this list in sync with /pages.
+const SMOKE_ROUTES = [
+  { name: 'home', path: '/index.html', ready: '.main-content' },
+  { name: 'about', path: '/pages/about.html', ready: 'main' },
+  { name: 'contact', path: '/pages/contact.html', ready: 'main' },
+  { name: 'doctors', path: '/pages/doctors.html', ready: 'main' },
+  { name: 'hospitals', path: '/pages/hospitals.html', ready: 'main' },
+  { name: 'pharmacies', path: '/pages/pharmacies.html', ready: 'main' },
+  { name: 'ambulances', path: '/pages/ambulances.html', ready: 'main' },
+  { name: 'firstaid', path: '/pages/firstaid.html', ready: 'main' },
+  { name: 'symptoms', path: '/pages/symptoms.html', ready: 'main' },
+  { name: 'login', path: '/pages/login.html', ready: 'main' },
+  { name: 'signup', path: '/pages/signup.html', ready: 'main' }
+];
+
 module.exports = {
+  SMOKE_ROUTES,
   useGeolocation, openHome, signUp, storedJson, relief,
   failRequests, errorResponse, delayRequests, holdRequests, failThirdParty, goOffline, goOnline, waitForOfflineCopy
 };
