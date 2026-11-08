@@ -172,15 +172,6 @@
       personal: false,
       holds: 'Timestamps of recent attempts only, used to slow down repeated submissions. No form content.',
       retention: 'Entries older than the limit window (1 to 10 minutes) are ignored and removed. Included in deletion.'
-    },
-    ,
-    {
-      key: 'relief_correction_submissions',
-      label: 'Facility correction submission limiter',
-      category: 'technical',
-      personal: false,
-      holds: 'Submission timestamps and fingerprints used to prevent duplicate and excessive correction submissions. No raw form content.',
-      retention: 'Entries older than 7 days are filtered out; at most the 50 newest entries are kept. Included in data deletion.'
     }
   ];
 
