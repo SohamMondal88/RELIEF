@@ -47,7 +47,7 @@ const ReliefAPI = (function() {
 
     // Helper functions
     const handleError = (error) => {
-        console.error('API Error:', error);
+        console.error('API Error:', error && error.code);
         throw error;
     };
 
