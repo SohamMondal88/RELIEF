@@ -1,16 +1,18 @@
 // Journey: Emergency SOS on the ambulances page.
 // No real call, SMS or request is ever made: tel: and sms: links are only inspected (never followed),
-// the SOS endpoint is a fake host answered by page.route, and geolocation is mocked.
+// the SOS endpoint is a same-origin path answered by page.route (the site's CSP only lets scripts
+// reach their own origin and nominatim, so a deployment has to use a same-origin endpoint or add its origin
+// to connect-src), and geolocation is mocked.
 const { test, expect } = require('./fixtures');
 const { useGeolocation, relief } = require('./helpers');
 
-const ENDPOINT = 'https://sos.mock.relief.test/api/sos';
+const ENDPOINT = '/api/sos';
 
 // Tests that need a configured endpoint set it before the page scripts run.
 async function configureEndpoint(page, handler) {
   await page.addInitScript((url) => { window.RELIEF_SOS_ENDPOINT = url; }, ENDPOINT);
   const requests = [];
-  await page.route(ENDPOINT, async (route) => {
+  await page.route('**' + ENDPOINT, async (route) => {
     requests.push({ headers: route.request().headers(), body: route.request().postDataJSON() });
     await handler(route);
   });
