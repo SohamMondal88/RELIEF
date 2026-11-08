@@ -85,6 +85,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
   - `privacy-data.js` and `privacy-controls.js`: the list of every `localStorage` key RELIEF writes, account deletion logic and the dashboard "Your data and account" panel. Documented in `docs/PRIVACY_AND_DATA.md` and tested by `tests/privacy-data.test.js`, which fails if a script uses a storage key that is not in the inventory.
+  - `facility-utils.js`, `facility-review.js` and `facility-review-ui.js`: facility search helpers, the review states (pending, verified, stale, rejected) and the maintainer queue shown on the admin panel. Changed with `scripts/facility-review.js`. Documented in `docs/FACILITY_VERIFICATION_POLICY.md`, tested by `tests/facility-utils.test.js` and `tests/facility-review.test.js`.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
   - `onboarding.js`: Guided first-visit onboarding flow introducing verified, implemented features (facility search, emergency resources, reminders, and cautious health support). Persists skip/completion preferences in browser `localStorage` (key `relief_onboarding_status`) without requesting location or credentials. Tested by `tests/onboarding.test.js`.
 
