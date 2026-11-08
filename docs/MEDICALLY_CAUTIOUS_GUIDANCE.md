@@ -100,3 +100,9 @@ Before deploying this symptom guidance feature in a production environment:
    - Medical guidance references must be reviewed at least once every six months to verify that URLs, guidelines, and public-health recommendations remain current.
 4. **No Claim of Clinical Validation:**
    - Until formal, documented institutional clinical validation has been completed, this feature **must not** be marketed, certified, or described as a clinically approved or validated medical diagnostic tool.
+
+---
+
+## 6. First Aid Articles
+
+This document covers the symptom information flow. First aid articles (`assets/js/firstaid.js`) follow the editorial process, checklist and review register in [FIRST_AID_REVIEW_CHECKLIST.md](FIRST_AID_REVIEW_CHECKLIST.md). The same rule applies there: nothing is described as medically approved until a clinician has reviewed it and the register says so.
