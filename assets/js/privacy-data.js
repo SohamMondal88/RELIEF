@@ -118,12 +118,12 @@
       retention: 'Kept until overwritten by the next pick or until you delete your data.'
     },
     {
-      key: 'relief_onboarding_status',
-      label: 'First-visit tour choice',
+      key: 'relief_notification_prefs_v1',
+      label: 'Notification choices',
       category: 'preferences',
       personal: false,
-      holds: 'Whether you finished or skipped the first-visit tour, and when.',
-      retention: 'Until you delete your data. The tour shows again afterwards.'
+      holds: 'Two yes/no choices: whether browser notifications are on, and whether they may show medicine names.',
+      retention: 'Until you delete your data.'
     },
     {
       key: 'relief_lang',
