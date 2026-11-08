@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Health Camps and Events | RELIEF</title>
+  <meta name="description"
+    content="Find health camps, vaccination drives, screening events and outreach programmes near you." />
+  <link rel="stylesheet" href="../assets/css/professional-pages.css" />
+  <link rel="stylesheet" href="../assets/css/health-events.css" />
+
+  <!-- Vercel Web Analytics -->
+  <script src="../assets/js/vercel-analytics.js"></script>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap nav">
+      <div class="brand">
+        <img src="../assets/images/logo.jpg" alt="Relief" />
+        <strong>RELIEF</strong>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="../index.html">Home</a>
+        <a href="./hospitals.html">Hospitals</a>
+        <a href="./health-events.html" aria-current="page">Health events</a>
+        <a href="./contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap">
+    <section class="hero">
+      <h1>Health camps and events near you</h1>
+      <p class="muted">
+        Free health camps, vaccination drives, screening events and outreach
+        programmes. Always call the organiser before you travel: dates can
+        change.
+      </p>
+      <p class="events-note" id="events-sample-note" role="note" hidden>
+        Some listings below are samples to show how this page works. They are
+        labelled "Sample".
+      </p>
+    </section>
+
+    <section class="card events-filters" aria-labelledby="filters-heading">
+      <h2 id="filters-heading">Find an event</h2>
+
+      <form id="events-filter-form" novalidate>
+        <div class="events-filter-grid">
+          <div>
+            <label for="filter-location">District, block or village</label>
+            <input id="filter-location" name="location" list="filter-location-options" maxlength="80" autocomplete="off"
+              placeholder="For example: Bankura" />
+            <datalist id="filter-location-options"></datalist>
+          </div>
+
+          <div>
+            <label for="filter-type">Kind of event</label>
+            <select id="filter-type" name="type">
+              <option value="">All kinds</option>
+              <option value="health-camp">Health camp</option>
+              <option value="vaccination">Vaccination drive</option>
+              <option value="screening">Screening event</option>
+              <option value="outreach">Outreach programme</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filter-from-picker">From date</label>
+            <input id="filter-from-picker" type="date" aria-describedby="filter-error-from" />
+            <input id="filter-from" name="from" type="hidden" />
+            <p class="field-error" id="filter-error-from"></p>
+          </div>
+
+          <div>
+            <label for="filter-to-picker">To date</label>
+            <input id="filter-to-picker" type="date" aria-describedby="filter-error-to" />
+            <input id="filter-to" name="to" type="hidden" />
+            <p class="field-error" id="filter-error-to"></p>
+          </div>
+        </div>
+
+        <div class="events-filter-actions">
+          <label class="events-check">
+            <input type="checkbox" id="filter-unverified" name="includeUnverified" />
+            Also show unverified submissions
+          </label>
+
+          <button type="submit" class="btn btn-primary">
+            Show events
+          </button>
+
+          <button type="button" class="btn btn-secondary" id="filter-clear">
+            Clear filters
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section aria-labelledby="results-heading" class="events-results">
+      <h2 id="results-heading">Upcoming and ongoing events</h2>
+
+      <p id="events-summary" class="muted" role="status" aria-live="polite"></p>
+
+      <div id="events-loading" class="events-state" role="status" aria-live="polite">
+        <span class="events-spinner" aria-hidden="true"></span>
+        Loading events…
+      </div>
+
+      <div id="events-error" class="events-state events-state--error" role="alert" hidden></div>
+
+      <div id="events-empty" class="events-state" hidden>
+        <p><strong>No events match your search.</strong></p>
+        <p class="muted">
+          Try a nearby district, a wider date range, or clear the filters.
+          You can also ask your local health centre or ASHA worker.
+        </p>
+        <button type="button" class="btn btn-secondary" id="events-empty-clear">
+          Clear filters
+        </button>
+      </div>
+
+      <ul id="events-list" class="events-list" aria-busy="true"></ul>
+
+      <details id="events-past" class="events-past" hidden>
+        <summary>
+          Past events (archived)
+          <span id="events-past-count"></span>
+        </summary>
+        <p class="muted">
+          These events have already ended. They are kept for reference only.
+        </p>
+        <ul id="events-past-list" class="events-list"></ul>
+      </details>
+    </section>
+
+    <section class="card" id="event-submit-section" aria-labelledby="submit-heading">
+      <h2 id="submit-heading">Organising an event? Submit it</h2>
+
+      <p class="muted">
+        Every submission is checked by a moderator before it is listed as
+        confirmed. Until then it is shown only as "Unverified", and only to
+        people who choose to see unverified submissions.
+      </p>
+
+      <p class="events-note" id="event-submit-demo-note" role="note" hidden>
+        Demo mode: submissions are kept only in this browser and nothing is
+        sent anywhere.
+      </p>
+
+      <form id="event-submit-form" novalidate>
+        <div class="row">
+          <div>
+            <label for="event-title">Event name</label>
+            <input id="event-title" name="title" maxlength="120" required aria-describedby="event-error-title" />
+            <p class="field-error" id="event-error-title"></p>
+          </div>
+
+          <div>
+            <label for="event-type">Kind of event</label>
+            <select id="event-type" name="type" required aria-describedby="event-error-type">
+              <option value="">Choose…</option>
+              <option value="health-camp">Health camp</option>
+              <option value="vaccination">Vaccination drive</option>
+              <option value="screening">Screening event</option>
+              <option value="outreach">Outreach programme</option>
+            </select>
+            <p class="field-error" id="event-error-type"></p>
+          </div>
+        </div>
+
+        <p class="muted events-hint">
+          Dates and times are India Standard Time (IST).
+        </p>
+
+        <div class="row">
+          <div>
+            <label for="event-start-date-picker">Date</label>
+            <input id="event-start-date-picker" type="date" required aria-describedby="event-error-startDate" />
+            <input id="event-start-date" name="startDate" type="hidden" />
+            <p class="field-error" id="event-error-startDate"></p>
+          </div>
+
+          <div>
+            <label for="event-start-time">Start time</label>
+            <input id="event-start-time" name="startTime" type="time" required
+              aria-describedby="event-error-startTime" />
+            <p class="field-error" id="event-error-startTime"></p>
+          </div>
+
+          <div>
+            <label for="event-end-date-picker">
+              End date (Only if it runs over several days)
+            </label>
+            <input id="event-end-date-picker" type="date" aria-describedby="event-error-endDate" />
+            <input id="event-end-date" name="endDate" type="hidden" />
+            <p class="field-error" id="event-error-endDate"></p>
+          </div>
+
+          <div>
+            <label for="event-end-time">End time</label>
+            <input id="event-end-time" name="endTime" type="time" required aria-describedby="event-error-endTime" />
+            <p class="field-error" id="event-error-endTime"></p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="event-district">District or block</label>
+            <input id="event-district" name="district" maxlength="80" required
+              aria-describedby="event-error-district" />
+            <p class="field-error" id="event-error-district"></p>
+          </div>
+
+          <div>
+            <label for="event-venue">
+              Venue (village, landmark or building)
+            </label>
+            <input id="event-venue" name="venue" maxlength="200" required aria-describedby="event-error-venue" />
+            <p class="field-error" id="event-error-venue"></p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="event-organiser">Organiser</label>
+            <input id="event-organiser" name="organiser" maxlength="120" required
+              aria-describedby="event-error-organiser" />
+            <p class="field-error" id="event-error-organiser"></p>
+          </div>
+
+          <div>
+            <label for="event-eligibility">Who can attend</label>
+            <input id="event-eligibility" name="eligibility" maxlength="300" required
+              placeholder="For example: Everyone, or Children under 5" aria-describedby="event-error-eligibility" />
+            <p class="field-error" id="event-error-eligibility"></p>
+          </div>
+        </div>
+
+        <label for="event-services">Services offered</label>
+        <textarea id="event-services" name="services" rows="2" maxlength="800" required
+          placeholder="Separate with commas, for example: Blood pressure, Blood sugar test, Free medicines"
+          aria-describedby="event-error-services"></textarea>
+        <p class="field-error" id="event-error-services"></p>
+
+        <div class="row">
+          <div>
+            <label for="event-phone">Contact phone</label>
+            <input id="event-phone" name="contactPhone" type="tel" maxlength="30" autocomplete="off"
+              aria-describedby="event-error-contactPhone" />
+            <p class="field-error" id="event-error-contactPhone"></p>
+          </div>
+
+          <div>
+            <label for="event-email">
+              Contact email (optional if you gave a phone)
+            </label>
+            <input id="event-email" name="contactEmail" type="email" maxlength="100" autocomplete="off"
+              aria-describedby="event-error-contactEmail" />
+            <p class="field-error" id="event-error-contactEmail"></p>
+          </div>
+        </div>
+
+        <label for="event-source">
+          Link to an official notice (optional)
+        </label>
+        <input id="event-source" name="sourceUrl" type="url" maxlength="300" placeholder="https://"
+          aria-describedby="event-error-sourceUrl" />
+        <p class="field-error" id="event-error-sourceUrl"></p>
+
+        <div class="events-honeypot" aria-hidden="true">
+          <label for="event-website">Leave this empty</label>
+          <input id="event-website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          Submit for review
+        </button>
+
+        <p id="event-submit-status" role="status" aria-live="polite" data-tone=""></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    RELIEF lists events for information only. It does not run these events.
+    Check with the organiser before travelling.
+  </footer>
+
+  <script src="../assets/js/session-guard.js"></script>
+  <script src="../assets/js/auth-mode.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/health-events.js"></script>
+  <script src="../assets/js/health-events-ui.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/app-enhancements.js"></script>
+
+  <script>
+    // Native date inputs expose YYYY-MM-DD. The existing health-events
+    // validation expects DD-MM-YYYY, so mirror selections into the
+    // original named fields before the existing form handlers run.
+    (function () {
+      "use strict";
+
+      var datePairs = [
+        ["filter-from-picker", "filter-from"],
+        ["filter-to-picker", "filter-to"],
+        ["event-start-date-picker", "event-start-date"],
+        ["event-end-date-picker", "event-end-date"]
+      ];
+
+      function toDayFirst(value) {
+        if (!value) return "";
+
+        var parts = value.split("-");
+
+        return parts.length === 3
+          ? parts[2] + "-" + parts[1] + "-" + parts[0]
+          : "";
+      }
+
+      function syncDate(pickerId, fieldId) {
+        var picker = document.getElementById(pickerId);
+        var field = document.getElementById(fieldId);
+
+        if (picker && field) {
+          field.value = toDayFirst(picker.value);
+        }
+      }
+
+      datePairs.forEach(function (pair) {
+        var picker = document.getElementById(pair[0]);
+
+        if (!picker) return;
+
+        var update = function () {
+          syncDate(pair[0], pair[1]);
+        };
+
+        picker.addEventListener("input", update);
+        picker.addEventListener("change", update);
+      });
+
+      [
+        document.getElementById("events-filter-form"),
+        document.getElementById("event-submit-form")
+      ].forEach(function (form) {
+        if (!form) return;
+
+        form.addEventListener("submit", function () {
+          datePairs.forEach(function (pair) {
+            syncDate(pair[0], pair[1]);
+          });
+        }, true);
+      });
+
+      var startPicker = document.getElementById(
+        "event-start-date-picker"
+      );
+
+      var endPicker = document.getElementById(
+        "event-end-date-picker"
+      );
+
+      if (startPicker && endPicker) {
+        var updateEndMinimum = function () {
+          endPicker.min = startPicker.value || "";
+
+          if (
+            endPicker.value &&
+            startPicker.value &&
+            endPicker.value < startPicker.value
+          ) {
+            endPicker.value = startPicker.value;
+
+            syncDate(
+              "event-end-date-picker",
+              "event-end-date"
+            );
+          }
+        };
+
+        startPicker.addEventListener(
+          "change",
+          updateEndMinimum
+        );
+
+        updateEndMinimum();
+      }
+    })();
+  </script>
+</body>
+
+</html>
