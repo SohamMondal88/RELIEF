@@ -469,9 +469,25 @@
       return !!storage && writeJson(storage, SUBMISSION_LOG_KEY, entries.filter(function (e) { return e && e.at > cutoff; }).slice(-50));
     }
 
-    function unavailable() {
-      return { ok: false, kind: 'unavailable', message: UNAVAILABLE_MESSAGE, errors: {} };
+    function unavailable(error) {
+      var R = typeof ReliefResilience !== 'undefined' ? ReliefResilience : null;
+      var info = R && error ? R.classify(error) : null;
+      // Say what actually happened (offline, timeout, server) when we know it, with a reference for support.
+      var message = info && info.kind !== 'unavailable' && info.kind !== 'unknown'
+        ? info.title + '. ' + info.message + (info.requestId ? ' (Reference: ' + info.requestId + ')' : '')
+        : UNAVAILABLE_MESSAGE;
+      return { ok: false, kind: 'unavailable', message: message, retryable: !info || info.retryable, errors: {} };
     }
+
+    var idempotencyKeys = {};
+    function idempotencyKeyFor(fp) {
+      if (!idempotencyKeys[fp]) {
+        var R = typeof ReliefResilience !== 'undefined' ? ReliefResilience : null;
+        idempotencyKeys[fp] = R ? R.newIdempotencyKey() : 'k-' + String(clock()) + '-' + Math.floor(Math.random() * 1e9);
+      }
+      return idempotencyKeys[fp];
+    }
+    function forgetIdempotencyKey(fp) { delete idempotencyKeys[fp]; }
 
     async function submit(input) {
       var checked = validateSubmission(input, { facilities: d.facilities });
@@ -493,13 +509,17 @@
 
       if (hasApi('submitFacilityCorrection')) {
         try {
+          // The same suggestion keeps the same key, so pressing "send" again after a failure
+          // is recognised by the server as a repeat instead of a second submission.
+          var idemKey = idempotencyKeyFor(fingerprint(checked.clean));
           var answer = await api.submitFacilityCorrection({
             facilityId: checked.clean.facilityId,
             field: checked.clean.field,
             proposedValue: checked.clean.proposedValue,
             sourceUrl: checked.clean.sourceUrl,
             contact: checked.clean.contact
-          });
+          }, { idempotencyKey: idemKey });
+          forgetIdempotencyKey(fingerprint(checked.clean));
           return record('server', answer);
         } catch (error) {
           if (error && error.code === 'rate-limited') {
@@ -508,7 +528,7 @@
           if (error && error.code === 'rejected') {
             return { ok: false, kind: 'invalid', message: 'The review service did not accept this suggestion.', errors: (error.details && error.details.errors) || {} };
           }
-          if (!demo) return unavailable();
+          if (!demo) return unavailable(error);
         }
       } else if (!demo) {
         return unavailable();

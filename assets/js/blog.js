@@ -1,3 +1,8 @@
+
+function reliefPrefersReducedMotion() {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile Menu Toggle
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
@@ -37,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (targetElement) {
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
+                    behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth'
                 });
             }
         });
@@ -151,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const elementPosition = element.getBoundingClientRect().top;
             const screenPosition = window.innerHeight / 1.2;
 
-            if (elementPosition < screenPosition) {
+            if (reliefPrefersReducedMotion() || elementPosition < screenPosition) {
                 element.classList.add('animate');
             }
         });
