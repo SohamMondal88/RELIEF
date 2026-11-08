@@ -1,0 +1,5 @@
+# Reduced motion
+
+RELIEF uses the operating-system/browser `prefers-reduced-motion: reduce` setting. Existing CSS shortens animations/transitions and turns CSS smooth scrolling off. Main, About and Blog JavaScript also checks the setting: anchor/back-to-top scrolling is instant, reveal content stays visible, About counters show their final value, and the landing splash no longer delays entry for three seconds. Text, emergency links, loading labels and status messages remain present. No preference or health data is stored.
+
+Verify Home, About and Blog with reduced motion enabled and disabled. Tab through anchors and back-to-top; changing the preference before another scroll must affect the next action. On Home, switching to reduce reveals cards already awaiting scroll. About statistics must show final values without an animated count-up. CSS is checked on authentication, directories, first aid and dashboard pages too. This is a motion audit, not a claim of whole-site accessibility compliance.

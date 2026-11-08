@@ -167,7 +167,12 @@
     const config = resolveConfig(opts.config, globalConfig());
     const now = opts.now || Date.now;
     const store = safeStore(opts.storage !== undefined ? opts.storage : (typeof localStorage !== 'undefined' ? localStorage : null));
-    const timers = opts.timers || { setInterval: setInterval, clearInterval: clearInterval };
+    // Wrapped on purpose: calling the bare timer functions as methods of this object
+    // (timers.setInterval(...)) gives them the wrong `this` and throws "Illegal invocation" in browsers.
+    const timers = opts.timers || {
+      setInterval: function (fn, ms) { return setInterval(fn, ms); },
+      clearInterval: function (id) { return clearInterval(id); }
+    };
     const target = opts.target || null;
     const doc = opts.doc || null;
 

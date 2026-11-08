@@ -27,11 +27,14 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | File | Journey |
 |---|---|
 | `e2e/navigation.spec.js` | Landing page, primary navigation, hamburger menu on a phone width (open, close, Escape, focus), Relief Assistant on the dashboard (greeting, routing, urgent escalation, medical advice refusal, clear chat) |
+| `e2e/admin-panel.spec.js` | Admin panel is labelled a demo with its sample buttons off, and the moderation queue in each state: demo host, normal host with no backend, signed out, not a moderator, moderator |
 | `e2e/auth.spec.js` | Demo signup, validation errors, duplicate email, login (right and wrong password), navbar Dashboard and Logout, logout clears the session, no plain text password in storage |
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |
 | `e2e/sos.spec.js` | SOS dialog (focus, Escape, Tab trap), no backend configured, server error, unconfirmed 200, dropped connection, Retry, confirmed success with a mocked location, denied location, offline, closing while a request is in flight |
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
+| `e2e/pwa.spec.js` | The browser accepts the manifest, an unsaved page shows the offline page offline, the home, dashboard and login pages are never saved |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/accessibility.spec.js` | axe-core on 18 pages, skip link focus, tour dialog focus trap, refused login and signup messages, reminder errors and actions, assistant log, symptom checker steps, focus rings (Issue #51, see `docs/ACCESSIBILITY.md`) |
 
 ## Rules the tests follow
 

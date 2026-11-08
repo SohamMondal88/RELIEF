@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const U = window.FacilityUtils;
     const DATA_URL = '../assets/data/facilities.json';
+    const R = typeof ReliefResilience !== 'undefined' ? ReliefResilience : null;
     const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
 
     const hospitalsList = document.querySelector('.hospitals-list');
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!hospitalsList || !U) return;
 
     let facilities = [];
+    let reviewPolicy = U.getReviewPolicy(null);
     let map = null;
     let markers = [];
     let userMarker = null;
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             localStorage.setItem(SAVED_KEY, JSON.stringify(items));
         } catch (error) {
-            console.error('Could not save facility:', error);
+            console.error('Could not save facility:', error && error.name);
         }
     }
 
@@ -153,14 +155,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initMap() {
-        if (typeof L === 'undefined' || !document.getElementById('map')) return;
-        const saved = readSavedLocation();
-        const center = saved ? [saved.lat, saved.lng] : DEFAULT_CENTER;
-        map = L.map('map').setView(center, saved ? 11 : 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        setUserMarker(saved);
+        const mapEl = document.getElementById('map');
+        if (!mapEl) return;
+        if (typeof L === 'undefined') {
+            // The map library did not load (offline, blocked). The list below still works.
+            mapEl.textContent = 'The map could not be loaded. The facility list below still works.';
+            return;
+        }
+        try {
+            const saved = readSavedLocation();
+            const center = saved ? [saved.lat, saved.lng] : DEFAULT_CENTER;
+            map = L.map('map').setView(center, saved ? 11 : 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            setUserMarker(saved);
+        } catch (error) {
+            map = null;
+            if (R) R.logError('hospitals map init', error);
+            mapEl.textContent = 'The map could not be shown. The facility list below still works.';
+        }
     }
 
     function updateMapMarkers(list) {
@@ -214,9 +228,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const distance = f.distanceKm != null
             ? '<p class="hospital-distance">' + U.escapeHtml(U.formatDistance(f.distanceKm)) + '</p>'
             : '';
-        const badgeClass = f.verified ? 'badge-verified' : 'badge-unverified';
-        const badgeText = f.verified ? 'Verified' : 'Not verified';
-        const detail = f.verified ? U.verificationLabel(f).replace(/^Verified - /, '') : 'no source recorded yet';
+        // The label comes from the review state and the check date, never from a bare flag.
+        const label = U.reviewLabel(f, { policy: reviewPolicy });
+        const badgeClass = 'badge-' + (label.state === 'pending' ? 'unverified' : label.state);
+        const badgeText = label.badge;
+        const detail = label.detail;
         return '' +
             '<div class="hospital-info">' +
                 '<h4 class="hospital-name">' + U.escapeHtml(f.name) + '</h4>' +
@@ -272,7 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
             type: facilityTypeFilter ? facilityTypeFilter.value : '',
             district: districtFilter ? districtFilter.value : '',
             service: servicesFilter ? servicesFilter.value : '',
-            verifiedOnly: verifiedOnly ? verifiedOnly.checked : false
+            verifiedOnly: verifiedOnly ? verifiedOnly.checked : false,
+            policy: reviewPolicy
         });
         const sortBy = sortSelect ? sortSelect.value : 'name';
         const location = readSavedLocation();
@@ -290,17 +307,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         setStatus('Finding your location...');
         navigator.geolocation.getCurrentPosition(function(pos) {
+            const coords = pos && pos.coords;
+            if (!coords || !U.isValidCoord(coords.latitude, coords.longitude)) {
+                setStatus('Your device gave an unusable position, so it was ignored. Showing facilities sorted by name.');
+                return;
+            }
             if (window.ReliefLocation) {
                 window.ReliefLocation.saveLocation({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
+                    lat: coords.latitude,
+                    lng: coords.longitude,
                     source: 'gps'
                 });
             } else {
                 try {
                     localStorage.setItem('userLocation', JSON.stringify({
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude
+                        lat: coords.latitude,
+                        lng: coords.longitude
                     }));
                 } catch (e) { /* storage unavailable; the location is used only for this visit */ }
             }
@@ -317,34 +339,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { timeout: 10000, maximumAge: 300000 });
     }
 
-    function showLoading() {
-        hospitalsList.innerHTML = '<p class="loading-state">Loading facilities...</p>';
-        setStatus('Loading facilities...');
+    function showLoading(message) {
+        const text = message || 'Loading facilities...';
+        if (R) R.renderState(hospitalsList, { state: 'loading', message: text });
+        else hospitalsList.innerHTML = '<p class="loading-state">' + text + '</p>';
+        setStatus(text);
     }
 
-    function showError() {
-        hospitalsList.innerHTML = '';
-        const wrap = document.createElement('div');
-        wrap.className = 'error-state';
-        wrap.setAttribute('role', 'alert');
-        wrap.innerHTML = '<p>The facility list could not be loaded. Check your connection and try again.</p>';
-        const retry = document.createElement('button');
-        retry.type = 'button';
-        retry.className = 'btn-filter';
-        retry.textContent = 'Retry';
-        retry.addEventListener('click', loadFacilities);
-        wrap.appendChild(retry);
-        hospitalsList.appendChild(wrap);
-        setStatus('The facility list could not be loaded.');
+    // `error` is whatever failed: a fetch/HTTP failure, or bad data. It decides the wording
+    // (offline / timeout / server) and whether a retry makes sense.
+    function showError(error) {
+        const info = R ? R.classify(error) : null;
+        if (R) {
+            R.renderState(hospitalsList, {
+                state: 'error',
+                error: info,
+                // Facility data is used when people need care, so always say what to do if it is urgent.
+                emergency: true
+            }, loadFacilities);
+        } else {
+            hospitalsList.innerHTML = '<div class="error-state" role="alert"><p>The facility list could not be loaded. Check your connection and try again.</p></div>';
+            const retry = document.createElement('button');
+            retry.type = 'button';
+            retry.className = 'btn-filter';
+            retry.textContent = 'Retry';
+            retry.addEventListener('click', loadFacilities);
+            hospitalsList.firstChild.appendChild(retry);
+        }
+        setStatus(info ? info.title + '. ' + info.message : 'The facility list could not be loaded.');
+    }
+
+    // Plain fetch that reports HTTP failures with a status, so they can be told apart.
+    function fetchFacilities() {
+        const timeoutMs = 10000;
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        let timedOut = false;
+        const timer = controller ? setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs) : null;
+        return fetch(DATA_URL, controller ? { signal: controller.signal } : undefined)
+            .then(res => {
+                if (!res.ok) {
+                    const err = new Error('HTTP ' + res.status);
+                    err.status = res.status;
+                    err.requestId = R ? R.extractRequestId(res) : null;
+                    throw err;
+                }
+                return res.json().catch(() => {
+                    const err = new Error('Bad facility data');
+                    err.code = 'backend-unavailable';
+                    err.reason = 'bad-answer';
+                    throw err;
+                });
+            })
+            .catch(err => {
+                if (timedOut) { const e = new Error('timeout'); e.reason = 'timeout'; throw e; }
+                if (!err.status && !err.reason && navigator.onLine === false) err.reason = 'offline';
+                throw err;
+            })
+            .finally(() => { if (timer) clearTimeout(timer); });
     }
 
     function loadFacilities() {
         showLoading();
-        fetch(DATA_URL)
-            .then(res => {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
+        // Reading a static file is safe to repeat, so transient failures are retried quietly first.
+        const load = R
+            ? R.retry(fetchFacilities, {
+                method: 'GET',
+                onRetry: (info) => showLoading('Still trying to load facilities (attempt ' + (info.attempt + 1) + ')...')
             })
+            : fetchFacilities();
+        load
             .then(data => {
                 // Records that break the data contract are left out instead of breaking the page.
                 const checked = window.FacilitySchema ? window.FacilitySchema.validateDataset(data) : null;
@@ -354,12 +417,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         checked.quarantined.map(q => (q.id || '#' + q.index) + ' (' + q.errors.join(', ') + ')'));
                 }
                 facilities = U.normalizeFacilities(checked ? checked.accepted : data);
+                reviewPolicy = U.getReviewPolicy(data);
                 populateFilters();
                 applyFilters();
                 // The correction form (facility-corrections-ui.js) fills its list from this.
                 document.dispatchEvent(new CustomEvent('relief:facilities-loaded', { detail: { facilities: facilities } }));
             })
-            .catch(() => showError());
+            .catch(error => {
+                if (R) R.logError('hospitals load', error, { url: R.safeUrl(DATA_URL) });
+                showError(error);
+            });
     }
 
     hospitalsList.addEventListener('click', function(e) {

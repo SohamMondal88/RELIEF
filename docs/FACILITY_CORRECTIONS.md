@@ -40,7 +40,7 @@ pending --approve (needs evidence)--> approved
 pending --reject  (needs reason)----> rejected
 ```
 
-A decision is final. To change it, someone files a new suggestion. The names `pending`, `approved`, `rejected` are used for corrections. They are not the facility review states (`pending`, `verified`, `stale`, `rejected`) from the verification workflow in issue #55, and approving a correction does not set any of them.
+A decision is final. To change it, someone files a new suggestion. The names `pending`, `approved`, `rejected` are used for corrections. They are not the facility review states (`pending`, `verified`, `stale`, `rejected`) from the verification workflow (`docs/FACILITY_VERIFICATION_POLICY.md`), and approving a correction does not set any of them. When a maintainer applies an approved change to a verified record, the record has to be re-verified or set back to `pending` in the same change (`node scripts/facility-review.js check --base-ref origin/main` fails otherwise).
 
 Every correction carries an append-only `history`:
 
