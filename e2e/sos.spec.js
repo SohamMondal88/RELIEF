@@ -27,19 +27,20 @@ async function openDialog(page) {
 
 const confirm = (dialog) => dialog.getByRole('button', { name: 'Confirm Emergency SOS Request' });
 
-// Known bug: assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with
-// no network the ambulances page throws "L is not defined". hospitals.js already guards against this.
-// The SOS dialog does not depend on the map, so these tests tolerate that one error and the fixme below tracks it.
-test.use({ allowedPageErrors: [/^L is not defined$/] });
-
 test.afterEach(async ({ page }) => {
   // Whatever a test did, no phone call or SMS may have been started.
   const guard = await relief(page).catch(() => null);
   if (guard) expect(guard.opened, 'window.open calls').toEqual([]);
 });
 
-test.fixme('the ambulances page loads without page errors when the map library cannot load', async ({ page, problems }) => {
+// The fixture blocks every request that leaves the local site, so the Leaflet CDN script never loads here.
+// ambulances.js must still work and say that the map is missing (issue #75).
+test('the ambulances page works without the map library and says the map could not load', async ({ page, problems }) => {
   await page.goto('/pages/ambulances.html');
+  expect(problems.blocked.some((request) => request.includes('leaflet'))).toBe(true);
+  await expect(page.locator('.ambulance-item')).toHaveCount(4);
+  await expect(page.getByRole('status').filter({ hasText: 'The map could not be loaded' })).toBeVisible();
+  await expect(page.locator('#map')).toBeHidden();
   expect(problems.pageErrors).toEqual([]);
 });
 
