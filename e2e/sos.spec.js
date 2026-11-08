@@ -73,11 +73,9 @@ test.describe('SOS confirmation dialog', () => {
     await expect(page.getByText('Processing Emergency SOS...')).toHaveCount(0);
   });
 
-  // Real bug found while writing these tests: a click on the SOS button runs the button's own handler and then
-  // the document-level handler in emergency-sos.js, so the dialog is opened twice. The second open records the
-  // dialog's Cancel button as "previously focused", so on close focus is lost instead of returning to the SOS
-  // button (and a second keydown listener is left behind). Remove .fixme once openConfirmationDialog is guarded.
-  test.fixme('closing the dialog returns focus to the SOS button', async ({ page }) => {
+  // Regression for issue #73: a click on the SOS button used to run both the button's own handler and the
+  // document-level handler, which opened the dialog twice and lost the element to refocus on close.
+  test('closing the dialog returns focus to the SOS button', async ({ page }) => {
     await openDialog(page);
     await page.keyboard.press('Escape');
     await expect(page.locator('#relief-emergency-sos-trigger')).toBeFocused();
