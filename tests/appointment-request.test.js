@@ -8,6 +8,7 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const fx = require('./helpers/provider-fixtures');
 
 const {
     validateRequest,
@@ -24,7 +25,7 @@ const NOW = new Date(2026, 9, 14, 10, 0, 0);
 
 function validInput(overrides) {
     return Object.assign({
-        doctor: { id: 3, name: 'Dr. Asha Rao', specialty: 'Cardiology', location: 'Pune', rating: 4.5, reviews: 120, image: 'x.jpg' },
+        doctor: fx.get('doctor', 'synthetic-doctor-001'),
         date: '2026-10-16',
         timeWindow: 'morning',
         name: 'Ravi Kumar',
