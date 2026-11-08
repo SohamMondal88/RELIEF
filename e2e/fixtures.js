@@ -23,6 +23,9 @@ const GUARD_SCRIPT = () => {
       window.__relief.links.push(link.getAttribute('href'));
     }
   }, true);
+  // The first-visit tour covers the page and would block every click, so it starts as skipped.
+  // A test that wants the tour calls showTour() from helpers.js.
+  try { localStorage.setItem('relief_onboarding_status', JSON.stringify({ status: 'skipped', timestamp: 0 })); } catch (e) { /* storage blocked */ }
   // Default: location permission denied. Tests that need a position call useGeolocation().
   Object.defineProperty(navigator, 'geolocation', {
     configurable: true,

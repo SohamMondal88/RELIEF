@@ -50,31 +50,31 @@
 </nav>
 </div>
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
     <!-- Signup Form -->
     <section class="auth-container">
         <div class="auth-form">
-            <h2 data-i18n="signup.h2">Create Your Account</h2>
+            <h1 data-i18n="signup.h2">Create Your Account</h1>
             <p class="demo-notice" id="demo-notice" role="note" hidden></p>
             <form id="signup-form">
                 <div class="form-group">
                     <label for="signup-name" data-i18n="signup.name">Full Name</label>
-                    <input type="text" id="signup-name" placeholder="Enter your full name" data-i18n-attr="placeholder:signup.name.placeholder" required>
+                    <input type="text" id="signup-name" autocomplete="name" placeholder="Enter your full name" data-i18n-attr="placeholder:signup.name.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-email" data-i18n="auth.email">Email</label>
-                    <input type="email" id="signup-email" placeholder="Enter your email" data-i18n-attr="placeholder:auth.email.placeholder" required>
+                    <input type="email" id="signup-email" autocomplete="email" placeholder="Enter your email" data-i18n-attr="placeholder:auth.email.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-password" data-i18n="auth.password">Password</label>
-                    <input type="password" id="signup-password" placeholder="Create a password" data-i18n-attr="placeholder:signup.password.placeholder" required>
+                    <input type="password" id="signup-password" autocomplete="new-password" placeholder="Create a password" data-i18n-attr="placeholder:signup.password.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-confirm-password" data-i18n="signup.confirm">Confirm Password</label>
-                    <input type="password" id="signup-confirm-password" placeholder="Confirm your password" data-i18n-attr="placeholder:signup.confirm.placeholder" required>
+                    <input type="password" id="signup-confirm-password" autocomplete="new-password" placeholder="Confirm your password" data-i18n-attr="placeholder:signup.confirm.placeholder" required>
                     <span class="error-message"></span>
                 </div>
                 <div class="form-group checkbox">

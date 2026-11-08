@@ -39,6 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
         history.unshift({ date: new Date().toISOString().slice(0, 10), event, status });
     }
 
+    const reminderStatus = document.getElementById('reminder-status');
+
+    // Polite status line next to the list. Clearing it first makes a repeat of the same sentence
+    // announce again.
+    function announce(message) {
+        if (!reminderStatus) return;
+        reminderStatus.textContent = '';
+        window.setTimeout(() => { reminderStatus.textContent = message; }, 30);
+    }
+
     // Field settings for the shared error helper (see form-errors.js).
     const ERROR_FIELDS = {
         medicine: { focusId: 'medicine', errorId: 'medicine-error' },
@@ -84,11 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const range = [r.startDate ? `From ${r.startDate}` : '', r.endDate ? `until ${r.endDate}` : ''].filter(Boolean).join(' ');
         const tzWarn = R.getTimeZoneWarning(r, timeZone);
         const id = esc(r.id);
+        const button = (action, text) =>
+            `<button type="button" class="btn" data-action="${action}" data-id="${id}" aria-label="${esc(R.describeAction(action, r.medicine))}">${text}</button>`;
         const actions = state === 'completed'
-            ? `<button type="button" class="btn" data-action="remove" data-id="${id}">Remove</button>`
-            : `<button type="button" class="btn" data-action="edit" data-id="${id}">Edit</button>
-               <button type="button" class="btn" data-action="${r.status === 'paused' ? 'resume' : 'pause'}" data-id="${id}">${r.status === 'paused' ? 'Resume' : 'Pause'}</button>
-               <button type="button" class="btn" data-action="done" data-id="${id}">Done</button>`;
+            ? button('remove', 'Remove')
+            : `${button('edit', 'Edit')}
+               ${r.status === 'paused' ? button('resume', 'Resume') : button('pause', 'Pause')}
+               ${button('done', 'Done')}`;
         return `
             <li class="reminder-item reminder-${state}">
                 <div>
@@ -231,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstLine = R.explainSchedule({ ...readForm(), scheduleMode: r.scheduleMode, scheduleTimeZone: r.scheduleMode === 'fixed' ? r.timeZone : '' }, new Date(), timeZone).split('First reminder:')[1];
         resetForm();
         render();
+        announce(`${r.medicine} reminder ${editId ? 'updated' : 'saved'} for ${r.time} every day.`);
         checkDue();
         savedEl.textContent = `Reminder saved.${firstLine ? ' First reminder:' + firstLine : ''}`;
         savedEl.hidden = false;
@@ -286,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cancelBtn.hidden = false;
             showErrors({});
             fields.medicine.focus();
+            announce(`Editing ${current.medicine}. Change the fields and choose Update Reminder.`);
             return;
         }
 
@@ -305,6 +319,13 @@ document.addEventListener('DOMContentLoaded', () => {
             reminders = result.reminders;
             if (fields.id.value === id) resetForm();
             render();
+            announce(R.describeResult(action, current.medicine));
+            // render() rebuilt the list, which dropped keyboard focus. Put it back on the same row,
+            // on the button that replaced the one pressed (Pause becomes Resume, Done leaves Remove),
+            // or on the list when the row is gone.
+            const nextAction = { pause: 'resume', resume: 'pause', done: 'remove' }[action];
+            const again = nextAction && list.querySelector(`button[data-id="${id}"][data-action="${nextAction}"]`);
+            (again || list).focus();
         } else if (result) {
             showErrors(result.errors);
         }

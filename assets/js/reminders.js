@@ -385,54 +385,35 @@
         return `Created in ${reminder.timeZone}. It now follows this device's clock (${currentTimeZone}).`;
     }
 
-    /** The device clock time (HH:MM) at the moment a fixed-zone reminder's time is reached today. */
-    function localEquivalent(reminder, now, deviceTimeZone) {
-        const zone = getEffectiveTimeZone(reminder, deviceTimeZone);
-        const zoneNow = getLocalParts(now, zone);
-        const deviceNow = getLocalParts(now, deviceTimeZone);
-        const toMinutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
-        const diff = toMinutes(deviceNow.time) - toMinutes(zoneNow.time);
-        const dayShift = Math.round((Date.parse(deviceNow.date) - Date.parse(zoneNow.date)) / 86400000);
-        const total = toMinutes(reminder.time) + diff + dayShift * 1440;
-        const wrapped = ((total % 1440) + 1440) % 1440;
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(Math.floor(wrapped / 60))}:${pad(wrapped % 60)}`;
+    // ---------- wording for assistive technology (used by dashboard.js) ----------
+
+    const ACTION_LABELS = { edit: 'Edit', pause: 'Pause', resume: 'Resume', done: 'Done', remove: 'Remove' };
+    const ACTION_RESULTS = {
+        pause: 'paused',
+        resume: 'resumed',
+        done: 'marked done',
+        remove: 'removed'
+    };
+
+    // The visible button text is just "Pause", so every row would read the same to a screen reader.
+    // The accessible name starts with the visible word (WCAG 2.5.3) and adds which medicine it is for.
+    function describeAction(action, medicine) {
+        const label = ACTION_LABELS[action] || String(action);
+        const name = String(medicine || '').trim();
+        return name ? `${label}: ${name}` : label;
     }
 
-    /**
-     * Plain-language description of when a reminder will fire, shown before it is saved.
-     * Returns '' until a valid time is given.
-     */
-    function explainSchedule(input, now, deviceTimeZone) {
-        const src = input || {};
-        if (!isValidTime(src.time)) return '';
-        const device = isValidTimeZone(deviceTimeZone) ? deviceTimeZone : getLocalTimeZone();
-        const fixed = src.scheduleMode === 'fixed';
-        const zone = fixed ? String(src.scheduleTimeZone || '').trim() : device;
-        if (fixed && !isValidTimeZone(zone)) return 'Choose a time zone to see when this reminder will fire.';
-
-        const probe = { time: src.time, scheduleMode: fixed ? 'fixed' : 'local', timeZone: zone };
-        const startDate = isValidDate(src.startDate) ? src.startDate : '';
-        const local = getLocalParts(now, zone);
-        const futureStart = startDate && local.date < startDate;
-        const first = futureStart ? `on ${startDate}` : (src.time < local.time ? 'tomorrow' : 'today');
-
-        const lines = [];
-        if (fixed) {
-            lines.push(`Every day at ${src.time} in ${zone}.`);
-            if (zone !== device) lines.push(`That is ${localEquivalent(probe, now, device)} on this device now (${device}).`);
-            lines.push('It stays on that time zone if you travel.');
-        } else {
-            lines.push(`Every day at ${src.time} on this device's clock (${device}).`);
-            lines.push('If you travel or change the device time zone, it follows the new local time.');
-        }
-        lines.push('If daylight saving skips this time, it appears right after. If the time happens twice, it appears once.');
-        lines.push(`First reminder: ${first}${futureStart ? '' : ' at ' + src.time}.`);
-        return lines.join(' ');
+    // Sentence for the status line after an action, e.g. "Metformin paused."
+    function describeResult(action, medicine) {
+        const name = String(medicine || '').trim() || 'Reminder';
+        const result = ACTION_RESULTS[action];
+        return result ? `${name} ${result}.` : '';
     }
 
     const api = {
         REMINDERS_KEY,
+        describeAction,
+        describeResult,
         REMINDER_DISCLAIMER,
         PERSISTENCE_NOTE,
         TIMEZONE_NOTE,
