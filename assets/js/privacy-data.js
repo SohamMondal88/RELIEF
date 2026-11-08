@@ -86,6 +86,22 @@
       retention: 'Until you remove the facility or delete your data.'
     },
     {
+      key: 'relief_demo_facility_corrections',
+      label: 'Demo facility correction queue',
+      category: 'health',
+      personal: true,
+      holds: 'Facility corrections you suggested (facility, field, proposed value, optional source link), an optional email or phone, status and decision log.',
+      retention: 'Until deleted. Only written in demo mode (localhost, file:// or an explicit demo flag) when the backend cannot be reached. The contact detail is wiped when a moderator decides.'
+    },
+    {
+      key: 'relief_correction_submissions',
+      label: 'Facility correction rate-limit log',
+      category: 'technical',
+      personal: false,
+      holds: 'Submission time and a short fingerprint of each correction you sent, used for the rate limit and duplicate check.',
+      retention: 'Entries older than 7 days are dropped on the next write; at most 50 are kept. Until deleted otherwise.'
+    },
+    {
       key: 'userLocation',
       label: 'Saved location',
       category: 'location',
@@ -102,20 +118,12 @@
       retention: 'Kept until overwritten by the next pick or until you delete your data.'
     },
     {
-      key: 'relief_demo_health_events',
-      label: 'Health event submissions (demo queue)',
-      category: 'technical',
-      personal: true,
-      holds: 'Events you submitted in demo mode: title, date, venue, organiser, services, eligibility, contact phone or email, and any moderator decision.',
-      retention: 'Until you delete your data. Only written in demo mode (localhost, file:// or an explicit demo flag) when the review service cannot be reached.'
-    },
-    {
-      key: 'relief_health_event_submissions',
-      label: 'Submission limiter (Health events)',
-      category: 'technical',
+      key: 'relief_onboarding_status',
+      label: 'First-visit tour choice',
+      category: 'preferences',
       personal: false,
-      holds: 'Times and a fingerprint (title, start time, district) of events you submitted, used to stop duplicates and repeated submissions.',
-      retention: 'Entries older than 7 days are dropped; at most 50 kept. Included in deletion.'
+      holds: 'Whether you finished or skipped the first-visit tour, and when.',
+      retention: 'Until you delete your data. The tour shows again afterwards.'
     },
     {
       key: 'relief_lang',
