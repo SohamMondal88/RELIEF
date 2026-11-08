@@ -86,8 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
 
             // Here you would typically filter news items
-            // For demo purposes, we'll just log the filter
-            console.log(`Filtering by: ${this.textContent}`);
         });
     });
 
@@ -124,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Here you would typically perform the search
-            console.log(`Searching for: ${searchInput.value}`);
             alert(`Searching for: ${searchInput.value}`);
         });
 

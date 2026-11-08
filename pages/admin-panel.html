@@ -4,9 +4,10 @@
 </head><body>
 <header class="topbar"><div class="wrap nav"><div class="brand"><img src="../assets/images/logo.jpg" alt="Relief"><strong>RELIEF Admin/Doctor Panel</strong></div><nav><a href="../index.html">Home</a><a href="./dashboard.html">Dashboard</a><a href="./contact.html">Contact</a></nav></div></header>
 <main class="wrap"><section class="hero"><h1>Operational Control Center</h1><p class="muted">For hackathon demo: triage queue, provider verification, and response analytics.</p></section>
-<div class="grid"><article class="card"><h2>Triage Queue</h2><table class="table"><tr><th>Patient</th><th>Risk</th><th>Action</th></tr><tr><td>P-1032</td><td>High</td><td><button class="btn btn-danger">Escalate SOS</button></td></tr><tr><td>P-2210</td><td>Moderate</td><td><button class="btn btn-primary">Assign Doctor</button></td></tr></table></article>
-<article class="card"><h2>Provider Verification</h2><p>Review newly onboarded doctors and pharmacies.</p><ul><li>Dr. N. Rao - Documents verified ✅</li><li>LifeCare Pharmacy - Pending license upload ⚠️</li></ul></article>
-<article class="card"><h2>System Metrics</h2><p><strong>Avg triage response:</strong> 2m 10s</p><p><strong>SOS initiation success:</strong> 97%</p><p><strong>Reminder delivery:</strong> 94%</p></article>
+<section class="alert" id="admin-demo-banner" role="note" style="margin-top:16px" aria-labelledby="admin-demo-title"><strong id="admin-demo-title">Demo interface, not a real admin console.</strong> There is no sign-in or role check on this page. Anyone who opens the link sees it, and hiding a link or a button would not change that. Only a server can decide who may approve or change anything (see docs/ADMIN_ACCESS.md). The triage queue, provider list and metrics are made-up sample data, not verified healthcare information, so their buttons are switched off.</section>
+<div class="grid"><article class="card"><h2>Triage Queue (sample)</h2><table class="table"><tr><th>Patient</th><th>Risk</th><th>Action</th></tr><tr><td>P-1032</td><td>High</td><td><button class="btn btn-danger" type="button" disabled aria-disabled="true" title="Demo only: not connected to anything">Escalate SOS</button></td></tr><tr><td>P-2210</td><td>Moderate</td><td><button class="btn btn-primary" type="button" disabled aria-disabled="true" title="Demo only: not connected to anything">Assign Doctor</button></td></tr></table></article>
+<article class="card"><h2>Provider Verification (sample)</h2><p>Review newly onboarded doctors and pharmacies. Nothing below was checked by anyone.</p><ul><li>Sample doctor A - documents shown as verified</li><li>Sample pharmacy B - license upload shown as pending</li></ul></article>
+<article class="card"><h2>System Metrics (sample)</h2><p><strong>Avg triage response:</strong> 2m 10s</p><p><strong>SOS initiation success:</strong> 97%</p><p><strong>Reminder delivery:</strong> 94%</p></article>
 </div>
 <section class="card corrections-card" id="correction-moderation" aria-labelledby="corrections-heading" style="margin-top:16px">
 <h2 id="corrections-heading">Facility corrections</h2>
@@ -25,7 +26,7 @@
 <ol id="correction-log" class="correction-log"></ol>
 <details><summary>Approved changes for maintainers (JSON)</summary><p class="muted">Apply these to assets/data/facilities.json by hand, with the facility verification steps. The public page never applies them by itself.</p><pre id="correction-patch" class="correction-patch">[]</pre></details>
 </section>
-<section class="alert" style="margin-top:16px">Data shown is demo-safe and anonymized for hackathon presentation.</section></main>
+<section class="alert" style="margin-top:16px">Sample data only. These numbers and names are not measured and not verified healthcare information.</section></main>
 <footer class="wrap footer">Access should be role-protected in production using server-side authorization.</footer>
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/api.js"></script>

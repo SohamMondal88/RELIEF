@@ -1,0 +1,18 @@
+{
+  "name": "RELIEF - Rural Healthcare Companion",
+  "short_name": "RELIEF",
+  "description": "Find nearby hospitals, read first aid guidance and reach emergency help. Works partly offline.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "background_color": "#fdf8f2",
+  "theme_color": "#00b894",
+  "icons": [
+    { "src": "assets/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
