@@ -239,6 +239,8 @@ git diff
 
 Test the affected page or behavior in a browser. Include the checks you actually performed in the pull request; do not claim tests that you did not run.
 
+If your change touches healthcare content, emergency actions or what a page claims, go through the [release checklist](RELEASE_CHECKLIST.md) and paste the relevant parts into your pull request.
+
 Commit and push your branch:
 
 ```bash
@@ -287,6 +289,7 @@ Security headers and the Content Security Policy are described in `docs/SECURITY
 - [ ] I tested the relevant steps or clearly stated what I could not test.
 - [x] The README links to this guide.
 - [ ] The pull request describes the change and the checks performed.
+- [ ] For healthcare content or UI changes, I went through the [release checklist](RELEASE_CHECKLIST.md).
 
 ## Related links
 
