@@ -65,3 +65,43 @@ test('App Check stays off unless a site key is provided', () => {
   assert.match(apiSource, /RELIEF_APP_CHECK_SITE_KEY/);
   assert.match(apiSource, /appCheckSiteKey && typeof firebase\.appCheck === 'function'/);
 });
+
+function blockFor(name) {
+  return rules.split('match /' + name + '/')[1].split('match /')[0];
+}
+
+test('roles are defined centrally and fall back to public', () => {
+  assert.match(rules, /function roleOf\(uid\)/);
+  assert.match(rules, /: 'public';/);
+  ['isAdmin', 'isProvider', 'isVolunteer'].forEach((fn) => {
+    assert.match(rules, new RegExp('function ' + fn + '\(\)'), fn + ' is missing');
+  });
+});
+
+test('only an admin can write a role, and only to a known value', () => {
+  const block = blockFor('roles');
+  assert.match(block, /allow create, update: if isAdmin\(\)/);
+  assert.match(block, /role in \['public', 'volunteer', 'provider', 'admin'\]/);
+  assert.match(block, /updatedBy == request\.auth\.uid/);
+  assert.ok(!/allow [^;]*write/.test(block), 'roles must not use a blanket write');
+});
+
+test('an admin cannot change or remove their own role', () => {
+  const block = blockFor('roles');
+  assert.match(block, /uid != request\.auth\.uid/);
+  assert.match(block, /allow delete: if isAdmin\(\) && uid != request\.auth\.uid/);
+});
+
+test('the audit log is append-only and admin-only', () => {
+  const block = blockFor('auditLog');
+  assert.match(block, /allow read: if isAdmin\(\)/);
+  assert.match(block, /allow create: if isAdmin\(\)/);
+  assert.match(block, /allow update, delete: if false;/);
+});
+
+test('audit entries only hold who, what and when', () => {
+  const block = blockFor('auditLog');
+  assert.match(block, /hasOnly\(\['actor', 'action', 'target', 'at'\]\)/);
+  assert.match(block, /at == request\.time/);
+  assert.ok(!/health|symptom|diagnos|medical/i.test(block));
+});
