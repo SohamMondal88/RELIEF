@@ -58,6 +58,8 @@ format it does not understand.
 - `valid-realistic.json` has one of every type, a record with only required fields, and an unknown type
 - `invalid-records.json` lists broken records with the error each must produce
 
+Shared fake hospital, doctor, pharmacy and ambulance records for other tests live in `tests/fixtures/providers/`, see [PROVIDER_TEST_FIXTURES.md](PROVIDER_TEST_FIXTURES.md).
+
 To cover a new rule, add a case to `invalid-records.json`.
 
 ## Changelog

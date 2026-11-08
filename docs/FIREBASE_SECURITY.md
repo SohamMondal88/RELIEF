@@ -8,6 +8,8 @@ in the Firebase console.
 > No page loads Firebase today (see [PRIVACY_AND_DATA.md](PRIVACY_AND_DATA.md)). Do this
 > before connecting a real project.
 
+For admin and moderator controls (which ones are real, what a server must check, and how to add roles with custom claims) see [ADMIN_ACCESS.md](ADMIN_ACCESS.md).
+
 ## 1. Firestore Security Rules
 
 `firebase/firestore.rules` covers every collection that `assets/js/api.js` writes to:
@@ -88,7 +90,7 @@ For `localhost`, create a **debug token** in the console and set
 
 ## 4. Contact form
 
-The contact form is a simulated submission today. When it is connected to a backend:
+The contact form does not send anything unless a RELIEF backend is configured (see "Contact form delivery" in [FORM_PROTECTION.md](FORM_PROTECTION.md)); without one it says the message was not sent. If you connect it to Firestore instead:
 
 1. Store messages in a new collection (for example `contactMessages`) with a rule that allows `create` only, validates field types and lengths, and denies `read`/`update`/`delete`.
 2. Add the collection to `firestore.rules` and a case to `firebase/emulator/firestore-rules.check.mjs`.

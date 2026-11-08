@@ -13,7 +13,7 @@ Install or have access to:
 - A current web browser
 - An internet connection for external resources and integrations
 
-Node.js 20 or newer is only needed to run the automated tests (section 4, "Run the automated tests"). The basic static preview below needs no Node.js or npm.
+Use Node.js 20 or newer and npm for the preview server and automated tests below. Check `node --version` and `npm --version` first. Python 3 is needed for the repository link checker.
 
 ## 2. Fork and clone the repository
 
@@ -85,14 +85,24 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
   - `privacy-data.js` and `privacy-controls.js`: the list of every `localStorage` key RELIEF writes, account deletion logic and the dashboard "Your data and account" panel. Documented in `docs/PRIVACY_AND_DATA.md` and tested by `tests/privacy-data.test.js`, which fails if a script uses a storage key that is not in the inventory.
+  - `facility-utils.js`, `facility-review.js` and `facility-review-ui.js`: facility search helpers, the review states (pending, verified, stale, rejected) and the maintainer queue shown on the admin panel. Changed with `scripts/facility-review.js`. Documented in `docs/FACILITY_VERIFICATION_POLICY.md`, tested by `tests/facility-utils.test.js` and `tests/facility-review.test.js`.
   - `contact.js`: Contact page form handling and dynamic Google Maps script loading.
   - `onboarding.js`: Guided first-visit onboarding flow introducing verified, implemented features (facility search, emergency resources, reminders, and cautious health support). Persists skip/completion preferences in browser `localStorage` (key `relief_onboarding_status`) without requesting location or credentials. Tested by `tests/onboarding.test.js`.
 
 ## 4. Preview the website locally
 
-### Option A: Open the entry page
+### Reproducible HTTP preview
 
-For a basic static preview, open `index.html` in your browser.
+Run these commands from the repository root, containing `index.html`, `pages/`, `assets/` and `package.json`:
+
+```bash
+npm ci
+node e2e/static-server.js 4173
+```
+
+Keep that terminal running. Open `http://127.0.0.1:4173/` and a nested page such as `http://127.0.0.1:4173/pages/hospitals.html`; check that both load their styles and scripts. Serve the repository root, not the `pages/` directory. Press Ctrl+C to stop the server. For another port, use `node e2e/static-server.js 8000`.
+
+No database, API keys, real patient data or account is required for static preview or the mocked tests. External resources may need the network; loading a page does not verify an external integration. Direct `file://` access is insufficient for fetch and service-worker checks. RELIEF has no `dev` or `build` npm script.
 
 ### Option B: Use VS Code Live Server
 
@@ -108,19 +118,51 @@ Test relevant pages and flows manually in the browser as well, and check the bro
 ### Run the automated tests
 
 ```bash
-npm ci                      # once: installs Playwright, the only dev dependency
+npm ci                      # installs exact lockfile versions, not browser binaries
 npm test                    # unit tests (node:test), no browser needed
-npx playwright install chromium   # once: downloads the test browser
+npm run test:e2e:install     # Chromium and OS dependencies; may require sudo
 npm run test:e2e            # browser tests of the main user journeys
 ```
 
 The browser tests start their own static server. To use one you already run (for example `python3 -m http.server 8000`), set `E2E_BASE_URL=http://localhost:8000`. Details, mocks and debugging with traces are in [E2E_TESTING.md](E2E_TESTING.md).
 
+Run tests in another terminal at the same repository root. If OS libraries are already installed, `npx playwright install chromium` downloads just the browser version matching this checkout. Do not accidentally reuse a server running a different checkout on the same port.
+
+```bash
+# Linux / macOS / Git Bash: select an already-running preview server
+E2E_BASE_URL=http://127.0.0.1:8000 npm run test:e2e
+```
+
+```powershell
+# Windows PowerShell: select an already-running preview server
+$env:E2E_BASE_URL = "http://127.0.0.1:8000"
+npm run test:e2e
+Remove-Item Env:E2E_BASE_URL
+```
+
+For one spec, use `npm run test:e2e -- e2e/firstaid-offline.spec.js`. Use `npm run test:e2e -- --list` to check discovery without launching Chromium. The fixtures mock permissions and external services; do not grant real geolocation or notification access to make tests pass.
+
+Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that is your Python 3 command), the README's JavaScript syntax checks, and `git diff --check`. These complement browser tests; passing a link checker does not establish that a user flow works.
+
+### Setup troubleshooting
+
+| Symptom | Action |
+|---|---|
+| `npm ci` fails | Check the root directory and supported Node version. Preserve the error; do not regenerate the lockfile or run `npm audit fix` as a setup workaround. |
+| Port in use or wrong content | Stop the other server or choose a free port and update `E2E_BASE_URL`. |
+| Chromium executable missing | Run the browser installation command after `npm ci`. |
+| Browser OS libraries missing | Use `npm run test:e2e:install` on a supported machine with permission to install libraries. |
+| CSS/JS 404 on nested pages | Serve the root and inspect the failing asset URL in developer tools. |
+| Connection refused with `E2E_BASE_URL` | Start that server; setting this variable disables Playwright's built-in server. |
+| Errors in untouched code | Record the failing tests and commit, compare with a clean checkout, and disclose baseline failures in the PR. Do not disable checks. |
+
 ### Offline support (service worker)
 
 `sw.js` at the repository root caches the first aid and hospitals pages plus the few css/js files they need, so that guidance and saved facilities still open after one successful online visit. It is registered from `assets/js/main.js`, so it needs `https://` or `http://localhost` (it will not register from `file://`).
 
-- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Pages use network-first (fresh copy when online, saved copy when offline). Css, js and the logo use cache-first.
+The full list of what is saved, the offline limits, the install manifest, Vercel notes and the offline and update checks are in [OFFLINE_AND_INSTALL.md](OFFLINE_AND_INSTALL.md).
+
+- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Every saved file is network-first (fresh copy when online, saved copy when offline). A page that is not saved and cannot be reached shows `pages/offline.html`.
 - **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
@@ -171,6 +213,7 @@ Treat the repository as a frontend project with demonstration flows unless a fea
 - The Rasa URL requires a compatible local service.
 - A successful UI interaction does not prove that an external provider, healthcare professional, pharmacy, ambulance, or emergency service received a request.
 - Do not describe symptom guidance as a medical diagnosis or claim clinical validation without evidence.
+- Changing, adding or translating a first aid article? Use the [First Aid Article Review Checklist](FIRST_AID_REVIEW_CHECKLIST.md) and update its register. `node --test` fails if an article is missing from the register or a page claims medical approval.
 
 Do not use the demo for real patient records or real emergency response.
 
@@ -197,6 +240,8 @@ git diff
 
 Test the affected page or behavior in a browser. Include the checks you actually performed in the pull request; do not claim tests that you did not run.
 
+If your change touches healthcare content, emergency actions or what a page claims, go through the [release checklist](RELEASE_CHECKLIST.md) and paste the relevant parts into your pull request.
+
 Commit and push your branch:
 
 ```bash
@@ -221,6 +266,8 @@ For a static deployment:
 
 Do not add an invented build command or assume that all integrations work in production.
 
+Security headers and the Content Security Policy are described in `docs/SECURITY_HEADERS.md`, including what each host needs. If you add an external script, stylesheet, image, frame or API origin, the policy in every page and in `vercel.json` has to change with it (`tests/security-headers.test.js` checks this).
+
 ## 9. Troubleshooting
 
 | Problem | What to check |
@@ -243,6 +290,7 @@ Do not add an invented build command or assume that all integrations work in pro
 - [ ] I tested the relevant steps or clearly stated what I could not test.
 - [x] The README links to this guide.
 - [ ] The pull request describes the change and the checks performed.
+- [ ] For healthcare content or UI changes, I went through the [release checklist](RELEASE_CHECKLIST.md).
 
 ## Related links
 

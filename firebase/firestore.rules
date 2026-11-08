@@ -33,6 +33,26 @@ service cloud.firestore {
       return request.resource.data.keys().size() <= n;
     }
 
+    // A provider is a signed-in account whose token carries providerId (set with the Admin SDK).
+    // It can only see and change requests addressed to that provider.
+    function providerOwns() {
+      return signedIn()
+        && request.auth.token.providerId is string
+        && request.auth.token.providerId == resource.data.doctorId;
+    }
+
+    // Who may move an appointment request from one status to another. Mirrors
+    // assets/js/appointment-status.js and docs/APPOINTMENT_STATUS.md.
+    function patientMayCancel(from) {
+      return from in ['submitted', 'under_review', 'confirmed'];
+    }
+
+    function providerMayMove(from, to) {
+      return (from == 'submitted' && to in ['under_review', 'declined'])
+        || (from == 'under_review' && to in ['confirmed', 'declined', 'cancelled'])
+        || (from == 'confirmed' && to == 'cancelled');
+    }
+
     // Fields a user must never be able to grant themselves.
     function noPrivilegedFields() {
       return !request.resource.data.keys().hasAny(['role', 'roles', 'isAdmin', 'admin', 'verified', 'moderator']);
@@ -41,6 +61,29 @@ service cloud.firestore {
     function shortText(field, max) {
       return !(field in request.resource.data)
         || (request.resource.data[field] is string && request.resource.data[field].size() <= max);
+    }
+
+    // ---- Roles ----------------------------------------------------------
+    // One document per user in /roles/{uid}: { role: 'volunteer' | 'provider' | 'admin' }.
+    // A user with no document is a public user. Only an admin can write a role, and
+    // the first admin is provisioned outside the client (firebase/ROLES.md).
+
+    function roleOf(uid) {
+      return exists(/databases/$(database)/documents/roles/$(uid))
+        ? get(/databases/$(database)/documents/roles/$(uid)).data.role
+        : 'public';
+    }
+
+    function isAdmin() {
+      return signedIn() && roleOf(request.auth.uid) == 'admin';
+    }
+
+    function isProvider() {
+      return signedIn() && roleOf(request.auth.uid) in ['provider', 'admin'];
+    }
+
+    function isVolunteer() {
+      return signedIn() && roleOf(request.auth.uid) in ['volunteer', 'admin'];
     }
 
     // ---- Accounts -------------------------------------------------------
@@ -64,14 +107,28 @@ service cloud.firestore {
 
     // ---- Requests created by signed-in users ----------------------------
 
+    // The document id is the request's own reference, so a repeated create (double tap, retry)
+    // finds the document already there and is refused instead of making a second booking.
     match /appointments/{id} {
-      allow read, delete: if ownsDoc();
+      allow read: if ownsDoc() || providerOwns();
+      allow delete: if ownsDoc();
       allow create: if createsOwnDoc()
-        && maxFields(25)
-        && request.resource.data.status == 'pending'
+        && maxFields(30)
+        && request.resource.data.status == 'submitted'
         && request.resource.data.createdAt == request.time
         && shortText('notes', 1000);
-      allow update: if false; // status changes belong to a trusted server
+      allow update: if
+        // the patient cancelling their own request, and nothing else
+        (ownsDoc()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.cancelledAt == request.time
+          && patientMayCancel(resource.data.status))
+        // the provider moving it along the allowed path, and nothing else
+        || (providerOwns()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt'])
+          && request.resource.data.statusUpdatedAt == request.time
+          && providerMayMove(resource.data.status, request.resource.data.status));
     }
 
     match /emergencyRequests/{id} {
@@ -92,6 +149,35 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt == request.time;
       allow update: if false;
+    }
+
+    // ---- Role management (admin only) -----------------------------------
+
+    match /roles/{uid} {
+      allow get: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      // The role must be one of the known values, and an admin cannot change their own
+      // role (so the last admin cannot lock everyone out by accident).
+      allow create, update: if isAdmin()
+        && uid != request.auth.uid
+        && request.resource.data.keys().hasOnly(['role', 'updatedBy', 'updatedAt'])
+        && request.resource.data.role in ['public', 'volunteer', 'provider', 'admin']
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin() && uid != request.auth.uid;
+    }
+
+    // Append-only record of privileged actions. Holds who, what and when, never health details.
+    match /auditLog/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['actor', 'action', 'target', 'at'])
+        && request.resource.data.actor == request.auth.uid
+        && request.resource.data.action in ['role.set', 'role.remove']
+        && request.resource.data.target is string
+        && request.resource.data.target.size() <= 128
+        && request.resource.data.at == request.time;
+      allow update, delete: if false;
     }
 
     // ---- Everything else is closed --------------------------------------

@@ -412,8 +412,9 @@ function attr(tag, name) {
 test('[markup] reminder form: every field has a label, a hidden message element and points at it', () => {
   const html = read('pages', 'dashboard.html');
   const { block, inputs } = inputsIn(html, 'reminder-form');
-  const visible = inputs.filter((tag) => attr(tag, 'type') !== 'hidden');
-  assert.strictEqual(visible.length, 5);
+  // Radio buttons are labelled by their own text and grouped by a fieldset legend, so they are checked separately.
+  const visible = inputs.filter((tag) => attr(tag, 'type') !== 'hidden' && attr(tag, 'type') !== 'radio');
+  assert.strictEqual(visible.length, 6, 'five fields and the time zone list');
   visible.forEach((tag) => {
     const id = attr(tag, 'id');
     assert.match(block, new RegExp('<label for="' + id + '"'), id + ' needs a label');

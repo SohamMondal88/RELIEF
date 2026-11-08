@@ -374,6 +374,7 @@ To keep the project maintainable, contributors should follow these principles.
 - Describe any required configuration changes.
 - Disclose any known limitations.
 - Do not claim tests passed unless they were actually run.
+- For healthcare content or UI changes, go through the [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## 🌱 Good First Contributions
 
@@ -440,6 +441,8 @@ The platform must not be treated as a verified emergency dispatch service unless
 In a medical emergency, contact the appropriate local emergency service or seek immediate professional medical assistance. Do not delay urgent care while using this website.
 
 Contributors must not introduce features that imply clinical validation, medical certification, guaranteed accuracy, or emergency-service integration without evidence and appropriate review.
+
+If you add or change a first aid article, or translate one, go through the [First Aid Article Review Checklist](docs/FIRST_AID_REVIEW_CHECKLIST.md) and update its register.
 
 ## 🗺️ Roadmap
 
