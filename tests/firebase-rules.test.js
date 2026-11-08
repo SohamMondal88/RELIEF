@@ -38,7 +38,7 @@ test('no rule is open to everyone', () => {
 });
 
 test('request documents cannot be edited by the client', () => {
-  ['appointments', 'emergencyRequests', 'medicineDeliveries'].forEach((name) => {
+  ['emergencyRequests', 'medicineDeliveries'].forEach((name) => {
     const block = rules.split('match /' + name + '/')[1].split('match /')[0];
     assert.match(block, /allow update: if false;/, name + ' should not allow client updates');
   });
@@ -49,6 +49,40 @@ test('created requests must use the server clock and a fixed starting status', (
   assert.match(rules, /timestamp == request\.time/);
   assert.match(rules, /status == 'pending'/);
   assert.match(rules, /status == 'requested'/);
+  assert.match(rules, /status == 'submitted'/, 'appointment requests start as submitted');
+});
+
+test('appointment status changes follow the same table as the page (appointment-status.js)', () => {
+  const Status = require('../assets/js/appointment-status.js');
+  const block = rules.split('match /appointments/')[1].split('match /')[0];
+  assert.match(block, /allow update:/, 'updates are decided by explicit conditions');
+  assert.ok(!/allow update: if false/.test(block));
+
+  // The provider table in the rules lists exactly the moves the page allows.
+  const moves = [];
+  Object.keys(Status.TRANSITIONS).forEach((from) => {
+    Status.TRANSITIONS[from].provider.forEach((to) => moves.push(from + '>' + to));
+  });
+  const fn = rules.split('function providerMayMove')[1].split('}')[0];
+  const found = [];
+  fn.split('||').forEach((clause) => {
+    const from = (clause.match(/from == '(\w+)'/) || [])[1];
+    const targets = clause.match(/to (?:in \[([^\]]*)\]|== '(\w+)')/);
+    if (!from || !targets) return;
+    (targets[1] ? targets[1].match(/'(\w+)'/g).map((t) => t.replace(/'/g, '')) : [targets[2]]).forEach((to) => found.push(from + '>' + to));
+  });
+  assert.deepStrictEqual(found.sort(), moves.sort(), 'rules and appointment-status.js disagree about provider moves');
+
+  // And the patient may cancel exactly from the open statuses.
+  const cancelFrom = (rules.split('function patientMayCancel')[1].split('}')[0].match(/\[([^\]]*)\]/)[1].match(/'(\w+)'/g) || []).map((t) => t.replace(/'/g, ''));
+  const pageCancelFrom = Object.keys(Status.TRANSITIONS).filter((from) => Status.TRANSITIONS[from].patient.includes('cancelled'));
+  assert.deepStrictEqual(cancelFrom.sort(), pageCancelFrom.sort());
+});
+
+test('providers are limited to requests for their own provider id', () => {
+  assert.match(rules, /token\.providerId == resource\.data\.doctorId/);
+  assert.match(rules, /affectedKeys\(\)\.hasOnly\(\['status', 'cancelledAt'\]\)/);
+  assert.match(rules, /affectedKeys\(\)\.hasOnly\(\['status', 'statusUpdatedAt'\]\)/);
 });
 
 test('profiles block self-granted privileges', () => {
