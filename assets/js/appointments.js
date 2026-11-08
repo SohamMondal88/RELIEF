@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var statusRegion = document.getElementById('request-status');
     var currentStep = 0;
     var sending = false;
+    var lastErrorCount = 0;
+    var FormErrors = window.ReliefFormErrors;
 
     // Where each validated field lives on the page: the element to focus,
     // the element that shows the message, and the step it belongs to.
@@ -129,40 +131,59 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Field settings for the shared error helper (doctor is shown on its own panel).
+    var ERROR_FIELDS = {};
+    Object.keys(FIELDS).forEach(function(key) {
+        if (key === 'doctor') return;
+        ERROR_FIELDS[key] = {
+            focusId: FIELDS[key].focus,
+            errorId: FIELDS[key].error,
+            groupId: key === 'timeWindow' ? 'time-window-group' : undefined
+        };
+    });
+    var SUMMARY_ID = 'appointment-error-summary';
+
     function clearErrors() {
-        Object.keys(FIELDS).forEach(function(key) {
-            if (key === 'doctor') return;
-            var cfg = FIELDS[key];
-            var err = document.getElementById(cfg.error);
-            err.textContent = '';
-            err.hidden = true;
-            document.getElementById(cfg.focus).removeAttribute('aria-invalid');
-        });
-        document.getElementById('time-window-group').removeAttribute('aria-invalid');
+        FormErrors.clearErrors(document, { fields: ERROR_FIELDS, summaryId: SUMMARY_ID });
     }
 
-    // Shows inline errors for the given keys and focuses the first one.
+    // Shows inline errors and a summary for the given keys. Returns the first key with a problem.
+    // The caller moves focus (see focusErrors) because a field may be on another step.
     function showErrors(errors, keys) {
-        clearErrors();
-        var first = null;
+        var subset = {};
         keys.forEach(function(key) {
-            if (!errors[key] || key === 'doctor') return;
-            var cfg = FIELDS[key];
-            var err = document.getElementById(cfg.error);
-            err.textContent = errors[key];
-            err.hidden = false;
-            if (key === 'timeWindow') {
-                document.getElementById('time-window-group').setAttribute('aria-invalid', 'true');
-            } else {
-                document.getElementById(cfg.focus).setAttribute('aria-invalid', 'true');
-            }
-            if (!first) first = key;
+            if (key !== 'doctor' && errors[key]) subset[key] = errors[key];
         });
-        if (first) {
+        var shown = FormErrors.applyErrors(document, subset, {
+            fields: ERROR_FIELDS,
+            order: keys,
+            summaryId: SUMMARY_ID,
+            title: 'Please fix the following',
+            focus: false
+        });
+        lastErrorCount = shown.count;
+        return shown.first;
+    }
+
+    // One problem: go to its field. Several: go to the summary, which links to each field.
+    function focusErrors(first) {
+        var summary = document.getElementById(SUMMARY_ID);
+        if (lastErrorCount > 1 && summary) {
+            summary.focus();
+        } else if (first) {
             document.getElementById(FIELDS[first].focus).focus();
         }
-        return first;
     }
+
+    // A summary link may point at a field on another step, so show that step first.
+    FormErrors.bindSummaryLinks(document, SUMMARY_ID, function(fieldId) {
+        Object.keys(FIELDS).forEach(function(key) {
+            if (FIELDS[key].focus === fieldId && FIELDS[key].step !== currentStep) {
+                currentStep = FIELDS[key].step;
+                showStep(currentStep);
+            }
+        });
+    });
 
     function setStatus(message, isError) {
         statusRegion.textContent = message;
@@ -208,8 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (first && FIELDS[first].step !== currentStep) {
                 currentStep = FIELDS[first].step;
                 showStep(currentStep);
-                document.getElementById(FIELDS[first].focus).focus();
             }
+            focusErrors(first);
             return;
         }
         clearErrors();
@@ -242,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var stepKeys = ['date', 'timeWindow'];
                 var result = Request.validateRequest(readInput());
                 if (stepKeys.some(function(k) { return result.errors[k]; })) {
-                    showErrors(result.errors, stepKeys);
+                    focusErrors(showErrors(result.errors, stepKeys));
                     return;
                 }
                 clearErrors();

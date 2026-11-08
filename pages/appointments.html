@@ -6,6 +6,9 @@
     <title>Request Appointment | Relief</title>
     <link rel="stylesheet" href="../assets/css/appointments.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Vercel Web Analytics -->
+    <script src="../assets/js/vercel-analytics.js"></script>
 </head>
 <body>
     <!-- Main Content -->
@@ -78,6 +81,7 @@
             </div>
 
             <div class="booking-form">
+                <div class="error-summary" id="appointment-error-summary" role="alert" tabindex="-1" hidden></div>
                 <!-- Step 1: Doctor Info -->
                 <div class="form-step active" data-step="1">
                     <p class="field-error" id="doctor-error" role="alert" hidden></p>
@@ -240,6 +244,7 @@
 
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/form-errors.js"></script>
     <script src="../assets/js/appointment-request.js"></script>
     <script src="../assets/js/appointments.js"></script>
 

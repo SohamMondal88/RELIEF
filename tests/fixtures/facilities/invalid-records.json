@@ -1,0 +1,296 @@
+[
+  {
+    "label": "not an object",
+    "record": "hospital",
+    "error": "record must be an object"
+  },
+  {
+    "label": "null record",
+    "record": null,
+    "error": "record must be an object"
+  },
+  {
+    "label": "missing id",
+    "record": {
+      "name": "A",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "id is required"
+  },
+  {
+    "label": "blank id",
+    "record": {
+      "id": "  ",
+      "name": "A",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "id must not be empty"
+  },
+  {
+    "label": "missing name",
+    "record": {
+      "id": "x",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "name is required"
+  },
+  {
+    "label": "blank name",
+    "record": {
+      "id": "x",
+      "name": "   ",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "name must not be empty"
+  },
+  {
+    "label": "name is a number",
+    "record": {
+      "id": "x",
+      "name": 42,
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "name must be text"
+  },
+  {
+    "label": "missing type",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "district": "D"
+    },
+    "error": "type is required"
+  },
+  {
+    "label": "missing district",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital"
+    },
+    "error": "district is required"
+  },
+  {
+    "label": "markup in name",
+    "record": {
+      "id": "x",
+      "name": "<script>alert(1)</script>",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "name must not contain"
+  },
+  {
+    "label": "markup in a service",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "services": [
+        "<img src=x onerror=1>"
+      ]
+    },
+    "error": "services[0] must not contain"
+  },
+  {
+    "label": "very long name",
+    "record": {
+      "id": "x",
+      "name": "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+      "type": "hospital",
+      "district": "D"
+    },
+    "error": "name is longer than"
+  },
+  {
+    "label": "phone with letters",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "phone": "call us"
+    },
+    "error": "phone must have"
+  },
+  {
+    "label": "phone too short",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "phone": "12345"
+    },
+    "error": "phone must have"
+  },
+  {
+    "label": "phone is a number",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "phone": 9800000000
+    },
+    "error": "phone must be text"
+  },
+  {
+    "label": "services not a list",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "services": "ICU"
+    },
+    "error": "services must be a list"
+  },
+  {
+    "label": "empty service",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "services": [
+        "ICU",
+        ""
+      ]
+    },
+    "error": "services[1] must be non-empty"
+  },
+  {
+    "label": "lat without lng",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lat": 22.5
+    },
+    "error": "lat and lng must be given together"
+  },
+  {
+    "label": "coordinates as strings",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lat": "22.5",
+      "lng": "88.3"
+    },
+    "error": "lat must be a number"
+  },
+  {
+    "label": "latitude out of range",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lat": 95,
+      "lng": 88.3
+    },
+    "error": "lat must be a number between"
+  },
+  {
+    "label": "longitude out of range",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lat": 22.5,
+      "lng": 190
+    },
+    "error": "lng must be a number between"
+  },
+  {
+    "label": "coordinates 0,0",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lat": 0,
+      "lng": 0
+    },
+    "error": "0,0"
+  },
+  {
+    "label": "verified is a string",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "verified": "yes"
+    },
+    "error": "verified must be true or false"
+  },
+  {
+    "label": "verified without source",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "verified": true,
+      "lastChecked": "2026-01-01"
+    },
+    "error": "needs a source"
+  },
+  {
+    "label": "verified without date",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "verified": true,
+      "source": "https://example.org"
+    },
+    "error": "needs lastChecked"
+  },
+  {
+    "label": "impossible date",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lastChecked": "2026-02-30"
+    },
+    "error": "real date"
+  },
+  {
+    "label": "date in the wrong format",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lastChecked": "30/09/2026"
+    },
+    "error": "real date"
+  },
+  {
+    "label": "date in the future",
+    "record": {
+      "id": "x",
+      "name": "A",
+      "type": "hospital",
+      "district": "D",
+      "lastChecked": "2099-01-01"
+    },
+    "error": "in the future"
+  }
+]
