@@ -64,7 +64,7 @@ Test-side changes that follow from the above, so they are listed and not hidden:
 
 | Check | `main` at `593de3d` | This change |
 |---|---|---|
-| `node --test` with Linux line endings (as in CI) | 23 failed (CI shows the same files failing) | 1250 tests, all pass |
+| `node --test` with Linux line endings (as in CI) | 1051 ran, 22 failed, and 6 test files crashed on load so their tests did not run (CI shows the same files failing) | 1250 tests, all pass |
 | Browser tests, `npm run test:e2e` | CI: 64 failed, 81 passed, 7 skipped | 138 passed, 7 skipped, 7 failed on my Windows machine. The 7 are the contact form tests, which fail at ticking the consent box in this machine's Chromium (`check()` reports no change); the same 7 fail on an untouched checkout of `main` here, while CI on `main` failed 4 of those 8 (the ones that use the fake backend) and passed the other 4. With the box ticked by script and the CSP change above, all 8 pass. They have not been run on Linux. |
 | JavaScript syntax check and HTML reference check (the two first CI steps) | pass | pass |
 | `node .github/scripts/deploy-smoke-check.js --env production` | 68 of 68 answered, headers not checked | 68 of 68 answered; the new header check fails on the live site until this is deployed |
