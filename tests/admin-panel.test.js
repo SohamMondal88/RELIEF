@@ -29,10 +29,14 @@ function listFiles(dir, exts) {
 }
 
 const html = read('pages/admin-panel.html');
-// Everything outside the moderation section is static sample markup.
-const moderationStart = html.indexOf('id="correction-moderation"');
-const moderationEnd = html.indexOf('</section>', moderationStart);
-const staticHtml = html.slice(0, moderationStart) + html.slice(moderationEnd);
+// Everything outside the three working sections is static sample markup: the read-only freshness list,
+// the facility correction queue and the health event queue. Each one hides its controls in demo mode.
+const WORKING_SECTIONS = ['facility-freshness', 'correction-moderation', 'event-moderation'];
+const staticHtml = WORKING_SECTIONS.reduce((rest, id) => {
+  const start = rest.indexOf('id="' + id + '"');
+  assert.ok(start !== -1, id + ' section is missing from the admin page');
+  return rest.slice(0, start) + rest.slice(rest.indexOf('</section>', start));
+}, html);
 
 describe('admin panel page', () => {
   it('says it is a demo with no role check, before any control', () => {
@@ -43,7 +47,7 @@ describe('admin panel page', () => {
     assert.match(html, /not verified healthcare information/);
   });
 
-  it('every button outside the moderation section is switched off', () => {
+  it('every button outside the three working sections is switched off', () => {
     const buttons = staticHtml.match(/<button\b[^>]*>/g) || [];
     assert.ok(buttons.length >= 2, 'the sample triage buttons are still shown');
     buttons.forEach((tag) => assert.match(tag, /\bdisabled\b/, tag));

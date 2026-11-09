@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin / Doctor Panel | RELIEF</title><link rel="stylesheet" href="../assets/css/professional-pages.css"><link rel="stylesheet" href="../assets/css/admin-corrections.css">
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin / Doctor Panel | RELIEF</title><link rel="stylesheet" href="../assets/css/professional-pages.css"><link rel="stylesheet" href="../assets/css/admin-corrections.css"><link rel="stylesheet" href="../assets/css/health-events.css">
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
 </head><body>
@@ -9,6 +9,15 @@
 <article class="card"><h2>Provider Verification (sample)</h2><p>Review newly onboarded doctors and pharmacies. Nothing below was checked by anyone.</p><ul><li>Sample doctor A - documents shown as verified</li><li>Sample pharmacy B - license upload shown as pending</li></ul></article>
 <article class="card"><h2>System Metrics (sample)</h2><p><strong>Avg triage response:</strong> 2m 10s</p><p><strong>SOS initiation success:</strong> 97%</p><p><strong>Reminder delivery:</strong> 94%</p></article>
 </div>
+<section class="card freshness-card" id="facility-freshness" aria-labelledby="freshness-heading">
+<h2 id="freshness-heading">Facility data freshness</h2>
+<p class="muted">A verified record turns stale <span id="freshness-window">180</span> days after it was last checked. This list is read-only: review states change with <code>scripts/facility-review.js</code> and a pull request (see <code>docs/FACILITY_VERIFICATION_POLICY.md</code>).</p>
+<ul class="freshness-counts" id="freshness-counts" aria-label="Records by review state"></ul>
+<div class="freshness-controls"><div><label for="freshness-filter">Show</label><select id="freshness-filter"><option value="all">Stale and pending</option><option value="stale">Stale only</option><option value="pending">Pending only</option></select></div></div>
+<p id="freshness-message" role="status" aria-live="polite" data-tone=""></p>
+<div class="freshness-table-wrap" id="freshness-table-wrap" hidden><table class="table"><caption class="muted">Records that need a check, stale first, then oldest check first</caption><thead><tr><th scope="col">Facility</th><th scope="col">State</th><th scope="col">Last checked</th><th scope="col">Age</th><th scope="col">Source</th></tr></thead><tbody id="freshness-rows"></tbody></table></div>
+<button class="btn btn-primary freshness-more" id="freshness-more" type="button" hidden>Show all</button>
+</section>
 <section class="card corrections-card" id="correction-moderation" aria-labelledby="corrections-heading" style="margin-top:16px">
 <h2 id="corrections-heading">Facility corrections</h2>
 <p class="muted">Suggestions from the public for facility hours, phone, address and services. Nothing here changes the public directory: an approved change is listed below for a maintainer to apply.</p>
@@ -26,12 +35,52 @@
 <ol id="correction-log" class="correction-log"></ol>
 <details><summary>Approved changes for maintainers (JSON)</summary><p class="muted">Apply these to assets/data/facilities.json by hand, with the facility verification steps. The public page never applies them by itself.</p><pre id="correction-patch" class="correction-patch">[]</pre></details>
 </section>
+<section class="card" id="event-moderation" aria-labelledby="event-moderation-heading" style="margin-top: 16px">
+  <h2 id="event-moderation-heading">Health event submissions</h2>
+  <p class="muted">
+    Health camps, vaccination drives, screenings and outreach programmes
+    sent in by organisers. A submission is shown to the public only as
+    "Unverified" until you confirm it. Confirm only after checking with
+    the organiser or an official notice.
+  </p>
+  <p class="events-note" id="event-moderation-demo-note" role="note" hidden>
+    Demo mode: this queue is stored only in this browser and anyone using
+    this page can confirm or reject. Real moderation needs the review
+    service and moderator accounts.
+  </p>
+  <div id="event-moderation-controls" hidden>
+    <div class="row">
+      <div>
+        <label for="event-moderator-name">Your name (written to the decision log)</label><input
+          id="event-moderator-name" maxlength="60" autocomplete="off" />
+      </div>
+      <div>
+        <label for="event-status-filter">Show</label><select id="event-status-filter">
+          <option value="pending">Waiting for review</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="rejected">Rejected</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="event-refresh" type="button" style="margin-top: 10px">
+      Refresh
+    </button>
+  </div>
+  <p id="event-moderation-message" role="status" aria-live="polite" data-tone=""></p>
+  <div id="event-queue" aria-live="polite"></div>
+</section>
 <section class="alert" style="margin-top:16px">Sample data only. These numbers and names are not measured and not verified healthcare information.</section></main>
 <footer class="wrap footer">Access should be role-protected in production using server-side authorization.</footer>
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/facility-utils.js"></script>
+    <script src="../assets/js/facility-review.js"></script>
+    <script src="../assets/js/facility-review-ui.js"></script>
     <script src="../assets/js/facility-corrections.js"></script>
     <script src="../assets/js/facility-corrections-ui.js"></script>
+    <script src="../assets/js/health-events.js"></script>
+    <script src="../assets/js/health-events-ui.js"></script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app-enhancements.js"></script>
 </body></html>
