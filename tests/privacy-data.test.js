@@ -76,7 +76,12 @@ describe('inventory', () => {
         });
         assert.ok(found.size >= 8, 'scan should find the known keys, found ' + found.size);
         found.forEach((key) => {
-            assert.ok(P.inventoryKeys().includes(key), key + ' is used by a script but missing from INVENTORY');
+            // A name ending in "_" is a prefix a script adds a suffix to (form-guard.js writes relief_formguard_<form>).
+            // It counts as covered when at least one listed key starts with it; each real key still has to be listed.
+            const covered = key.endsWith('_')
+                ? P.inventoryKeys().some((k) => k.startsWith(key))
+                : P.inventoryKeys().includes(key);
+            assert.ok(covered, key + ' is used by a script but missing from INVENTORY');
         });
     });
 
