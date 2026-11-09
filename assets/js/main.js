@@ -178,10 +178,9 @@ if (typeof document !== 'undefined') {
 
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
-                    behavior: reduceMotion ? 'auto' : 'smooth'
+                    behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth'
                 });
 
                 // Close mobile menu if open
@@ -348,7 +347,9 @@ function initializeBackToTopButton() {
             .back-to-top-btn {
                 position: fixed;
                 right: 1.5rem;
-                bottom: 1.5rem;
+                /* The Emergency SOS button (app-enhancements.js) sits at the bottom right with a higher z-index and
+                   covered this one completely, so it could not be clicked. Keep it above that button. */
+                bottom: 5.5rem;
                 z-index: 1000;
                 width: 3rem;
                 height: 3rem;
