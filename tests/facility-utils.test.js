@@ -12,9 +12,10 @@ const fx = require('./helpers/provider-fixtures');
 // Synthetic records from tests/fixtures/providers (see docs/PROVIDER_TEST_FIXTURES.md).
 // hospital 001 has coordinates and services, PHC 002 is nearer to Purulia, clinic 003 has no coordinates.
 // The fixtures are never verified, so the one verified record is made here on purpose, for the label test only.
+// A record only counts as verified with a source, a verifier and a past check date (docs/FACILITY_VERIFICATION_POLICY.md).
 const [A, B, C] = ['synthetic-hospital-001', 'synthetic-hospital-002', 'synthetic-hospital-003'];
 const sample = U.normalizeFacilities(fx.hospitals.map((h) =>
-  h.id === A ? Object.assign({}, h, { verified: true, source: 'https://example.org/test-list', lastChecked: '2026-10-01' }) : h
+  h.id === A ? Object.assign({}, h, { verified: true, source: 'https://example.org/test-list', verifiedBy: 'Test reviewer', lastChecked: '2026-10-01' }) : h
 ));
 
 test('normalizeFacilities fills missing fields and drops invalid records', () => {
@@ -62,7 +63,7 @@ test('type, district, service and verified filters combine', () => {
   assert.deepStrictEqual(U.filterFacilities(sample, { type: 'phc' }).map(f => f.id), [B]);
   assert.deepStrictEqual(U.filterFacilities(sample, { district: 'Exampleganj' }).map(f => f.id), [A, C]);
   assert.deepStrictEqual(U.filterFacilities(sample, { service: 'Surgery' }).map(f => f.id), [A]);
-  assert.deepStrictEqual(U.filterFacilities(sample, { verifiedOnly: true }).map(f => f.id), [A]);
+  assert.deepStrictEqual(U.filterFacilities(sample, { verifiedOnly: true, now: NOW }).map(f => f.id), [A]);
   assert.strictEqual(U.filterFacilities(sample, { district: 'Exampleganj', type: 'phc' }).length, 0);
 });
 
@@ -87,7 +88,7 @@ test('sort by distance without a location falls back to name; name sort works', 
 });
 
 test('verification label shows source and date only for verified records', () => {
-  assert.strictEqual(U.verificationLabel(sample[0]), 'Verified - source: https://example.org/test-list - checked 2026-10-01');
+  assert.strictEqual(U.verificationLabel(sample[0], { now: NOW }), 'Verified - source: https://example.org/test-list - checked 2026-10-01');
   assert.strictEqual(U.verificationLabel(sample[1]), 'Not verified');
 });
 
