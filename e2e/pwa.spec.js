@@ -60,6 +60,11 @@ test.describe('offline', () => {
     expect(saved).toContain('/pages/offline.html');
     await context.setOffline(true);
     for (const target of ['/index.html', '/pages/dashboard.html', '/pages/login.html']) {
+      // Chromium restarts the idle service worker between navigations, and the new worker is not under the offline
+      // emulation (its fetch() then reaches the server and the real page comes back). Switching it on again before each
+      // navigation makes the worker's network fail the way a real lost connection does.
+      await context.setOffline(false);
+      await context.setOffline(true);
       await page.goto(target);
       await expect(page).toHaveURL(/\/pages\/offline\.html$/);
     }

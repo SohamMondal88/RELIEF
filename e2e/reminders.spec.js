@@ -46,7 +46,7 @@ test.describe('medicine reminders', () => {
 
   test('validation: a missing name or time and a duplicate are refused with messages', async ({ page }) => {
     await page.getByRole('button', { name: 'Save Reminder' }).click();
-    const errors = page.locator('#reminder-errors');
+    const errors = page.locator('#reminder-error-summary');
     await expect(errors).toBeVisible();
     await expect(errors).toHaveAttribute('role', 'alert');
     await expect(errors.locator('li').first()).not.toBeEmpty();

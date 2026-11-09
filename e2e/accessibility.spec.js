@@ -60,7 +60,13 @@ test.describe('automated checks (axe-core, WCAG 2.0/2.1 A and AA)', () => {
   // Two known script bugs that are not accessibility problems and are left alone here:
   // pharmacies and ambulances call Leaflet (L) although the fixture blocks the CDN, and assets/js/blog.js
   // adds a listener to a mobile menu button that the blog page does not have.
-  test.use({ allowedPageErrors: [/^(L is not defined|Cannot read properties of null \(reading 'addEventListener'\))$/] });
+  // axe-core is added to the page as inline script, which the site's own policy (script-src 'self') blocks. The policy
+  // is checked by tests/security-headers.test.js and by the console-error rule in the smoke tests, so it is switched
+  // off only for this describe block, only for the tool that is injected.
+  test.use({
+    allowedPageErrors: [/^(L is not defined|Cannot read properties of null \(reading 'addEventListener'\))$/],
+    bypassCSP: true
+  });
 
   for (const path of PAGES) {
     test(`no violations on ${path}`, async ({ page }) => {

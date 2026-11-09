@@ -12,6 +12,10 @@ const PENDING = {
   createdAt: '2026-10-26T10:00:00.000Z', history: []
 };
 
+// The facility corrections card. The page also has a read-only freshness list and the health event queue, which have their own
+// Refresh buttons (a refresh decides nothing); this spec is about who may approve or reject a correction.
+const corrections = (page) => page.locator('#correction-moderation');
+
 // Serves the repo under a normal host name. localhost counts as demo mode, a made-up host name does not.
 async function openAsNormalHost(page, answer) {
   await page.route('http://relief-admin.test/**', (route) => {
@@ -72,7 +76,7 @@ test.describe('admin panel is a demo', () => {
     await expect(page.locator('#moderation-controls')).toBeHidden();
     await page.goto('http://relief-admin.test/pages/admin-panel.html?role=admin&admin=1');
     await expect(page.locator('#moderation-controls')).toBeHidden();
-    await expect(page.getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
+    await expect(corrections(page).getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
   });
 });
 
@@ -82,21 +86,21 @@ test.describe('moderation controls follow the server answer', () => {
     await expect(moderationQueue(page)).toContainText('cannot be sent right now');
     await expect(page.locator('#moderation-demo-note')).toBeHidden();
     await expect(page.locator('#moderation-controls')).toBeHidden();
-    await expect(page.getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
+    await expect(corrections(page).getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
   });
 
   test('signed out: asks for a moderator account and shows no controls', async ({ page }) => {
     await openAsNormalHost(page, 'signed-out');
     await expect(moderationQueue(page)).toContainText('You need a moderator account');
     await expect(page.locator('#moderation-controls')).toBeHidden();
-    await expect(page.getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
+    await expect(corrections(page).getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
   });
 
   test('signed in as a normal user (403): same, nothing listed', async ({ page }) => {
     await openAsNormalHost(page, 'user');
     await expect(moderationQueue(page)).toContainText('You need a moderator account');
     await expect(page.locator('#correction-queue .correction-item')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
+    await expect(corrections(page).getByRole('button', { name: /approve|reject|refresh/i })).toHaveCount(0);
   });
 
   test('moderator: the list and the buttons appear, and a decision sends no name or role', async ({ page }) => {

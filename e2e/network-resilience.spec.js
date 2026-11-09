@@ -20,7 +20,7 @@ test.describe('outside hosts that fail', () => {
     }],
     ['/pages/hospitals.html', 'Find Hospitals Near You', async (page) => {
       await expect(page.locator('.hospital-card').first()).toBeVisible();
-      await expect(page.locator('.loading-state')).toHaveCount(0);
+      await expect(page.locator('.state-loading')).toHaveCount(0);
     }],
     ['/pages/symptoms.html', 'Symptom Information & Guidance', async (page) => {
       await page.locator('input[name="emergency_sign"][value="chest_pain"]').check();
@@ -98,9 +98,9 @@ test.describe('offline after one online visit (service worker)', () => {
     await page.reload();
 
     await expect(page.locator('#relief-offline-banner')).toContainText('You are offline');
-    const error = page.locator('.error-state');
+    const error = page.locator('.state-error');
     await expect(error).toContainText('The facility list could not be loaded');
-    await expect(page.locator('.loading-state')).toHaveCount(0);
+    await expect(page.locator('.state-loading')).toHaveCount(0);
     // Other parts of the page are unaffected: search box and navigation are still there.
     await expect(page.getByLabel('Search by name, area or service')).toBeEnabled();
     await expect(mainNav(page).getByRole('link', { name: 'Home' })).toBeVisible();
@@ -112,12 +112,13 @@ test.describe('offline after one online visit (service worker)', () => {
   });
 });
 
+// hospitals.js draws loading and error states with request-resilience.js: <div class="state state-loading|state-error">.
 test.describe('slow and failing requests for local data', () => {
   test('a slow facility list shows a loading state, the rest of the page stays usable, and the list replaces it', async ({ page }) => {
     const list = await holdRequests(page, FACILITIES_JSON);
     await page.goto('/pages/hospitals.html');
 
-    await expect(page.locator('.loading-state')).toHaveText('Loading facilities...');
+    await expect(page.locator('.state-loading')).toHaveText('Loading facilities...');
     await expect(page.locator('#directory-status')).toHaveText('Loading facilities...');
     await expect.poll(list.pending).toBe(1);
     // Unrelated parts keep working while the list is pending.
@@ -127,20 +128,24 @@ test.describe('slow and failing requests for local data', () => {
 
     await list.release();
     await expect(page.locator('.hospital-card').first()).toBeVisible();
-    await expect(page.locator('.loading-state')).toHaveCount(0);
+    await expect(page.locator('.state-loading')).toHaveCount(0);
   });
 
   test('a failing facility list ends the loading state with an error, and the language switcher still works', async ({ page }) => {
     const list = await errorResponse(page, FACILITIES_JSON, { status: 503 });
     await page.goto('/pages/hospitals.html');
 
-    await expect(page.locator('.error-state')).toContainText('The facility list could not be loaded');
-    await expect(page.locator('.loading-state')).toHaveCount(0);
-    expect(list.requests.length).toBe(1);
+    // A 503 is classified by request-resilience.js: a server-side message, the emergency note and a retry button.
+    await expect(page.locator('.state-error')).toContainText('Something went wrong on our side');
+    await expect(page.locator('.state-error')).toContainText('call your local emergency number');
+    await expect(page.locator('.state-error').getByRole('button', { name: 'Try again' })).toBeVisible();
+    await expect(page.locator('.state-loading')).toHaveCount(0);
+    // The 503 is retried (3 attempts in all) and then given up on, not retried for ever.
+    expect(list.requests.length).toBe(3);
 
     await page.locator('#relief-lang').selectOption('bn');
     await expect(page.locator('html')).toHaveAttribute('lang', 'bn');
-    await expect(page.locator('.error-state')).toBeVisible();
+    await expect(page.locator('.state-error')).toBeVisible();
   });
 
   test('if the Bengali translation file cannot load, the page stays in English with no error', async ({ page }) => {
@@ -204,9 +209,9 @@ test.describe('requests that never finish', () => {
     test.setTimeout(45000);
     await holdRequests(page, FACILITIES_JSON);
     await page.goto('/pages/hospitals.html');
-    await expect(page.locator('.loading-state')).toBeVisible();
-    await expect(page.locator('.error-state')).toBeVisible({ timeout: 20000 });
-    await expect(page.locator('.loading-state')).toHaveCount(0);
+    await expect(page.locator('.state-loading')).toBeVisible();
+    await expect(page.locator('.state-error')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('.state-loading')).toHaveCount(0);
   });
 
   // Same for the Nominatim lookup in location-service.js: "Looking up that place..." for ever.

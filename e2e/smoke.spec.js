@@ -16,7 +16,21 @@ test.beforeEach(async ({ page }) => {
 const KNOWN = {
   // assets/css/style.css line 1120 has url('assets/images/pattern.png'), which resolves to
   // /assets/css/assets/images/pattern.png. There is no pattern.png in assets/images either.
-  home: { firstParty: [/^404 \/assets\/css\/assets\/images\/pattern\.png$/] },
+  // pages/index.html also loads one testimonial photo from www.amity.edu, which redirects to another host and is not in
+  // the Content Security Policy on purpose (docs/SECURITY_HEADERS.md, "One refused image"). The browser logs the refusal.
+  home: {
+    firstParty: [/^404 \/assets\/css\/assets\/images\/pattern\.png$/],
+    console: [/^Loading the image 'https:\/\/www\.amity\.edu\//]
+  },
+  // These files are named in the page or its css, are not in the repository and return 404 on the live site too
+  // (checked with curl on 9 November 2026). Fixing them needs the artwork, so they are tracked here until it is added.
+  about: { firstParty: [/^404 \/assets\/images\/(cta-bg\.jpg|dots-pattern\.png|dots-pattern-white\.png|wave-divider-dark\.svg)$/] },
+  contact: { firstParty: [/^404 \/assets\/css\/images\/(contact-hero\.jpg|wave-pattern\.png|form-pattern\.svg|dots-pattern\.svg)$/] },
+  // Same Leaflet call as ambulances below, and pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
+  pharmacies: {
+    pageErrors: [/^L is not defined$/],
+    firstParty: [/^404 \/assets\/images\/pharmacy[1-6]\.jpg$/]
+  },
   // assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with the CDN
   // blocked the page throws "L is not defined". The same bug is tracked by test.fixme in sos.spec.js.
   ambulances: { pageErrors: [/^L is not defined$/] },
@@ -59,15 +73,15 @@ test.describe('smoke helper catches real problems', () => {
     await page.goto(route.path);
     await page.waitForLoadState('networkidle');
     expect(problems.blocked.length, 'the home page loads fonts or icons from outside').toBeGreaterThan(0);
-    expect(routeProblems(problems, route)).toEqual([]);
+    expect(routeProblems(problems, route, KNOWN.home)).toEqual([]);   // the tracked home problems are the only ones left
   });
 
   test('an allow-listed known problem is skipped, anything else is not', async ({ page, problems }) => {
     await page.addInitScript(() => setTimeout(() => { throw new Error('known bug'); }, 0));
     await page.goto(route.path);
     await page.waitForLoadState('networkidle');
-    expect(routeProblems(problems, route, { pageErrors: [/^known bug$/] })).toEqual([]);
-    expect(routeProblems(problems, route)).toHaveLength(1);
+    expect(routeProblems(problems, route, { ...KNOWN.home, pageErrors: [/^known bug$/] })).toEqual([]);
+    expect(routeProblems(problems, route, KNOWN.home)).toHaveLength(1);
     problems.pageErrors.length = 0; // handled here, so the fixture does not fail the test for it
   });
 });
