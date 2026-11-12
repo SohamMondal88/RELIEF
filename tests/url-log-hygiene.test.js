@@ -146,9 +146,22 @@ describe('console output carries no personal data', () => {
                 bad.push(`${file}: console.${call.method}(${args.slice(0, 90)})`);
             }
         }
-        // The one non-trivial call is the facility data warning, which logs public facility ids.
-        const allowed = bad.filter((b) => !/^assets\/js\/hospitals\.js: console\.warn\('Skipped '/.test(b));
+        // Two non-trivial calls are allowed, each with its own test below: the facility data warning, which logs
+        // public facility ids, and request-resilience.js, which logs an entry made only from fixed fields and redact().
+        const allowed = bad.filter((b) => !/^assets\/js\/hospitals\.js: console\.warn\('Skipped '/.test(b)
+            && !/^assets\/js\/request-resilience\.js: console\.warn\('\[relief\] ' \+ entry\.context, entry\)$/.test(b));
         assert.deepStrictEqual(allowed, [], 'Log fixed text plus error.name or error.code only:\n' + allowed.join('\n'));
+    });
+
+    it('the request failure log is built from fixed fields and redact(), nothing else', () => {
+        const src = stripComments(read('assets/js/request-resilience.js'));
+        const build = src.slice(src.indexOf('var entry = {'), src.indexOf('recent.push(entry)'));
+        assert.ok(build.length > 0, 'expected the log entry to be built before it is stored');
+        // Fixed fields only: the time, a short context label, the failure kind and status, the request id, the attempt count.
+        const fields = [...build.slice(0, build.indexOf('};')).matchAll(/^\s*(\w+):/gm)].map((m) => m[1]);
+        assert.deepStrictEqual(fields, ['at', 'context', 'kind', 'status', 'requestId', 'attempts']);
+        // Anything extra a caller adds goes through redact() first.
+        assert.match(build, /var safe = redact\(extra\)/);
     });
 
     it('the facility warning logs ids and rule names, nothing a user typed', () => {

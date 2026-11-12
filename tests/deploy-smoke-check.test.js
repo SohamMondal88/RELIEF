@@ -134,3 +134,53 @@ test('a server that does not answer is reported, not hung on', async () => {
     server.close();
   }
 });
+
+// The headers vercel.json sets (docs/SECURITY_HEADERS.md). Routes served without them have lost clickjacking and no-sniff protection.
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': "default-src 'self'; frame-ancestors 'none'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin'
+};
+
+test('headerProblem names every missing or wrong security header', () => {
+  assert.strictEqual(S.headerProblem({
+    'content-security-policy': "default-src 'self'; frame-ancestors 'none'",
+    'x-content-type-options': 'nosniff',
+    'x-frame-options': 'DENY',
+    'referrer-policy': 'strict-origin-when-cross-origin'
+  }), null);
+  assert.match(S.headerProblem({}), /content-security-policy, x-content-type-options, x-frame-options, referrer-policy/);
+  assert.match(S.headerProblem({ 'content-security-policy': "default-src 'self'", 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'strict-origin-when-cross-origin' }), /content-security-policy/, 'a policy without frame-ancestors is not the deployed one');
+  assert.match(S.headerProblem({ 'content-security-policy': "frame-ancestors 'none'", 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'referrer-policy': 'strict-origin-when-cross-origin' }), /x-frame-options/);
+});
+
+test('pages served without the security headers fail the check, and pass when the headers are there', async () => {
+  const bare = await serve(healthy());
+  try {
+    const report = await S.runCheck(S.resolveTarget({ env: 'preview', url: bare.origin }), { timeoutMs: 3000, checkHeaders: true });
+    const bad = report.rows.filter((r) => !r.ok);
+    assert.strictEqual(bad.length, S.ROUTES.length, 'every route is missing the headers; assets are not judged on them');
+    assert.ok(bad.every((r) => r.kind === 'route' && /security header/.test(r.problem)));
+  } finally {
+    bare.server.close();
+  }
+  const secure = await serve(healthy(Object.fromEntries(['/'].concat(S.ROUTES.slice(1)).map((p) => [p, (req, res) =>
+    res.writeHead(200, Object.assign({ 'Content-Type': 'text/html' }, SECURITY_HEADERS)).end(PAGE)]))));
+  try {
+    const report = await S.runCheck(S.resolveTarget({ env: 'preview', url: secure.origin }), { timeoutMs: 3000, checkHeaders: true });
+    assert.strictEqual(report.failed, 0);
+  } finally {
+    secure.server.close();
+  }
+});
+
+test('headers are not demanded from a local preview server unless asked for', async () => {
+  const { server, origin } = await serve(healthy());
+  try {
+    const report = await S.runCheck(S.resolveTarget({ env: 'preview', url: origin }), { timeoutMs: 3000 });
+    assert.strictEqual(report.failed, 0);
+  } finally {
+    server.close();
+  }
+});

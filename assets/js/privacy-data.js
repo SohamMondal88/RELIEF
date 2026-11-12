@@ -126,12 +126,36 @@
       retention: 'Kept until overwritten by the next pick or until you delete your data.'
     },
     {
+      key: 'relief_demo_health_events',
+      label: 'Health event submissions (demo queue)',
+      category: 'technical',
+      personal: true,
+      holds: 'Events you submitted in demo mode: title, date, venue, organiser, services, eligibility, contact phone or email, and any moderator decision.',
+      retention: 'Until you delete your data. Only written in demo mode (localhost, file:// or an explicit demo flag) when the review service cannot be reached.'
+    },
+    {
+      key: 'relief_health_event_submissions',
+      label: 'Submission limiter (Health events)',
+      category: 'technical',
+      personal: false,
+      holds: 'Times and a fingerprint (title, start time, district) of events you submitted, used to stop duplicates and repeated submissions.',
+      retention: 'Entries older than 7 days are dropped; at most 50 kept. Included in deletion.'
+    },
+    {
       key: 'relief_notification_prefs_v1',
       label: 'Notification choices',
       category: 'preferences',
       personal: false,
       holds: 'Two yes/no choices: whether browser notifications are on, and whether they may show medicine names.',
       retention: 'Until you delete your data.'
+    },
+    {
+      key: 'relief_onboarding_status',
+      label: 'First-visit tour choice',
+      category: 'preferences',
+      personal: false,
+      holds: 'Whether you finished or skipped the first-visit tour, and when.',
+      retention: 'Until you delete your data. The tour shows again afterwards.'
     },
     {
       key: 'relief_lang',

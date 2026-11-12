@@ -6,6 +6,11 @@ const { test, expect } = require('./fixtures');
 const BACKEND = 'https://backend.mock.relief.test';
 const ENDPOINT = BACKEND + '/v1/contact-messages';
 
+// The site's Content Security Policy only lets pages call their own origin (connect-src 'self', docs/SECURITY_HEADERS.md,
+// "When you add an integration"), so the browser refuses the call to the fake backend before page.route can answer it.
+// A real deployment adds its backend origin to the policy; here the policy is switched off for this file only.
+test.use({ bypassCSP: true });
+
 async function configureBackend(page, handler) {
   await page.addInitScript((url) => { window.RELIEF_BACKEND_URL = url; }, BACKEND);
   const requests = [];

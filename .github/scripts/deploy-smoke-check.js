@@ -121,6 +121,22 @@ function firstPartyAssets(html, pageUrl) {
   return [...found];
 }
 
+// Headers vercel.json sets on every response (see docs/SECURITY_HEADERS.md). A page that arrives without them has lost its
+// clickjacking and no-sniff protection, which no file check can show: the files themselves are still the right ones.
+const REQUIRED_HEADERS = [
+  ['content-security-policy', /frame-ancestors 'none'/i],
+  ['x-content-type-options', /^nosniff$/i],
+  ['x-frame-options', /^deny$/i],
+  ['referrer-policy', /^strict-origin-when-cross-origin$/i]
+];
+
+/** Names of the required headers that are missing or wrong in a response, or null when all are there. */
+function headerProblem(headers) {
+  const h = headers || {};
+  const bad = REQUIRED_HEADERS.filter(([name, want]) => !want.test(h[name] || '')).map(([name]) => name);
+  return bad.length ? 'missing or wrong security header(s): ' + bad.join(', ') : null;
+}
+
 function typeProblem(url, contentType) {
   const dot = new URL(url).pathname.match(/\.[a-z0-9]+$/i);
   const expected = dot && TYPE_FOR_EXT[dot[0].toLowerCase()];
@@ -140,6 +156,7 @@ async function request(url, timeoutMs, method) {
       type: (res.headers.get('content-type') || '').split(';')[0],
       finalUrl: res.url,
       ms: Date.now() - started,
+      headers: Object.fromEntries(REQUIRED_HEADERS.map(([name]) => [name, res.headers.get(name) || ''])),
       text
     };
   } catch (e) {
@@ -148,15 +165,17 @@ async function request(url, timeoutMs, method) {
   }
 }
 
-function judge(result, origin, kind) {
+function judge(result, origin, kind, checkHeaders) {
   if (result.error) return result.error;
   if (result.status !== 200) return 'status ' + result.status;
   if (new URL(result.finalUrl).origin !== origin) return 'redirected to another host (' + new URL(result.finalUrl).host + ')';
   if (kind === 'route' && !/^text\/html/i.test(result.type)) return 'unexpected content type "' + (result.type || 'none') + '"';
-  return kind === 'asset' ? typeProblem(result.finalUrl, result.type) : null;
+  if (kind === 'route') return checkHeaders ? headerProblem(result.headers) : null;
+  return typeProblem(result.finalUrl, result.type);
 }
 
-async function runCheck(target, { timeoutMs = 10000, concurrency = 6 } = {}) {
+// Security headers are only expected from the real host: a local preview server (python -m http.server) sends none.
+async function runCheck(target, { timeoutMs = 10000, concurrency = 6, checkHeaders = /^https:/i.test(target.origin) } = {}) {
   const rows = [];
   const assetSources = new Map(); // asset url -> first page that mentioned it
   const record = (kind, url, result, problem, from) =>
@@ -165,7 +184,7 @@ async function runCheck(target, { timeoutMs = 10000, concurrency = 6 } = {}) {
   for (const route of ROUTES) {
     const url = target.origin + route;
     const result = await request(url, timeoutMs, 'GET');
-    const problem = judge(result, target.origin, 'route');
+    const problem = judge(result, target.origin, 'route', checkHeaders);
     record('route', url, result, problem);
     if (!problem) {
       firstPartyAssets(result.text, result.finalUrl).forEach((a) => {
@@ -244,7 +263,7 @@ async function main(argv) {
   }
 }
 
-module.exports = { ROUTES, PRODUCTION_URL, parseArgs, printable, resolveTarget, firstPartyAssets, typeProblem, runCheck, formatReport };
+module.exports = { ROUTES, PRODUCTION_URL, REQUIRED_HEADERS, parseArgs, printable, resolveTarget, firstPartyAssets, typeProblem, headerProblem, runCheck, formatReport };
 
 if (require.main === module) {
   main(process.argv.slice(2)).then((code) => process.exit(code));
