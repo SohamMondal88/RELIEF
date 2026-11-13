@@ -113,3 +113,43 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  compat:
+    name: Browser compatibility (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    # WebKit is report-only until it has run on GitHub's runners a few times. Remove this line once it is stable.
+    continue-on-error: ${{ matrix.browser == 'webkit' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install ${{ matrix.browser }}
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run the compatibility smoke tests
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: Upload report and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

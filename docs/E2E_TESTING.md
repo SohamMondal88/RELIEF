@@ -7,7 +7,7 @@ These tests drive the real pages in Chromium with [Playwright](https://playwrigh
 ```bash
 npm ci                            # once
 npx playwright install chromium   # once (add --with-deps on a fresh Linux machine)
-npm run test:e2e                  # run everything
+npm run test:e2e                  # run everything, in Chromium
 npx playwright test e2e/sos.spec.js            # one file
 npx playwright test -g "reminder"              # tests whose title matches
 npx playwright test --headed --workers=1       # watch it run
@@ -20,7 +20,7 @@ The config (`playwright.config.js`) starts `e2e/static-server.js`, a small Node 
 E2E_BASE_URL=http://localhost:8000 npm run test:e2e
 ```
 
-If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIUM_PATH` at an installed Chromium or Chrome. `npm test` runs the unit tests in `tests/` with `node --test`.
+If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIUM_PATH` at an installed Chromium or Chrome (it only applies to the Chromium project). `npm test` runs the unit tests in `tests/` with `node --test`.
 
 ## What is covered
 
@@ -34,7 +34,43 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/browser-compat.spec.js` | The browser compatibility smoke subset (Issue #116), run on Chromium, Firefox and WebKit: see "Browser compatibility matrix" below |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+
+## Browser compatibility matrix
+
+`e2e/browser-compat.spec.js` is a small smoke subset (9 tests, every title starts with `@compat`) that runs on **Chromium, Firefox and WebKit**. The rest of the suite stays Chromium only: `playwright.config.js` gives the `firefox` and `webkit` projects `grep: /@compat/`.
+
+| Area | What the test checks |
+|---|---|
+| Navigation | Main menu to About and Contact, back button |
+| Directory | Hospitals lists every facility, search narrows it, empty search message |
+| Forms | Reminder form: empty submit refused, valid submit saved, still there after a reload. Contact form checks its fields and keeps what was typed |
+| Storage | `localStorage` round trip (the reminder above). The features the browser has are attached to the test report as a `features` annotation |
+| Emergency access | SOS dialog opens and closes, and the 112 link is there, with no sign-in and no location permission |
+| Missing APIs | The same pages with `geolocation`, `Notification` and `serviceWorker` removed before the page loads (`withoutBrowserApis` in the spec): the hospitals page offers manual place entry, the dashboard says notifications are not supported and still saves reminders, SOS still opens, no uncaught page error. The test fails if the API could not be removed, so it cannot pass by accident |
+
+No real permission is ever asked for: `fixtures.js` still mocks geolocation as denied, notifications are never requested, and every outside host is blocked.
+
+```bash
+npm run test:e2e:compat:install   # once: downloads Firefox and WebKit (add system libraries on a fresh Linux machine)
+npm run test:e2e:compat           # the smoke subset on Firefox and WebKit
+npx playwright test e2e/browser-compat.spec.js --project=firefox   # one browser
+```
+
+`npm run test:e2e` is Chromium only and does not need the other two browsers.
+
+CI: the `Browser compatibility (firefox)` and `Browser compatibility (webkit)` jobs in `.github/workflows/ci.yml` install their own browser with `--with-deps` and run `npx playwright test --project=<browser>`. WebKit is report-only (`continue-on-error`) until it has run on GitHub's runners a few times; remove that line in the workflow when it is stable.
+
+Limits:
+
+- Playwright's Firefox and WebKit are engine builds made for automation. Passing on them is a good sign for Firefox and for Safari's engine, it is not a test of Safari itself, and nothing here runs on iOS or a real phone.
+- It is a smoke subset. A bug in a page that no `@compat` test opens is not found in Firefox or WebKit.
+- A browser without an API is simulated by removing it before the page loads, not by a browser that really lacks it.
+- Real permission prompts (location, notifications) and real service worker behaviour are not covered. The offline tests (`pwa`, `firstaid-offline`, `network-resilience`) stay Chromium only.
+- Timing differs between engines. If a `@compat` test is flaky in one browser, fix the wait, do not add a retry or drop the browser.
+
+To add a test to the matrix, put `@compat` in the `describe` title in any spec, use roles and labels, and make sure it does not depend on something only Chromium does.
 
 ## Network helpers
 
@@ -112,7 +148,7 @@ Not covered because the feature does not exist yet: a Relief Assistant launcher 
 
 ## CI
 
-`.github/workflows/ci.yml` has an `e2e` job (`Browser tests (Playwright)`) next to the existing checks, and the old "tests skipped" step now runs `node --test`. A failing job fails the pull request check. To make it block merging, a maintainer has to mark **Browser tests (Playwright)** and **Lint, Syntax & Link Checks** as required status checks in the repository's branch protection settings (not something a pull request can change).
+`.github/workflows/ci.yml` has an `e2e` job (`Browser tests (Playwright)`, Chromium) and the two `Browser compatibility` jobs described above next to the existing checks, and the old "tests skipped" step now runs `node --test`. A failing job fails the pull request check. To make it block merging, a maintainer has to mark **Browser tests (Playwright)** and **Lint, Syntax & Link Checks** as required status checks in the repository's branch protection settings (not something a pull request can change).
 
 ## Adding a test
 

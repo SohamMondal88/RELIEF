@@ -121,7 +121,8 @@ Test relevant pages and flows manually in the browser as well, and check the bro
 npm ci                      # installs exact lockfile versions, not browser binaries
 npm test                    # unit tests (node:test), no browser needed
 npm run test:e2e:install     # Chromium and OS dependencies; may require sudo
-npm run test:e2e            # browser tests of the main user journeys
+npm run test:e2e            # browser tests of the main user journeys (Chromium)
+npm run test:e2e:compat:install && npm run test:e2e:compat   # optional: the smoke subset on Firefox and WebKit
 ```
 
 The browser tests start their own static server. To use one you already run (for example `python3 -m http.server 8000`), set `E2E_BASE_URL=http://localhost:8000`. Details, mocks and debugging with traces are in [E2E_TESTING.md](E2E_TESTING.md).
