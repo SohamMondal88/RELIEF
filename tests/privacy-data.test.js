@@ -433,3 +433,126 @@ describe('pages', () => {
         });
     });
 });
+
+// ---------------------------------------------------------------------------
+// "Clear data stored in this browser" (Issue #81): the local half on its own
+// ---------------------------------------------------------------------------
+
+describe('clearLocalData', () => {
+    it('removes every RELIEF key, keeps unrelated keys and reports exactly what went', () => {
+        const store = filled();
+        const r = P.clearLocalData(store);
+        assert.strictEqual(r.status, 'cleared');
+        assert.deepStrictEqual(store.keys().sort(), ['some_other_app', 'theme']);
+        assert.strictEqual(store.getItem('some_other_app'), 'keep me');
+        assert.strictEqual(r.local.removed.length, P.inventoryKeys().length + 1);
+        assert.deepStrictEqual(r.local.failed, []);
+    });
+
+    it('does not touch a key that only looks similar (no relief_ prefix, not in the inventory)', () => {
+        const store = memoryStorage({ relief_reminders_v1: '[]', 'my_relief_notes': 'x', Relief_upper: 'x', reliefx: 'x', userLocationBackup: 'x' });
+        P.clearLocalData(store);
+        assert.deepStrictEqual(store.keys().sort(), ['Relief_upper', 'my_relief_notes', 'reliefx', 'userLocationBackup']);
+    });
+
+    it('never contacts a server: no sign-in service is involved and the result says so', () => {
+        const r = P.clearLocalData(filled());
+        assert.strictEqual(r.server.state, 'not-contacted');
+        assert.match(r.server.message, /did not contact any server/);
+        assert.match(r.server.message, /still exists/);
+    });
+
+    it('says there was nothing to clear when nothing is stored, and is safe to run twice', () => {
+        const store = filled();
+        P.clearLocalData(store);
+        assert.strictEqual(P.clearLocalData(store).status, 'nothing');
+        assert.strictEqual(P.clearLocalData(memoryStorage({ theme: 'dark' })).status, 'nothing');
+    });
+
+    it('reports partial when a key refuses to go, names it, and still removes the rest', () => {
+        const store = memoryStorage({ relief_reminders_v1: '[]', userLocation: '{}', theme: 'dark' }, {
+            removeItem: (k) => (k === 'userLocation' ? 'ignore' : undefined)
+        });
+        const r = P.clearLocalData(store);
+        assert.strictEqual(r.status, 'partial');
+        assert.deepStrictEqual(r.local.failed, ['userLocation']);
+        assert.deepStrictEqual(store.keys().sort(), ['theme', 'userLocation']);
+    });
+
+    it('treats a storage that throws on removeItem as partial, not as cleared', () => {
+        const store = memoryStorage({ relief_lang: 'en' }, { removeItem: () => { throw new Error('SecurityError'); } });
+        assert.strictEqual(P.clearLocalData(store).status, 'partial');
+    });
+
+    it('reports failed, without throwing, when storage is missing or cannot be listed', () => {
+        assert.strictEqual(P.clearLocalData(null).status, 'failed');
+        const blocked = { getItem() { throw new Error('SecurityError'); }, removeItem() {}, get length() { throw new Error('SecurityError'); } };
+        assert.doesNotThrow(() => P.clearLocalData(blocked));
+        assert.ok(['failed', 'nothing'].includes(P.clearLocalData(blocked).status));
+    });
+});
+
+describe('countOtherKeys', () => {
+    it('counts the keys that are not RELIEF\'s, so the page can say how many are kept', () => {
+        assert.strictEqual(P.countOtherKeys(filled()), 2);
+        assert.strictEqual(P.countOtherKeys(memoryStorage({})), 0);
+        assert.strictEqual(P.countOtherKeys(null), null);
+    });
+});
+
+describe('describeClearResult wording', () => {
+    it('cleared: lists what was removed, says no server was contacted and never says an account was deleted', () => {
+        const t = P.describeClearResult(P.clearLocalData(filled()));
+        assert.strictEqual(t.tone, 'success');
+        assert.match(t.headline, /Data stored in this browser was cleared/);
+        assert.ok(t.lines.some((l) => /^Removed from this browser: .*Medicine reminders/.test(l)));
+        assert.ok(t.lines.some((l) => /did not contact any server/.test(l)));
+        assert.ok(!/account (was|were) deleted/i.test(t.headline + t.lines.join(' ')));
+        assert.ok(t.lines.some((l) => /other browsers or devices/.test(l)));
+    });
+
+    it('partial: names the key that stayed and the manual fallback', () => {
+        const store = memoryStorage({ userLocation: '{}', relief_lang: 'en' }, { removeItem: (k) => (k === 'userLocation' ? 'ignore' : undefined) });
+        const t = P.describeClearResult(P.clearLocalData(store));
+        assert.strictEqual(t.tone, 'error');
+        assert.ok(t.lines.some((l) => /Could not remove: Saved location/.test(l) && /browser settings/.test(l)));
+        assert.ok(t.lines.some((l) => /^Removed from this browser: .*Language choice/.test(l)));
+    });
+
+    it('nothing and failed are told apart', () => {
+        assert.strictEqual(P.describeClearResult(P.clearLocalData(memoryStorage({}))).headline, 'There was nothing to clear.');
+        const failed = P.describeClearResult(P.clearLocalData(null));
+        assert.strictEqual(failed.headline, 'Nothing was cleared.');
+        assert.strictEqual(failed.tone, 'error');
+        assert.ok(!failed.lines.some((l) => /did not contact/.test(l)));
+    });
+});
+
+describe('clear control on the dashboard', () => {
+    const html = read('pages/dashboard.html');
+    const controls = read('assets/js/privacy-controls.js');
+
+    it('has a clear button with its own confirmation that lists what goes, next to the delete button', () => {
+        assert.match(html, /id="privacy-clear"[^>]*aria-controls="privacy-clear-confirm"[^>]*aria-expanded="false"/);
+        assert.match(html, /id="privacy-clear-confirm"[^>]*role="group"[^>]*hidden/);
+        assert.match(html, /id="privacy-clear-list"/);
+        assert.match(html, /id="privacy-clear-yes"/);
+        assert.match(html, /id="privacy-clear-cancel"/);
+        assert.match(html, /does not contact any server and does not delete an account/);
+    });
+
+    it('only clears from the confirmation button, and never calls the account deletion', () => {
+        const at = controls.indexOf('P.clearLocalData(');
+        assert.ok(at > -1);
+        assert.ok(controls.lastIndexOf('function runClear', at) > -1, 'clearLocalData is called inside runClear');
+        assert.match(controls, /clearYes\.addEventListener\('click', runClear\)/);
+        const runClear = controls.slice(controls.indexOf('function runClear'), controls.indexOf('if (clearBtn && clearConfirm)'));
+        assert.ok(!/deleteAccount|ReliefAPI/.test(runClear));
+    });
+
+    it('the documentation names the clear control and what it leaves alone', () => {
+        const doc = read('docs/PRIVACY_AND_DATA.md');
+        assert.match(doc, /Clear data stored in this browser/);
+        assert.match(doc, /6\.5/);
+    });
+});
