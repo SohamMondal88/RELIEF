@@ -10,6 +10,8 @@ npx playwright install chromium   # once (add --with-deps on a fresh Linux machi
 npm run test:e2e                  # run everything
 npx playwright test e2e/sos.spec.js            # one file
 npx playwright test -g "reminder"              # tests whose title matches
+npx playwright test e2e/viewports.spec.js      # phone, tablet and desktop sizes (Issue #101)
+npx playwright test e2e/viewports.spec.js -g "phone"   # one size: "phone", "tablet" or "desktop"
 npx playwright test --headed --workers=1       # watch it run
 npm run test:e2e -- --ui                       # Playwright's interactive UI
 ```
@@ -34,7 +36,20 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/viewports.spec.js` | The same five journeys at 375x667 (phone), 768x1024 (tablet) and 1280x800 (desktop): main navigation, emergency access (SOS and the 112 link, opening and cancelling SOS), directory search, an appointment request from doctor to confirmation, the dashboard (reminder and assistant). See "Screen sizes" below |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+
+## Screen sizes
+
+`e2e/viewports.spec.js` loops over three sizes and runs the same journeys at each. Phone and tablet use touch (`hasTouch`, `isMobile`) and tap, desktop clicks. Besides what the journey does, each one checks:
+
+- **No sideways scrolling.** `overflowOffenders()` lists every visible element whose right edge is past the screen. Fixed boxes, boxes inside something that scrolls on purpose, and the entries in `KNOWN_OVERFLOW` are left out. The failure message names the element and by how many pixels it is too wide.
+- **Controls can be used.** `expectUsable()` scrolls the control to the middle of the screen, then checks it is visible, inside the screen, not covered (it asks the browser which element is on top at the control's centre) and at least 24 x 24 CSS px (WCAG 2.2, 2.5.8).
+- **SOS stays safe.** The dialog fits on the screen, both its buttons can be reached, Cancel closes it and no call, SMS or `window.open` happened. It works with no sign-in and with location denied, as everywhere else.
+
+Two known problems are tolerated by name, each with a comment in the spec, and should be removed in the pull request that fixes them: the language switcher sticks out 2px at 375px (`KNOWN_OVERFLOW`, the same bug as the `test.fixme` in `navigation.spec.js`) and the menu button is three CSS bars that measure 18px high (`KNOWN_SMALL_TARGETS`, skips only the 24px rule for that one button).
+
+To add a size, add a row to `VIEWPORTS`. To add a journey, add a `test` inside the loop and use `press()` (tap or click) so it works for touch and mouse. Another browser is not needed for this: the sizes and touch are emulated in Chromium (a real phone or WebKit would still be a separate check).
 
 ## Network helpers
 
@@ -106,6 +121,8 @@ These are real behaviours the tests found. They are skipped, listed in the repor
 | `network-resilience.spec.js` facility list gives up waiting | `fetch()` in `hospitals.js` has no timeout, so "Loading facilities..." stays for ever when the server never answers |
 | `network-resilience.spec.js` place lookup gives up waiting | Same in `location-service.js`: "Looking up that place..." for ever |
 | `network-resilience.spec.js` hospitals page opens offline | `sw.js` precaches `hospitals.html` but not `facility-utils.js`, `location-service.js`, `location-panel.js`, `i18n.js` and other scripts it needs, so offline the page has no list and no message |
+| `viewports.spec.js` a link in the open mobile menu can be tapped (phone, tablet) | With the menu open both `.nav-links` lists are `.active` and fixed over the same area, so the Login / Sign Up list sits on top of Home, About Us, Contact and Services (the hit test lands on the other `ul`), and the 170px logo covers the top of the panel |
+| `viewports.spec.js` no sideways scrolling at 360px (hospitals, doctors) | The hospital and doctor cards are 10px wider than a 360px screen, the language switcher 4px |
 | `sos.spec.js` focus returns to the SOS button | A click opens the SOS dialog twice (button handler plus document handler), so focus is lost on close |
 
 Not covered because the feature does not exist yet: a Relief Assistant launcher that opens and closes (the assistant is a card on the dashboard).
