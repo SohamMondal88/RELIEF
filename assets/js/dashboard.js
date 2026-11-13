@@ -281,6 +281,18 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     });
 
+    // A backup was restored (data-backup-ui.js): take the saved reminders and timeline as they are now.
+    document.addEventListener('relief:data-imported', () => {
+        dataDeleted = false;
+        reminders = R.loadReminders(localStorage);
+        history.length = 0;
+        R.loadHistory(localStorage, historyKey, []).forEach((entry) => history.push(entry));
+        bannerMessages.innerHTML = '';
+        banner.hidden = true;
+        resetForm();
+        render();
+    });
+
     notifyBtn?.addEventListener('click', () => {
         NP.enableBrowserNotifications(window.Notification, localStorage).then(renderNotifyPanel, renderNotifyPanel);
     });

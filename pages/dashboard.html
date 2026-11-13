@@ -157,6 +157,32 @@
         </article>
     </section>
 
+    <section class="card backup-card" id="data-backup" aria-labelledby="backup-heading">
+        <h2 id="backup-heading">Back up or restore your dashboard data</h2>
+        <p class="muted">You can save your medicine reminders and health timeline as a JSON file and load it back here or in another browser. It is a personal backup kept by you, not a medical record, and nobody has checked what is in it. Anyone who gets the file can read your medicine names, so keep it somewhere private. Deleting your data in RELIEF does not delete a file you already downloaded. Appointment requests, saved facilities, your location and notification choices are not included.</p>
+
+        <div class="backup-actions">
+            <button type="button" class="btn" id="backup-export">Download backup</button>
+            <div class="backup-restore">
+                <label for="backup-file">Restore from a backup file (.json, up to 512 KB)</label>
+                <input type="file" id="backup-file" accept=".json,application/json" aria-describedby="backup-restore-hint">
+                <p class="muted" id="backup-restore-hint">The file is checked first. Nothing is changed until you confirm.</p>
+            </div>
+        </div>
+
+        <div id="backup-preview" class="backup-preview" role="group" aria-labelledby="backup-preview-title" hidden>
+            <h3 id="backup-preview-title" tabindex="-1"></h3>
+            <ul id="backup-preview-list"></ul>
+            <p id="backup-preview-names" class="muted"></p>
+            <div class="backup-actions">
+                <button type="button" class="btn btn-danger" id="backup-apply">Replace with this backup</button>
+                <button type="button" class="btn" id="backup-cancel">Cancel</button>
+            </div>
+        </div>
+
+        <div id="backup-status" class="backup-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
+    </section>
+
     <section class="card privacy-card" id="privacy-data" aria-labelledby="privacy-heading">
         <h2 id="privacy-heading">Your data and account</h2>
         <p class="muted">RELIEF keeps what you enter in this browser only. Nothing here is sent to a RELIEF server. Read the <a href="./privacy-policy.html">privacy policy</a> for the full list.</p>
@@ -195,6 +221,8 @@
 <script src="../assets/js/symptoms.js"></script>
 <script src="../assets/js/assistant.js"></script>
 <script src="../assets/js/dashboard.js"></script>
+<script src="../assets/js/data-backup.js"></script>
+<script src="../assets/js/data-backup-ui.js"></script>
 <script src="../assets/js/privacy-data.js"></script>
 <script src="../assets/js/privacy-controls.js"></script>
 <script src="../assets/js/i18n.js"></script>
