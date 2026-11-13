@@ -119,6 +119,28 @@ How to fill a row once work is done:
 - `Reviewer`: `Name, role` for `Clinician reviewed`. Leave empty otherwise.
 - `Next review due`: `YYYY-MM-DD`, at most 6 months after the check.
 
+### How an article shows its source and review on the page
+
+Each article on the first aid page ends with three lines built by `assets/js/content-provenance.js` from an optional `provenance` property on the article in `assets/js/firstaid.js`:
+
+```js
+provenance: {
+  status: 'source-checked',            // 'not-reviewed' | 'source-checked' | 'clinician-reviewed'
+  sourceUrl: 'https://...',            // the publisher's own page, https only
+  sourceName: 'Publisher, title',      // shown as the link text
+  lastReviewed: '2026-10-01',          // a real date YYYY-MM-DD, not in the future
+  reviewedBy: 'Name, role'             // required for 'clinician-reviewed'
+}
+```
+
+- Every field is optional. An article with no `provenance` shows **Source not recorded**, **Last reviewed: Not recorded** and **Review status: Not reviewed**. That is what all five articles show today, because the register above has no sources or review dates for them.
+- The page never shows more than the evidence allows: `source-checked` without a https source and a date, or `clinician-reviewed` without those and a named reviewer, is shown as **Not reviewed**, and a date or reviewer next to **Not reviewed** is not shown. A source link that is not https, a date that does not exist (such as 2026-02-30) or is in the future, and text that is empty or too long are treated as not recorded.
+- A `source-checked` article is shown as **Source checked, not a clinical review** with its date under **Checked against the source on**, so the page never calls a source check a review (section 2). Only `clinician-reviewed` uses **Last reviewed** with a date.
+- Dates are always written the same way (`9 Nov 2026`), whatever the visitor's language or time zone. A review or source check older than 6 months also says "This review is more than 6 months old" (or "This check ..."), matching the review interval in section 3.
+- The register and the code have to agree: `tests/content-provenance.test.js` fails if an article has `provenance` but the register says `Not reviewed`, or the reverse.
+- The labels are in English only for now. The articles themselves are not translated either (section 4E).
+- Facility records keep their own source and date fields, described in [FACILITY_VERIFICATION_POLICY.md](FACILITY_VERIFICATION_POLICY.md). Health events show the organiser's source link ([HEALTH_EVENTS.md](HEALTH_EVENTS.md)).
+
 ## 7. Related
 
 - [MEDICALLY_CAUTIOUS_GUIDANCE.md](MEDICALLY_CAUTIOUS_GUIDANCE.md): symptom checker principles, red flag list, reference table, clinical review requirements.

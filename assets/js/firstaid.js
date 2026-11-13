@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // First aid guide data
+    // First aid guide data.
+    // An article can carry `provenance: { status, sourceUrl, sourceName, lastReviewed, reviewedBy }`
+    // (see assets/js/content-provenance.js). None of the articles below has a recorded source or review,
+    // so none has the field and each one says "Source not recorded". Add it only together with the matching
+    // row in docs/FIRST_AID_REVIEW_CHECKLIST.md.
     const firstAidGuides = [
         {
             id: 1,
@@ -184,6 +188,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             guidesAccordion.appendChild(guideItem);
+
+            // Where the article comes from and whether anyone has reviewed it, or an honest "not recorded".
+            if (window.ReliefProvenance) {
+                guideItem.querySelector('.guide-content').appendChild(
+                    window.ReliefProvenance.buildElement(document, guide.provenance)
+                );
+            }
 
             // Add click event to toggle accordion
             const header = guideItem.querySelector('.guide-header');

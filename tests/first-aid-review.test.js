@@ -71,7 +71,9 @@ test('no page, script or translation says content is medically approved while no
   const anyClinicianReviewed = registerRows().some((row) => row.status === 'Clinician reviewed');
   const files = ['index.html']
     .concat(fs.readdirSync(path.join(root, 'pages')).filter((f) => f.endsWith('.html')).map((f) => 'pages/' + f))
-    .concat(fs.readdirSync(path.join(root, 'assets', 'js')).filter((f) => f.endsWith('.js')).map((f) => 'assets/js/' + f))
+    // content-provenance.js holds the label text for a "Clinician reviewed" status. It is only shown for a record
+    // with a source, a date and a named reviewer, and tests/content-provenance.test.js checks that no article has one.
+    .concat(fs.readdirSync(path.join(root, 'assets', 'js')).filter((f) => f.endsWith('.js') && f !== 'content-provenance.js').map((f) => 'assets/js/' + f))
     .concat(fs.readdirSync(path.join(root, 'assets', 'locales')).map((f) => 'assets/locales/' + f));
   const claim = /\b(medically|clinically)[ -](approved|verified|validated|certified|reviewed)\b|\b(doctor|physician|clinician|expert)[ -](approved|verified|reviewed)\b|\b(approved|verified|reviewed|checked|endorsed) by (a |our |the )?(doctors?|physicians?|clinicians?|medical (experts?|professionals?|board))\b/i;
   const negation = /\b(not|no|never|without|neither|nor|pending|until|before)\b[^.]{0,60}$/i;

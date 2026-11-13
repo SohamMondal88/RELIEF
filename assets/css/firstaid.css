@@ -689,7 +689,8 @@ a:hover {
 
 .guide-item.active .guide-content {
     padding: 0 1.5rem 1.5rem;
-    max-height: 1000px;
+    /* Was 1000px, which cut off the end of the longest guides on a phone (choking is 1153px tall at 375px wide). */
+    max-height: 3000px;
 }
 
 .guide-item.active .guide-header i {
@@ -715,6 +716,29 @@ a:hover {
 .guide-warning i {
     color: var(--danger-color);
     margin-right: 0.5rem;
+}
+
+.guide-provenance {
+    margin: 1.25rem 0 0;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #d0d7de;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.guide-provenance div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    margin: 0.15rem 0;
+}
+
+.guide-provenance dt {
+    font-weight: 600;
+}
+
+.guide-provenance dd {
+    margin: 0;
 }
 
 @media (max-width: 768px) {
