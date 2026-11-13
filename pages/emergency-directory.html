@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emergency Resource Directory | RELIEF</title>
+  <meta name="description"
+    content="Search emergency helplines and emergency pages of RELIEF. Every helpline shows its source and when it was last checked, if known." />
+  <link rel="stylesheet" href="../assets/css/professional-pages.css" />
+  <link rel="stylesheet" href="../assets/css/emergency-directory.css" />
+
+  <!-- Vercel Web Analytics -->
+  <script src="../assets/js/vercel-analytics.js"></script>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap nav">
+      <div class="brand">
+        <img src="../assets/images/logo.jpg" alt="Relief" width="36" height="36" />
+        <strong>RELIEF</strong>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="../index.html">Home</a>
+        <a href="./hospitals.html">Hospitals</a>
+        <a href="./ambulances.html">Ambulances</a>
+        <a href="./emergency-directory.html" aria-current="page">Emergency directory</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap" tabindex="-1">
+    <section class="hero">
+      <h1>Emergency resource directory</h1>
+      <p class="dir-warning" role="note">
+        <strong>In a life-threatening emergency, call your local emergency number now.</strong>
+        RELIEF does not dispatch help and does not call for you. Tapping a number opens your phone's dialer,
+        and nothing is dialled until you press call there.
+      </p>
+      <p class="muted">
+        Search by service, number, region or word, for example "ambulance", "UK" or a number you were given. Every helpline shows
+        its source and when it was last checked, or says that no check is recorded. This page works without
+        signing in and without sharing your location.
+      </p>
+
+      <form id="directory-form" role="search" method="post" novalidate>
+        <label for="directory-search">Search the directory</label>
+        <div class="dir-search-row">
+          <input id="directory-search" name="q" type="search" maxlength="100" autocomplete="off"
+            placeholder="For example: ambulance" />
+          <button type="button" class="btn btn-secondary" id="directory-clear" hidden>Clear</button>
+        </div>
+      </form>
+      <p id="directory-status" class="dir-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="directory-unavailable" class="card dir-unavailable" role="alert" hidden>
+      <h2>The list of helplines could not be loaded</h2>
+      <p>
+        Do not wait for this page. Dial the emergency number for the country you are in from your phone's keypad.
+        The pages of RELIEF below can still be searched.
+      </p>
+    </div>
+
+    <noscript>
+      <div class="card dir-unavailable">
+        <h2>This directory needs JavaScript</h2>
+        <p>
+          Dial the emergency number for the country you are in from your phone's keypad, or open the
+          <a href="./ambulances.html">Ambulances page</a>.
+        </p>
+      </div>
+    </noscript>
+
+    <ul id="directory-results" class="dir-list" aria-label="Search results"></ul>
+
+    <div id="directory-empty" class="card dir-empty" hidden>
+      <h2>Nothing found for "<span id="directory-empty-query"></span>"</h2>
+      <p>
+        Try one word, such as "ambulance", or a number. If you cannot find what you need, dial the emergency
+        number for the country you are in from your phone's keypad. Please do not rely on a number that is not
+        listed here with a source.
+      </p>
+    </div>
+  </main>
+
+  <footer class="wrap footer">
+    RELIEF lists resources for information only. It is not an emergency service.
+  </footer>
+
+  <script src="../assets/js/emergency-sos.js"></script>
+  <script src="../assets/js/emergency-directory.js"></script>
+  <script src="../assets/js/emergency-directory-ui.js"></script>
+</body>
+
+</html>
