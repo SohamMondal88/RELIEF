@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Mock pharmacy data
+    // Sample pharmacy data (not real pharmacies). It has no ratings or distances on purpose: none of that is known.
     const pharmacies = [
         {
             id: 1,
             name: "City Pharmacy",
             type: "Chain Pharmacy",
-            location: "123 Main St, Downtown, 1.2 miles away",
+            location: "123 Main St, Downtown",
             services: ["Home Delivery", "Vaccines"],
             phone: "+1 555 123 4567",
             hours: {
@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "9:00 AM - 8:00 PM",
                 sun: "10:00 AM - 6:00 PM"
             },
-            rating: 4.5,
             lat: 40.7128,
             lng: -74.0060,
             image: "../assets/images/pharmacy1.jpg"
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 2,
             name: "24-Hour Drug Mart",
             type: "24-Hour",
-            location: "456 Oak Ave, Westside, 2.5 miles away",
+            location: "456 Oak Ave, Westside",
             services: ["24-Hour", "Home Delivery", "Compounding"],
             phone: "+1 555 234 5678",
             hours: {
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "Open 24 hours",
                 sun: "Open 24 hours"
             },
-            rating: 4.2,
             lat: 40.7328,
             lng: -74.0260,
             image: "../assets/images/pharmacy2.jpg"
@@ -39,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 3,
             name: "Greenleaf Pharmacy",
             type: "Independent",
-            location: "789 Pine Rd, Northside, 1.8 miles away",
+            location: "789 Pine Rd, Northside",
             services: ["Compounding", "Vaccines"],
             phone: "+1 555 345 6789",
             hours: {
@@ -47,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "9:00 AM - 5:00 PM",
                 sun: "Closed"
             },
-            rating: 4.7,
             lat: 40.7528,
             lng: -74.0160,
             image: "../assets/images/pharmacy3.jpg"
@@ -56,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 4,
             name: "General Hospital Pharmacy",
             type: "Hospital Pharmacy",
-            location: "321 Elm Blvd, Eastside, 3.2 miles away",
+            location: "321 Elm Blvd, Eastside",
             services: ["Specialty Medications"],
             phone: "+1 555 456 7890",
             hours: {
@@ -64,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "9:00 AM - 5:00 PM",
                 sun: "10:00 AM - 4:00 PM"
             },
-            rating: 4.3,
             lat: 40.7028,
             lng: -73.9960,
             image: "../assets/images/pharmacy4.jpg"
@@ -73,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 5,
             name: "QuickCare Pharmacy",
             type: "Chain Pharmacy",
-            location: "654 Maple St, Downtown, 0.7 miles away",
+            location: "654 Maple St, Downtown",
             services: ["Home Delivery", "Vaccines"],
             phone: "+1 555 567 8901",
             hours: {
@@ -81,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "8:00 AM - 10:00 PM",
                 sun: "9:00 AM - 8:00 PM"
             },
-            rating: 4.1,
             lat: 40.7128,
             lng: -74.0160,
             image: "../assets/images/pharmacy5.jpg"
@@ -90,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 6,
             name: "Southside Drugs",
             type: "Independent",
-            location: "987 Cedar Ln, Southside, 4.0 miles away",
+            location: "987 Cedar Ln, Southside",
             services: ["Compounding"],
             phone: "+1 555 678 9012",
             hours: {
@@ -98,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sat: "9:00 AM - 4:00 PM",
                 sun: "Closed"
             },
-            rating: 4.4,
             lat: 40.6928,
             lng: -74.0360,
             image: "../assets/images/pharmacy6.jpg"
@@ -113,6 +107,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const servicesFilter = document.getElementById('services');
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
+    const statusEl = document.getElementById('directory-status');
+    const U = window.FacilityUtils;
+
+    function setStatus(message) {
+        if (statusEl) statusEl.textContent = message;
+    }
 
     // Initialize map
     let map;
@@ -137,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.addEventListener('relief:location-changed', function() {
+        // A new location changes the distances and the distance order.
+        filterPharmacies();
         if (!map) return;
         const location = getUserLocation();
         setUserMarker(location);
@@ -191,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pharmacy.name.toLowerCase().includes(searchTerm) ||
                 pharmacy.location.toLowerCase().includes(searchTerm);
 
-            const matchesPharmacyType = !pharmacyType || pharmacy.type.toLowerCase() === pharmacyType.toLowerCase().replace('-', ' ');
+            const matchesPharmacyType = !pharmacyType || pharmacy.type.toLowerCase() === pharmacyType.toLowerCase();
             const matchesLocation = !location || pharmacy.location.toLowerCase().includes(location.toLowerCase());
             const matchesServices = !services || pharmacy.services.some(s =>
                 s.toLowerCase().includes(services.toLowerCase().replace('-', ' ')));
@@ -203,25 +205,25 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMapMarkers(filteredPharmacies);
     }
 
-    // Sort pharmacies
-    function sortPharmacies(pharmaciesList, sortBy) {
-        return [...pharmaciesList].sort((a, b) => {
-            if (sortBy === 'rating') {
-                return b.rating - a.rating;
-            } else if (sortBy === 'delivery') {
-                // Sort by delivery availability
-                const aHasDelivery = a.services.includes("Home Delivery");
-                const bHasDelivery = b.services.includes("Home Delivery");
-                if (aHasDelivery && !bHasDelivery) return -1;
-                if (!aHasDelivery && bHasDelivery) return 1;
-                return 0;
-            } else {
-                // Default sort by distance (mock implementation)
-                const aDistance = parseFloat(a.location.match(/\d+\.\d+|\d+/)[0]);
-                const bDistance = parseFloat(b.location.match(/\d+\.\d+|\d+/)[0]);
-                return aDistance - bDistance;
-            }
-        });
+    // Sort pharmacies. Only fields that are really in the data are used and the order is the same every time:
+    // distance (only from a valid saved location, entries without a valid position last), home delivery
+    // (listed in services), or name. Ties fall back to name and then id.
+    function sortPharmacies(list, sortBy) {
+        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
+        const origin = saved ? { lat: saved.lat, lng: saved.lng } : null;
+        // This pass also adds distanceKm (null when the position is missing or invalid).
+        const sorted = U.sortFacilities(list, sortBy === 'distance' ? 'distance' : 'name', origin);
+        if (sortBy === 'delivery') {
+            const offers = p => p.services.includes('Home Delivery');
+            sorted.sort((a, b) => (offers(a) === offers(b) ? 0 : offers(a) ? -1 : 1) || U.compareNames(a, b));
+        }
+        return sorted;
+    }
+
+    function sortNote(sortBy) {
+        if (sortBy === 'delivery') return 'Pharmacies that list home delivery come first, then A to Z.';
+        const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
+        return U.describeSort(sortBy, saved ? { lat: saved.lat, lng: saved.lng } : null).note;
     }
 
     // Display pharmacies in the UI
@@ -230,11 +232,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (pharmaciesToDisplay.length === 0) {
             pharmaciesList.innerHTML = '<p class="no-results">No pharmacies found matching your criteria.</p>';
+            setStatus('No pharmacies found.');
             return;
         }
 
         const sortBy = sortSelect.value;
         const sortedPharmacies = sortPharmacies(pharmaciesToDisplay, sortBy);
+        setStatus(pharmaciesToDisplay.length + (pharmaciesToDisplay.length === 1 ? ' pharmacy found. ' : ' pharmacies found. ') + sortNote(sortBy));
 
         sortedPharmacies.forEach(pharmacy => {
             const pharmacyCard = document.createElement('div');
@@ -245,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h4 class="pharmacy-name">${pharmacy.name}</h4>
                     <p class="pharmacy-type">${pharmacy.type}</p>
                     <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${pharmacy.location}</p>
+                    ${pharmacy.distanceKm != null ? `<p class="pharmacy-distance">${U.formatDistance(pharmacy.distanceKm)}</p>` : ''}
                     <div class="pharmacy-services">
                         ${pharmacy.services.map(service =>
                             `<span class="service-tag">${service}</span>`
@@ -312,6 +317,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     searchInput.addEventListener('input', filterPharmacies);
     filterButton.addEventListener('click', filterPharmacies);
+    // Selects filter as soon as they change, like the hospitals page; the Filter button still works too.
+    [pharmacyTypeFilter, locationFilter, servicesFilter].forEach(el => el.addEventListener('change', filterPharmacies));
     sortSelect.addEventListener('change', () => {
         filterPharmacies();
     });

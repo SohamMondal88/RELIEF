@@ -216,6 +216,13 @@ document.addEventListener('DOMContentLoaded', function() {
         fillSelect(facilityTypeFilter, 'All Facilities', options.types, t => U.FACILITY_TYPES[t] || t);
         fillSelect(districtFilter, 'All Areas', options.districts);
         fillSelect(servicesFilter, 'All Services', options.services);
+        // Sorting by opening hours is offered only when some record actually lists hours.
+        if (sortSelect && facilities.some(U.hasListedHours) && !sortSelect.querySelector('option[value="hours"]')) {
+            const opt = document.createElement('option');
+            opt.value = 'hours';
+            opt.textContent = 'Hours listed first';
+            sortSelect.appendChild(opt);
+        }
     }
 
     function cardHtml(f) {
@@ -294,9 +301,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const sortBy = sortSelect ? sortSelect.value : 'name';
         const location = readSavedLocation();
         const sorted = U.sortFacilities(filtered, sortBy, location);
-        const note = (sortBy === 'distance' && !location)
-            ? 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.'
-            : '';
+        const sorting = U.describeSort(sortBy, location);
+        let note = '';
+        if (sortBy === 'distance' && !location) note = 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.';
+        else if (sortBy === 'hours') note = sorting.note;
+        else if (sortBy === 'distance') note = sorting.note;
         render(sorted, note);
     }
 

@@ -82,15 +82,15 @@
                         <select id="pharmacy-type">
                             <option value="">All Pharmacies</option>
                             <option value="24-hour">24-Hour</option>
-                            <option value="chain">Chain Pharmacy</option>
+                            <option value="chain pharmacy">Chain Pharmacy</option>
                             <option value="independent">Independent</option>
-                            <option value="hospital">Hospital Pharmacy</option>
+                            <option value="hospital pharmacy">Hospital Pharmacy</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="location">Location</label>
                         <select id="location">
-                            <option value="">Near Me</option>
+                            <option value="">Any area</option>
                             <option value="downtown">Downtown</option>
                             <option value="suburb">Suburb</option>
                             <option value="north">North Area</option>
@@ -112,16 +112,18 @@
 
             <div class="pharmacy-results">
                 <div class="results-header">
-                    <h3>Available Pharmacies</h3>
+                    <h3>Pharmacies</h3>
                     <div class="sort-options">
                         <span>Sort by:</span>
-                        <select aria-label="Sort pharmacies by">
+                        <select aria-label="Sort pharmacies by" aria-describedby="directory-status">
+                            <option value="name">Name (A to Z)</option>
                             <option value="distance">Distance</option>
-                            <option value="rating">Rating</option>
-                            <option value="delivery">Delivery Available</option>
+                            <option value="delivery">Home delivery first</option>
                         </select>
                     </div>
                 </div>
+
+                <p id="directory-status" class="directory-status" role="status" aria-live="polite"></p>
 
                 <div class="pharmacies-list">
                     <!-- Pharmacy cards will be populated by JavaScript -->
@@ -214,6 +216,7 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/location-service.js"></script>
     <script src="../assets/js/location-panel.js"></script>
+    <script src="../assets/js/facility-utils.js"></script>
     <script src="../assets/js/pharmacies.js"></script>
 
     <script src="../assets/js/i18n.js"></script>
