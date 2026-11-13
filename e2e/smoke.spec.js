@@ -26,9 +26,8 @@ const KNOWN = {
   // (checked with curl on 9 November 2026). Fixing them needs the artwork, so they are tracked here until it is added.
   about: { firstParty: [/^404 \/assets\/images\/(cta-bg\.jpg|dots-pattern\.png|dots-pattern-white\.png|wave-divider-dark\.svg)$/] },
   contact: { firstParty: [/^404 \/assets\/css\/images\/(contact-hero\.jpg|wave-pattern\.png|form-pattern\.svg|dots-pattern\.svg)$/] },
-  // Same Leaflet call as ambulances below, and pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
+  // pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
   pharmacies: {
-    pageErrors: [/^L is not defined$/],
     firstParty: [/^404 \/assets\/images\/pharmacy[1-6]\.jpg$/]
   },
   // assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with the CDN

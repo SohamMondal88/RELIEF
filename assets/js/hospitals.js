@@ -259,14 +259,33 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
     }
 
+    function resetFilters() {
+        if (searchInput) searchInput.value = '';
+        [facilityTypeFilter, districtFilter, servicesFilter].forEach(el => { if (el) el.value = ''; });
+        if (verifiedOnly) verifiedOnly.checked = false;
+        applyFilters();
+        if (searchInput) searchInput.focus();
+    }
+
+    // Two different empty lists: the filters match nothing (clear them), or there is no facility data at all.
+    function renderEmpty() {
+        const noData = facilities.length === 0;
+        if (R) {
+            R.renderDirectory(hospitalsList, noData ? 'no-data' : 'no-results', {
+                noun: 'facilities',
+                onReset: noData ? null : resetFilters
+            });
+            if (!noData && hospitalsList.firstChild) hospitalsList.firstChild.classList.add('no-results');
+        } else {
+            hospitalsList.innerHTML = '<p class="no-results">No facilities found matching your criteria. Try clearing a filter or searching for something else.</p>';
+        }
+        setStatus(noData ? 'No facilities are listed right now.' : 'No facilities found.');
+    }
+
     function render(list, note) {
         hospitalsList.innerHTML = '';
         if (list.length === 0) {
-            const p = document.createElement('p');
-            p.className = 'no-results';
-            p.textContent = 'No facilities found matching your criteria. Try clearing a filter or searching for something else.';
-            hospitalsList.appendChild(p);
-            setStatus('No facilities found.');
+            renderEmpty();
             updateMapMarkers([]);
             return;
         }
