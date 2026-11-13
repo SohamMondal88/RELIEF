@@ -346,10 +346,10 @@ function initializeBackToTopButton() {
         styles.textContent = `
             .back-to-top-btn {
                 position: fixed;
-                right: 1.5rem;
+                right: max(1.5rem, env(safe-area-inset-right));
                 /* The Emergency SOS button (app-enhancements.js) sits at the bottom right with a higher z-index and
                    covered this one completely, so it could not be clicked. Keep it above that button. */
-                bottom: 5.5rem;
+                bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
                 z-index: 1000;
                 width: 3rem;
                 height: 3rem;
@@ -376,7 +376,11 @@ function initializeBackToTopButton() {
             .back-to-top-btn:focus-visible {
                 background: linear-gradient(135deg, #2f89c5, #175f90);
                 transform: translateY(-2px);
-                outline: none;
+            }
+
+            .back-to-top-btn:focus-visible {
+                outline: 3px solid #0b3d91;
+                outline-offset: 3px;
             }
         `;
         document.head.appendChild(styles);
@@ -670,7 +674,7 @@ function updateOfflineBanner() {
         banner = document.createElement('div');
         banner.id = 'relief-offline-banner';
         banner.setAttribute('role', 'status');
-        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#7a4a00;color:#fff;padding:8px 12px;text-align:center;font:600 14px sans-serif';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#7a4a00;color:#fff;padding:max(8px,env(safe-area-inset-top)) 12px 8px;text-align:center;font:600 14px sans-serif';
         document.body.appendChild(banner);
     }
     let lastSync = null;
