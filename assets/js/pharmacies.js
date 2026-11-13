@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pharmacies = [
         {
             id: 1,
+            synthetic: true,
             name: "City Pharmacy",
             type: "Chain Pharmacy",
             location: "123 Main St, Downtown, 1.2 miles away",
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 2,
+            synthetic: true,
             name: "24-Hour Drug Mart",
             type: "24-Hour",
             location: "456 Oak Ave, Westside, 2.5 miles away",
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 3,
+            synthetic: true,
             name: "Greenleaf Pharmacy",
             type: "Independent",
             location: "789 Pine Rd, Northside, 1.8 miles away",
@@ -54,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 4,
+            synthetic: true,
             name: "General Hospital Pharmacy",
             type: "Hospital Pharmacy",
             location: "321 Elm Blvd, Eastside, 3.2 miles away",
@@ -71,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 5,
+            synthetic: true,
             name: "QuickCare Pharmacy",
             type: "Chain Pharmacy",
             location: "654 Maple St, Downtown, 0.7 miles away",
@@ -88,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 6,
+            synthetic: true,
             name: "Southside Drugs",
             type: "Independent",
             location: "987 Cedar Ln, Southside, 4.0 miles away",
@@ -104,6 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
             image: "../assets/images/pharmacy6.jpg"
         }
     ];
+
+    const U = window.FacilityUtils;
+    // These are made up, so every card and map popup says so (the label and the legend come from facility-utils.js).
+    const legendEl = document.getElementById('status-legend');
+    if (legendEl && U) legendEl.innerHTML = U.legendHtml(pharmacies);
 
     // DOM elements
     const pharmaciesList = document.querySelector('.pharmacies-list');
@@ -167,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pharmaciesToShow.forEach(pharmacy => {
             const marker = L.marker([pharmacy.lat, pharmacy.lng])
                 .addTo(map)
-                .bindPopup(`<b>${pharmacy.name}</b><br>${pharmacy.location}`);
+                .bindPopup(U ? U.popupHtml(pharmacy) : `<b>${pharmacy.name}</b><br>${pharmacy.location}`);
 
             markers.push(marker);
         });
@@ -244,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="pharmacy-info">
                     <h4 class="pharmacy-name">${pharmacy.name}</h4>
                     <p class="pharmacy-type">${pharmacy.type}</p>
+                    ${U ? `<p class="pharmacy-status">${U.statusBadgeHtml(U.dataStatus(pharmacy))}</p>` : ''}
                     <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${pharmacy.location}</p>
                     <div class="pharmacy-services">
                         ${pharmacy.services.map(service =>

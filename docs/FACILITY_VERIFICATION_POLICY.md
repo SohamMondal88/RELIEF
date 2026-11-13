@@ -15,6 +15,17 @@ This is a draft policy written from what the code can enforce. Maintainers shoul
 
 `stale` is partly worked out, not only stored. A record stored as `verified` is shown as `stale` once its `lastChecked` date is more than `maxAgeDays` old, with nobody editing anything (`reviewStatus()` in `assets/js/facility-utils.js`). A maintainer can also store `stale` on purpose, for example when a correction suggests a detail changed.
 
+### Two more labels, and the legend
+
+Two labels are not review states. They say what a record is, and they win over the table above:
+
+| Label | When | Meaning |
+|---|---|---|
+| Sample data | The record has `synthetic: true` | Made up for demonstration. It is never shown as verified, even if it says it is. The sample doctors, pharmacies and ambulance services in the page scripts all carry it |
+| Status unavailable | The record has no `reviewState` and no true or false `verified` | The record says nothing about its review, so the page claims nothing. It is never shown as "Not verified" or "Verified" |
+
+`dataStatus()` in `assets/js/facility-utils.js` decides the label. The card, the map popup and the legend on the hospital, doctor, pharmacy and ambulance pages all use it, so they cannot disagree. Each label is words plus a symbol, the colour is only an extra. The legend lists only the labels the records on that page really use.
+
 ## Evidence rule
 
 A record is only ever shown as Verified if all of these are true:
@@ -90,6 +101,6 @@ CI runs the append-only check on pull requests (`check --base-ref origin/<target
 
 - There is no backend, so there is no live review queue, no notification when a record turns stale and no per-user login for maintainers. A stale record is found when someone looks at the list.
 - The log is in a file that anyone with write access can edit. The CI check and review of the pull request are what stop that, not the file.
-- `assets/js/pharmacies.js` keeps its own list in the script, not in `facilities.json`, so it is not covered. Moving it into the data file would bring it under this policy.
+- `assets/js/pharmacies.js` keeps its own list in the script, not in `facilities.json`, so it is not covered by the review workflow. It is labelled Sample data instead. Moving it into the data file would bring it under this policy.
 - No record is verified today. All 46 start as `pending` because nobody has checked them against a source yet, and this change does not invent a check.
 - The labels are English only (they are drawn by `hospitals.js` like the existing badge).

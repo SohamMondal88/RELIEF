@@ -124,6 +124,10 @@
       lat: typeof raw.lat === 'number' ? raw.lat : null,
       lng: typeof raw.lng === 'number' ? raw.lng : null,
       reviewState: state,
+      // Whether the record said anything about its review at all, and whether it is made-up sample data.
+      // A record with neither is shown as "Status unavailable", never as verified.
+      statusKnown: REVIEW_STATES.indexOf(raw.reviewState) !== -1 || typeof raw.verified === 'boolean',
+      synthetic: raw.synthetic === true,
       verified: state === 'verified',
       verifiedBy: raw.verifiedBy ? String(raw.verifiedBy) : null,
       source: raw.source || null,
@@ -232,6 +236,73 @@
     };
   }
 
+  // ---- Status labels (Issue #110) ----
+  // One list of labels for every directory page, so the card, the map popup and the legend say the same thing.
+  // The text is what carries the meaning; the symbol is only an extra cue and the colour never is the only one.
+  var STATUS_DEFS = {
+    verified: { badge: 'Verified', icon: '\u2713', description: 'A reviewer checked this record against a named source recently. Details can still change, so call ahead.' },
+    unverified: { badge: 'Not verified', icon: '?', description: 'Nobody has confirmed this record yet. It may be out of date, so call ahead.' },
+    stale: { badge: 'Needs re-checking', icon: '!', description: 'It was checked, but long enough ago that the details may have changed.' },
+    rejected: { badge: 'Could not be confirmed', icon: '\u00d7', description: 'A reviewer could not confirm these details.' },
+    sample: { badge: 'Sample data', icon: '\u25c6', description: 'Made up for demonstration. This is not a real provider and nothing about it is verified.' },
+    unavailable: { badge: 'Status unavailable', icon: '\u2013', description: 'This record has no review information, so nothing is claimed about it.' }
+  };
+  var STATUS_ORDER = ['verified', 'unverified', 'stale', 'rejected', 'sample', 'unavailable'];
+
+  /**
+   * The status a record may be shown with: { key, badge, icon, detail, description }.
+   *  - made-up sample records (synthetic: true) are always "Sample data", even if they say verified
+   *  - a record with no review information at all is "Status unavailable"
+   *  - everything else follows reviewLabel: only a record with a source, a verifier and a recent date is Verified
+   */
+  function dataStatus(record, opts) {
+    var r = record && typeof record === 'object' ? record : null;
+    var key;
+    var detail = '';
+    if (!r) {
+      key = 'unavailable';
+    } else if (r.synthetic === true) {
+      key = 'sample';
+    } else if (r.statusKnown === false || (r.statusKnown === undefined && REVIEW_STATES.indexOf(r.reviewState) === -1 && typeof r.verified !== 'boolean')) {
+      key = 'unavailable';
+    } else {
+      var label = reviewLabel(r, opts);
+      key = label.state === 'pending' ? 'unverified' : label.state;
+      detail = label.detail;
+    }
+    if (key === 'sample') detail = 'made up for demonstration, not a real provider';
+    if (key === 'unavailable') detail = 'no review information on this record';
+    var def = STATUS_DEFS[key];
+    return { key: key, badge: def.badge, icon: def.icon, detail: detail, description: def.description };
+  }
+
+  function statusBadgeHtml(status) {
+    return '<span class="verify-badge badge-' + status.key + '" data-icon="' + escapeHtml(status.icon) + '">' + escapeHtml(status.badge) + '</span>';
+  }
+
+  // The text shown inside a map popup. It uses the same status as the card, so list and map cannot disagree.
+  function popupHtml(record, opts) {
+    var r = record || {};
+    return '<b>' + escapeHtml(r.name) + '</b><br>' + escapeHtml(r.district || r.location || '') + '<br>' + statusBadgeHtml(dataStatus(r, opts));
+  }
+
+  /**
+   * The legend: only the labels that the records on the page actually use (in a fixed order), each with
+   * what it means. Returns '' when there are no records, so an empty page does not explain anything.
+   */
+  function legendHtml(records, opts) {
+    var used = {};
+    (records || []).forEach(function (r) { used[dataStatus(r, opts).key] = true; });
+    var keys = STATUS_ORDER.filter(function (k) { return used[k]; });
+    if (keys.length === 0) return '';
+    return '<h4 class="status-legend-title">What the labels mean</h4><dl class="status-legend-list">' +
+      keys.map(function (k) {
+        var def = STATUS_DEFS[k];
+        return '<div class="status-legend-item"><dt><span class="verify-badge badge-' + k + '" data-icon="' + escapeHtml(def.icon) + '">' + escapeHtml(def.badge) + '</span></dt><dd>' + escapeHtml(def.description) + '</dd></div>';
+      }).join('') + '</dl>' +
+      '<p class="status-legend-note">The label comes from each record\'s own review information. A record with none is never shown as verified.</p>';
+  }
+
   function normalizeFacilities(data) {
     var list = Array.isArray(data) ? data : (data && data.facilities);
     if (!Array.isArray(list)) return [];
@@ -325,6 +396,11 @@
     getReviewPolicy: getReviewPolicy,
     reviewStatus: reviewStatus,
     reviewLabel: reviewLabel,
+    STATUS_ORDER: STATUS_ORDER,
+    dataStatus: dataStatus,
+    statusBadgeHtml: statusBadgeHtml,
+    popupHtml: popupHtml,
+    legendHtml: legendHtml,
     escapeHtml: escapeHtml,
     haversineKm: haversineKm,
     isValidCoord: isValidCoord,

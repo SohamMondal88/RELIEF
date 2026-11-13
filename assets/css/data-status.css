@@ -1,0 +1,99 @@
+/* Status labels (Verified, Not verified, Sample data ...) and their legend.
+   The words carry the meaning. The symbol in front (data-icon) and the colour are extra cues only. */
+.verify-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid currentColor;
+}
+
+.verify-badge::before {
+    content: attr(data-icon) " ";
+}
+
+.badge-verified {
+    background: #d4f5e6;
+    color: #00593f;
+}
+
+.badge-unverified {
+    background: #fff1d6;
+    color: #7a4a00;
+}
+
+.badge-stale {
+    background: #ffe1d6;
+    color: #8a2c00;
+}
+
+.badge-rejected {
+    background: #e8e8ee;
+    color: #3d3d4a;
+}
+
+.badge-sample {
+    background: #e9e6ff;
+    color: #3b2a8c;
+}
+
+.badge-unavailable {
+    background: #f1f1f1;
+    color: #404040;
+    border-style: dashed;
+}
+
+.doctor-status,
+.pharmacy-status,
+.ambulance-status {
+    margin: 0.25rem 0;
+}
+
+.status-legend {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #c9ced6;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+}
+
+.status-legend[hidden] {
+    display: none;
+}
+
+.status-legend .status-legend-title {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+}
+
+.status-legend-list {
+    margin: 0;
+    padding: 0;
+}
+
+.status-legend-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    margin-bottom: 0.4rem;
+}
+
+.status-legend-item dt {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.status-legend-item dd {
+    margin: 0;
+    flex: 1 1 14rem;
+    font-size: 0.9rem;
+}
+
+.status-legend p.status-legend-note {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: #444;
+}
