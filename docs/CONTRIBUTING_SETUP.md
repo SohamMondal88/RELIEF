@@ -187,6 +187,7 @@ The current code references several external integrations. A static preview can 
 
 - Never commit passwords, private tokens, service-account files, or real secrets.
 - Do not replace placeholders with personal credentials in a public pull request.
+- Pull requests are scanned for committed secrets and for vulnerable npm packages. If a scan fails, or a credential was pushed by mistake, see [SECURITY_SCANNING.md](SECURITY_SCANNING.md) (rotate it first).
 - Follow the relevant provider's official setup instructions and the project's maintainer guidance before configuring a service.
 - Browser-side Firebase web configuration is not equivalent to server-side secret storage. Production use requires appropriate Firebase security rules, access controls, and a security review.
 - Do not assume a configured endpoint is valid just because it appears in source code. Confirm that the provider supports the endpoint and request format used by the application.
