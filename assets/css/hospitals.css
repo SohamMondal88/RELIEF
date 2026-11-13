@@ -662,7 +662,7 @@ border-radius: 5px;
 
 .hospitals-list {
 display: grid;
-grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
 gap: 1.5rem;
 margin-bottom: 2rem;
 }
@@ -1568,4 +1568,91 @@ grid-template-columns: 1fr;
 .correction-error:empty,
 .correction-hint:empty {
     display: none;
+}
+
+
+/* Active filters, reset and the empty-result suggestions */
+.filter-open-now {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+}
+
+.filter-group .filter-hint,
+.no-results .filter-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.filter-group[hidden],
+.active-filters[hidden] {
+    display: none;
+}
+
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.active-filters-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.filter-chip,
+.btn-reset-filters,
+.btn-suggest {
+    min-height: 44px;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-chip {
+    background: #e8f1fb;
+    color: #0b3f75;
+    border: 1px solid #0b5cad;
+}
+
+.btn-suggest {
+    max-width: 100%;
+    white-space: normal;
+}
+
+.btn-reset-filters,
+.btn-suggest {
+    background: #fff;
+    color: #0b5cad;
+    border: 1px solid #0b5cad;
+}
+
+.filter-chip:hover,
+.btn-reset-filters:hover,
+.btn-suggest:hover {
+    background: #d6e6f8;
+}
+
+.hospitals-list .no-results {
+    grid-column: 1 / -1;
+}
+
+.no-results p {
+    margin-bottom: 0.5rem;
+}
+
+.no-results-help {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
 }

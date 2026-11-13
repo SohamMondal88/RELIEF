@@ -98,12 +98,27 @@
                             <option value="" data-i18n="hospitals.svc.all">All Services</option>
                         </select>
                     </div>
+                    <div class="filter-group" id="accessibility-group" hidden>
+                        <label for="accessibility">Accessibility</label>
+                        <select id="accessibility">
+                            <option value="">Any</option>
+                        </select>
+                    </div>
                     <div class="filter-group filter-checkbox">
                         <input type="checkbox" id="verified-only">
                         <label for="verified-only" data-i18n="hospitals.verified">Verified only</label>
                     </div>
+                    <div class="filter-group filter-checkbox filter-open-now">
+                        <input type="checkbox" id="open-now" aria-describedby="open-now-hint" disabled>
+                        <label for="open-now">Open now</label>
+                        <p class="filter-hint" id="open-now-hint">Not available yet: no facility has verified opening hours.</p>
+                    </div>
                     <button type="button" class="btn-filter"><i class="fas fa-filter" aria-hidden="true"></i> <span data-i18n="hospitals.filter">Filter</span></button>
                     <button type="button" class="btn-filter" id="use-my-location"><i class="fas fa-location-crosshairs" aria-hidden="true"></i> <span data-i18n="hospitals.usemyloc">Use my location</span></button>
+                </div>
+                <div class="active-filters" id="active-filters" hidden>
+                    <ul class="active-filters-list" id="active-filters-list" aria-label="Active filters"></ul>
+                    <button type="button" class="btn-reset-filters" id="reset-filters">Reset all filters</button>
                 </div>
             </div>
 

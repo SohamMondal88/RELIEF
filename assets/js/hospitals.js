@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const districtFilter = document.getElementById('location');
     const servicesFilter = document.getElementById('services');
     const verifiedOnly = document.getElementById('verified-only');
+    const accessibilityFilter = document.getElementById('accessibility');
+    const accessibilityGroup = document.getElementById('accessibility-group');
+    const openNowBox = document.getElementById('open-now');
+    const openNowHint = document.getElementById('open-now-hint');
+    const activeBox = document.getElementById('active-filters');
+    const activeList = document.getElementById('active-filters-list');
+    const resetButton = document.getElementById('reset-filters');
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
@@ -216,6 +223,21 @@ document.addEventListener('DOMContentLoaded', function() {
         fillSelect(facilityTypeFilter, 'All Facilities', options.types, t => U.FACILITY_TYPES[t] || t);
         fillSelect(districtFilter, 'All Areas', options.districts);
         fillSelect(servicesFilter, 'All Services', options.services);
+        // Only offered when some record has the data behind it.
+        if (accessibilityFilter && accessibilityGroup) {
+            fillSelect(accessibilityFilter, 'Any', options.accessibility);
+            accessibilityGroup.hidden = options.accessibility.length === 0;
+        }
+        if (openNowBox) {
+            const usable = U.hasOpenNowData(facilities, { policy: reviewPolicy });
+            openNowBox.disabled = !usable;
+            if (!usable) openNowBox.checked = false;
+            if (openNowHint) {
+                openNowHint.textContent = usable
+                    ? 'Uses verified opening hours only. Facilities with unknown hours are not shown.'
+                    : 'Not available yet: no facility has verified opening hours.';
+            }
+        }
     }
 
     function cardHtml(f) {
@@ -259,14 +281,51 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
     }
 
-    function render(list, note) {
+    function renderEmpty(criteria, note) {
+        const box = document.createElement('div');
+        box.className = 'no-results';
+        const p = document.createElement('p');
+        p.textContent = 'No facilities found matching your criteria.';
+        box.appendChild(p);
+        const active = U.describeActiveFilters(criteria);
+        if (active.length > 0) {
+            const help = document.createElement('p');
+            help.textContent = 'Try removing a filter:';
+            box.appendChild(help);
+            const row = document.createElement('div');
+            row.className = 'no-results-help';
+            U.suggestRemovals(facilities, criteria).forEach(s => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn-suggest';
+                b.textContent = 'Remove ' + s.label + ' (' + s.count + (s.count === 1 ? ' facility)' : ' facilities)');
+                b.addEventListener('click', () => clearFilter(s.key));
+                row.appendChild(b);
+            });
+            const all = document.createElement('button');
+            all.type = 'button';
+            all.className = 'btn-suggest';
+            all.textContent = 'Reset all filters';
+            all.addEventListener('click', resetFilters);
+            row.appendChild(all);
+            box.appendChild(row);
+        } else {
+            p.textContent += ' Try searching for something else.';
+        }
+        if (note) {
+            const n = document.createElement('p');
+            n.className = 'filter-hint';
+            n.textContent = note;
+            box.appendChild(n);
+        }
+        hospitalsList.appendChild(box);
+    }
+
+    function render(list, note, criteria) {
         hospitalsList.innerHTML = '';
         if (list.length === 0) {
-            const p = document.createElement('p');
-            p.className = 'no-results';
-            p.textContent = 'No facilities found matching your criteria. Try clearing a filter or searching for something else.';
-            hospitalsList.appendChild(p);
-            setStatus('No facilities found.');
+            renderEmpty(criteria || {}, note);
+            setStatus(note ? 'No facilities found. ' + note : 'No facilities found.');
             updateMapMarkers([]);
             return;
         }
@@ -282,22 +341,86 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMapMarkers(list);
     }
 
-    function applyFilters() {
-        const filtered = U.filterFacilities(facilities, {
+    function getCriteria() {
+        return {
             search: searchInput ? searchInput.value : '',
             type: facilityTypeFilter ? facilityTypeFilter.value : '',
             district: districtFilter ? districtFilter.value : '',
             service: servicesFilter ? servicesFilter.value : '',
+            accessibility: accessibilityFilter ? accessibilityFilter.value : '',
             verifiedOnly: verifiedOnly ? verifiedOnly.checked : false,
+            openNow: openNowBox ? openNowBox.checked && !openNowBox.disabled : false,
             policy: reviewPolicy
+        };
+    }
+
+    // The controls that belong to each filter key, so a chip can clear its filter and give focus back.
+    function controlFor(key) {
+        return {
+            search: searchInput, type: facilityTypeFilter, district: districtFilter, service: servicesFilter,
+            accessibility: accessibilityFilter, verifiedOnly: verifiedOnly, openNow: openNowBox
+        }[key] || null;
+    }
+
+    function clearFilter(key) {
+        const control = controlFor(key);
+        if (control) {
+            if (control.type === 'checkbox') control.checked = false;
+            else control.value = '';
+        }
+        applyFilters();
+        if (control && !control.disabled && !control.closest('[hidden]')) control.focus();
+    }
+
+    function resetFilters() {
+        U.describeActiveFilters(getCriteria()).forEach(f => {
+            const control = controlFor(f.key);
+            if (!control) return;
+            if (control.type === 'checkbox') control.checked = false;
+            else control.value = '';
         });
+        applyFilters();
+        if (searchInput) searchInput.focus();
+    }
+
+    function renderActiveFilters(criteria) {
+        if (!activeBox || !activeList) return;
+        const active = U.describeActiveFilters(criteria);
+        activeList.textContent = '';
+        active.forEach(f => {
+            const li = document.createElement('li');
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'filter-chip';
+            chip.setAttribute('aria-label', 'Remove filter ' + f.label);
+            chip.textContent = f.label + ' \u00d7';
+            chip.addEventListener('click', () => clearFilter(f.key));
+            li.appendChild(chip);
+            activeList.appendChild(li);
+        });
+        activeBox.hidden = active.length === 0;
+    }
+
+    function applyFilters() {
+        const criteria = getCriteria();
+        const filtered = U.filterFacilities(facilities, criteria);
         const sortBy = sortSelect ? sortSelect.value : 'name';
         const location = readSavedLocation();
         const sorted = U.sortFacilities(filtered, sortBy, location);
-        const note = (sortBy === 'distance' && !location)
-            ? 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.'
-            : '';
-        render(sorted, note);
+        const notes = [];
+        if (sortBy === 'distance' && !location) {
+            notes.push('Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.');
+        }
+        if (criteria.openNow) {
+            // Unknown hours are neither open nor closed, so say how many were left out instead of hiding them silently.
+            const others = U.filterFacilities(facilities, Object.assign({}, criteria, { openNow: false }));
+            const unknown = others.filter(f => U.openNowStatus(f, { policy: reviewPolicy }) === 'unknown').length;
+            if (unknown > 0) {
+                notes.push(unknown + (unknown === 1 ? ' facility has' : ' facilities have') + ' no verified opening hours and ' + (unknown === 1 ? 'is' : 'are') + ' not shown.');
+            }
+        }
+        renderActiveFilters(criteria);
+        render(sorted, notes.join(' '), criteria);
     }
 
     function locateUser() {
@@ -453,7 +576,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); applyFilters(); });
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (filterButton) filterButton.addEventListener('click', applyFilters);
-    [facilityTypeFilter, districtFilter, servicesFilter, verifiedOnly, sortSelect].forEach(el => {
+    if (resetButton) resetButton.addEventListener('click', resetFilters);
+    [facilityTypeFilter, districtFilter, servicesFilter, accessibilityFilter, verifiedOnly, openNowBox, sortSelect].forEach(el => {
         if (el) el.addEventListener('change', applyFilters);
     });
     if (locateButton) locateButton.addEventListener('click', locateUser);

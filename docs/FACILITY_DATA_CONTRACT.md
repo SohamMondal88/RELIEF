@@ -16,8 +16,9 @@ Current version: **1**
 | `district` | yes | text | Not empty, up to 100 characters |
 | `address` | no | text or `null` | Up to 300 characters |
 | `phone` | no | text or `null` | 7 to 15 digits; only digits, spaces, `+`, `-`, `(`, `)`, `.` |
-| `hours` | no | text or `null` | Up to 200 characters |
+| `hours` | no | text or `null` | Up to 200 characters. The "Open now" filter only understands `Open 24 hours` and one daily range such as `09:00-17:00`, and only trusts it on a currently verified record. Any other wording is shown as written and counts as unknown hours |
 | `services` | no | list of text | Up to 40 items, each 1 to 80 characters |
+| `accessibility` | no | list of text | Up to 40 items, each 1 to 80 characters, for example `Wheelchair access`. The Accessibility filter appears only when at least one record has this |
 | `lat`, `lng` | no | numbers | Give both or neither. Latitude -90 to 90, longitude -180 to 180. `0,0` is rejected. A point outside West Bengal is accepted with a warning |
 | `verified` | no | `true` / `false` | `true` needs `source` and `lastChecked` |
 | `source` | no | text or `null` | Where the information came from, up to 300 characters |
