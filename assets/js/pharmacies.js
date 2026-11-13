@@ -114,8 +114,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
 
+    const ML = window.ReliefMapList || null;
+
     // Initialize map
-    let map;
+    let map = null;
+    let mapRefs = null;
     let markers = [];
     let userMarker = null;
     const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
@@ -127,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setUserMarker(location) {
+        if (!map) return;
         if (userMarker) {
             map.removeLayer(userMarker);
             userMarker = null;
@@ -144,30 +148,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initMap() {
+        const mapEl = document.getElementById('map');
+        // Name the map, point to the list and add a skip link (map-list.js).
+        mapRefs = ML && mapEl ? ML.prepare(document, mapEl, { noun: 'pharmacies' }) : null;
+        if (typeof L === 'undefined') {
+            // The map library did not load (offline, blocked). The list above still works.
+            if (ML) ML.mapMissing(mapRefs, mapEl);
+            else if (mapEl) mapEl.textContent = 'The map could not be loaded. The pharmacy list above still works.';
+            return;
+        }
+
         // Use the saved location if there is one, otherwise a West Bengal overview
         const userLocation = getUserLocation();
         const center = userLocation || DEFAULT_CENTER;
 
         map = L.map('map').setView(center, userLocation ? 13 : 7);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+        if (ML) ML.watchTiles(tiles, () => ML.tilesFailed(mapRefs));
 
         // Add marker for user's location if available
         setUserMarker(userLocation);
     }
 
     function updateMapMarkers(pharmaciesToShow) {
+        if (!map) return;
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
 
         // Add new markers
         pharmaciesToShow.forEach(pharmacy => {
-            const marker = L.marker([pharmacy.lat, pharmacy.lng])
+            const marker = L.marker([pharmacy.lat, pharmacy.lng], ML ? ML.markerOptions(pharmacy.name, pharmacy.location) : undefined)
                 .addTo(map)
                 .bindPopup(`<b>${pharmacy.name}</b><br>${pharmacy.location}`);
+            if (ML) ML.decorateMarker(marker);
 
             markers.push(marker);
         });
@@ -230,6 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (pharmaciesToDisplay.length === 0) {
             pharmaciesList.innerHTML = '<p class="no-results">No pharmacies found matching your criteria.</p>';
+            if (ML) ML.markList(pharmaciesList, '.pharmacy-card', 'Pharmacies');
             return;
         }
 
@@ -244,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="pharmacy-info">
                     <h4 class="pharmacy-name">${pharmacy.name}</h4>
                     <p class="pharmacy-type">${pharmacy.type}</p>
-                    <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${pharmacy.location}</p>
+                    <p class="pharmacy-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${pharmacy.location}</p>
                     <div class="pharmacy-services">
                         ${pharmacy.services.map(service =>
                             `<span class="service-tag">${service}</span>`
@@ -265,17 +283,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <div class="pharmacy-actions">
-                        <button class="btn-delivery" data-id="${pharmacy.id}">
-                            <i class="fas fa-truck"></i> Request Delivery
+                        <button class="btn-delivery" data-id="${pharmacy.id}" aria-label="Request delivery from ${pharmacy.name}">
+                            <i class="fas fa-truck" aria-hidden="true"></i> Request Delivery
                         </button>
-                        <button class="btn-call" data-phone="${pharmacy.phone}">
-                            <i class="fas fa-phone"></i> Call
+                        <button class="btn-call" data-phone="${pharmacy.phone}" aria-label="Call ${pharmacy.name}">
+                            <i class="fas fa-phone" aria-hidden="true"></i> Call
                         </button>
                     </div>
                 </div>
             `;
             pharmaciesList.appendChild(pharmacyCard);
         });
+
+        if (ML) ML.markList(pharmaciesList, '.pharmacy-card', 'Pharmacies');
 
         // Add event listeners to buttons
         document.querySelectorAll('.btn-delivery').forEach(button => {

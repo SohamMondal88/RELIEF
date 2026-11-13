@@ -1,0 +1,49 @@
+/* Note, skip link and landing spot around the maps (see assets/js/map-list.js). Shared by the hospitals, pharmacies and ambulances pages. */
+.map-note {
+    margin: 0 0 0.5rem;
+    padding: 0.6rem 1rem;
+    background-color: #f1f5f9;
+    border-left: 4px solid #1d4ed8;
+    color: #1f2937;
+    font-size: 0.9rem;
+}
+
+.map-skip-link {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.map-skip-link:focus,
+.map-skip-link:focus-visible {
+    position: static;
+    display: inline-block;
+    width: auto;
+    height: auto;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 1rem;
+    overflow: visible;
+    clip: auto;
+    background: #1d4ed8;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 6px;
+    outline: 3px solid #1e293b;
+    outline-offset: 2px;
+}
+
+.map-container [role="region"]:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: -3px;
+}
+
+.map-container [id$="-end"][tabindex="-1"]:focus {
+    outline: none;
+}

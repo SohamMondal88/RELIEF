@@ -11,7 +11,7 @@
  * Any other page that cannot be reached shows pages/offline.html instead of the
  * browser error. That page is not a copy of the missing page, nothing is saved.
  */
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const CACHE_PREFIX = 'relief-static-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 
@@ -30,12 +30,14 @@ const ASSET_PATHS = [
   'assets/css/firstaid.css',
   'assets/css/hospitals.css',
   'assets/css/location-panel.css',
+  'assets/css/map-list.css',
   'assets/css/offline.css',
   'assets/js/session-guard.js',
   'assets/js/main.js',
   'assets/js/request-resilience.js',
   'assets/js/firstaid.js',
   'assets/js/hospitals.js',
+  'assets/js/map-list.js',
   'assets/js/auth-mode.js',
   'assets/js/api.js',
   'assets/js/facility-schema.js',

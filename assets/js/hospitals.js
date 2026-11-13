@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const U = window.FacilityUtils;
     const DATA_URL = '../assets/data/facilities.json';
     const R = typeof ReliefResilience !== 'undefined' ? ReliefResilience : null;
+    const ML = window.ReliefMapList || null;
     const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
 
     const hospitalsList = document.querySelector('.hospitals-list');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let facilities = [];
     let reviewPolicy = U.getReviewPolicy(null);
     let map = null;
+    let mapRefs = null;
     let markers = [];
     let userMarker = null;
 
@@ -157,23 +159,28 @@ document.addEventListener('DOMContentLoaded', function() {
     function initMap() {
         const mapEl = document.getElementById('map');
         if (!mapEl) return;
+        // Name the map, point to the list and add a skip link (map-list.js).
+        mapRefs = ML ? ML.prepare(document, mapEl, { noun: 'facilities' }) : null;
         if (typeof L === 'undefined') {
-            // The map library did not load (offline, blocked). The list below still works.
-            mapEl.textContent = 'The map could not be loaded. The facility list below still works.';
+            // The map library did not load (offline, blocked). The list above still works.
+            if (ML) ML.mapMissing(mapRefs, mapEl);
+            else mapEl.textContent = 'The map could not be loaded. The facility list above still works.';
             return;
         }
         try {
             const saved = readSavedLocation();
             const center = saved ? [saved.lat, saved.lng] : DEFAULT_CENTER;
             map = L.map('map').setView(center, saved ? 11 : 7);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+            if (ML) ML.watchTiles(tiles, () => ML.tilesFailed(mapRefs));
             setUserMarker(saved);
         } catch (error) {
             map = null;
             if (R) R.logError('hospitals map init', error);
-            mapEl.textContent = 'The map could not be shown. The facility list below still works.';
+            if (ML) ML.mapMissing(mapRefs, mapEl);
+            else mapEl.textContent = 'The map could not be shown. The facility list above still works.';
         }
     }
 
@@ -183,9 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
         markers = [];
         list.forEach(f => {
             if (!U.isValidCoord(f.lat, f.lng)) return;
-            const marker = L.marker([f.lat, f.lng])
+            const marker = L.marker([f.lat, f.lng], ML ? ML.markerOptions(f.name, f.district) : undefined)
                 .addTo(map)
                 .bindPopup('<b>' + U.escapeHtml(f.name) + '</b><br>' + U.escapeHtml(f.district));
+            if (ML) ML.decorateMarker(marker);
             markers.push(marker);
         });
         if (markers.length > 0) {
@@ -267,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
             p.textContent = 'No facilities found matching your criteria. Try clearing a filter or searching for something else.';
             hospitalsList.appendChild(p);
             setStatus('No facilities found.');
+            if (ML) ML.markList(hospitalsList, '.hospital-card', 'Facilities');
             updateMapMarkers([]);
             return;
         }
@@ -276,6 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.innerHTML = cardHtml(f);
             hospitalsList.appendChild(card);
         });
+        if (ML) ML.markList(hospitalsList, '.hospital-card', 'Facilities');
         const count = list.length + (list.length === 1 ? ' facility found.' : ' facilities found.');
         setStatus(note ? count + ' ' + note : count);
         updateSaveButtons();
@@ -343,6 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = message || 'Loading facilities...';
         if (R) R.renderState(hospitalsList, { state: 'loading', message: text });
         else hospitalsList.innerHTML = '<p class="loading-state">' + text + '</p>';
+        if (ML) ML.markList(hospitalsList, '.hospital-card', 'Facilities');
         setStatus(text);
     }
 
@@ -366,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
             retry.addEventListener('click', loadFacilities);
             hospitalsList.firstChild.appendChild(retry);
         }
+        if (ML) ML.markList(hospitalsList, '.hospital-card', 'Facilities');
         setStatus(info ? info.title + '. ' + info.message : 'The facility list could not be loaded.');
     }
 
