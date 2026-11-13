@@ -33,9 +33,28 @@
   const DEFAULT_PREFS = Object.freeze({ browser: false, showDetails: false });
 
   /** What to tell the user before the browser asks. Shown on the page, not only after a click. */
-  const EXPLANATION = 'If you turn this on, your browser will ask for permission. RELIEF then shows a notification when a reminder is due, even if you are on another tab. ' +
+  const EXPLANATION = 'If you turn this on, your browser will ask for permission. RELIEF then shows a notification when a reminder is due while RELIEF is open in a browser tab, even if you are looking at another tab. ' +
     'Notifications can appear on a locked screen, so by default they only say a reminder is due. ' +
-    'Reminders always appear on this page too, so you will not miss them if you leave this off.';
+    'Reminders always appear on this page too, while it is open.';
+
+  /** Said whenever a browser notification is possible: what RELIEF can and cannot deliver. */
+  const DELIVERY_NOTE = 'RELIEF has no server and sends no push messages, so a reminder can only appear while the dashboard is open in a browser tab on this device. ' +
+    'Nothing arrives when the tab is closed, the browser is not running or the device is off, and settings such as Do Not Disturb can still hide a notification. ' +
+    'Do not rely on RELIEF as your only reminder.';
+
+  /** Said when no browser notification will be sent, whatever the reason. */
+  const IN_PAGE_ONLY_NOTE = 'No browser notification will be sent. A reminder appears on this page only while the dashboard is open in a browser tab, so nothing arrives when it is closed. ' +
+    'Do not rely on RELIEF as your only reminder.';
+
+  /** Shown in the page banner when the browser refused to create a notification that was allowed. */
+  const FAILED_NOTE = 'Your browser could not show a notification for this reminder, so it appears only on this page.';
+
+  const PERMISSION_LABELS = Object.freeze({
+    unsupported: 'Not supported by this browser',
+    default: 'Not asked yet',
+    denied: 'Denied',
+    granted: 'Allowed'
+  });
 
   const DETAILS_WARNING = 'Show medicine names in notifications. They can be read by anyone who can see your screen.';
 
@@ -115,6 +134,24 @@
       message: p.showDetails
         ? 'Browser notifications are on and show medicine names. Reminders also show on this page.'
         : 'Browser notifications are on and say only that a reminder is due. Reminders also show on this page.'
+    };
+  }
+
+  /**
+   * What the page shows next to the permission: the browser's answer in one word, whether RELIEF will
+   * send browser notifications, and what can and cannot be delivered. Never promises delivery.
+   */
+  function describeStatus(prefs, permission) {
+    const plan = getPlan(prefs, permission);
+    const known = Object.prototype.hasOwnProperty.call(PERMISSION_LABELS, permission) ? permission : 'default';
+    const label = PERMISSION_LABELS[known];
+    return {
+      permission: known,
+      permissionLabel: label,
+      notifications: plan.browser ? 'on' : 'off',
+      line: 'Browser permission: ' + label + '. Browser notifications from RELIEF: ' + (plan.browser ? 'on' : 'off') + '.',
+      delivery: plan.browser ? DELIVERY_NOTE : IN_PAGE_ONLY_NOTE,
+      plan: plan
     };
   }
 
@@ -229,12 +266,17 @@
     NOTIFICATION_TAG,
     DEFAULT_PREFS,
     EXPLANATION,
+    DELIVERY_NOTE,
+    IN_PAGE_ONLY_NOTE,
+    FAILED_NOTE,
+    PERMISSION_LABELS,
     DETAILS_WARNING,
     getPermission,
     normalizePrefs,
     loadPrefs,
     savePrefs,
     getPlan,
+    describeStatus,
     enableBrowserNotifications,
     disableBrowserNotifications,
     setShowDetails,

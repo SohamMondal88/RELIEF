@@ -458,3 +458,83 @@ test('[docs] the rules are written down', () => {
     assert.ok(doc.toLowerCase().includes(term), 'REMINDER_NOTIFICATIONS.md should cover: ' + term);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Permission status and what can be delivered (Issue #92)
+// ---------------------------------------------------------------------------
+
+const STATUS_CASES = [
+  // [browser API, permission it reports, label shown, RELIEF notifications on?]
+  [undefined, 'unsupported', 'Not supported by this browser', 'off'],
+  [fakeNotification('default'), 'default', 'Not asked yet', 'off'],
+  [fakeNotification('denied'), 'denied', 'Denied', 'off'],
+  [fakeNotification('granted'), 'granted', 'Allowed', 'on']
+];
+
+STATUS_CASES.forEach(([api, permission, label, relief]) => {
+  test('[status] ' + permission + ': names the permission, says whether RELIEF will notify, and does not promise delivery', () => {
+    const permissionNow = NP.getPermission(api);
+    assert.strictEqual(permissionNow, permission);
+    const status = NP.describeStatus({ browser: relief === 'on', showDetails: false }, permissionNow);
+    assert.strictEqual(status.permission, permission);
+    assert.strictEqual(status.permissionLabel, label);
+    assert.strictEqual(status.notifications, relief);
+    assert.ok(status.line.indexOf('Browser permission: ' + label) === 0, status.line);
+    assert.ok(status.line.indexOf('from RELIEF: ' + relief) !== -1, status.line);
+    // Whatever the state, the page must say that nothing arrives while the dashboard is closed.
+    assert.match(status.delivery, /(open in a browser tab)/);
+    assert.match(status.delivery, /(closed|not running|device is off)/);
+    assert.match(status.delivery, /Do not rely on RELIEF as your only reminder/);
+    assert.ok(!/\b(guarantee|will always|never miss|will not miss|will be delivered)\b/i.test(status.line + status.delivery), 'no promise of delivery');
+  });
+});
+
+test('[status] only an allowed permission with RELIEF notifications on talks about notifications being shown', () => {
+  const on = NP.describeStatus({ browser: true }, 'granted');
+  assert.strictEqual(on.delivery, NP.DELIVERY_NOTE);
+  [['granted', false], ['default', true], ['denied', true], ['unsupported', true]].forEach(([permission, browser]) => {
+    const status = NP.describeStatus({ browser }, permission);
+    assert.strictEqual(status.delivery, NP.IN_PAGE_ONLY_NOTE, permission + ' browser=' + browser);
+    assert.match(status.delivery, /No browser notification will be sent/);
+  });
+});
+
+test('[status] an unknown permission value is shown as not asked yet, bad prefs as off', () => {
+  assert.strictEqual(NP.describeStatus({ browser: true }, 'maybe').permissionLabel, 'Not asked yet');
+  assert.strictEqual(NP.describeStatus(null, 'granted').notifications, 'off');
+  assert.strictEqual(NP.describeStatus(undefined, undefined).permission, 'default');
+});
+
+test('[status] reading the status never asks the browser', () => {
+  const api = fakeNotification('default');
+  NP.describeStatus({ browser: true }, NP.getPermission(api));
+  assert.strictEqual(api.state.asked, 0);
+});
+
+test('[status] the status follows a permission that changes while the page is open', async () => {
+  const api = fakeNotification('default', { answer: 'granted' });
+  const storage = memoryStorage();
+  assert.strictEqual(NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api)).permissionLabel, 'Not asked yet');
+  await NP.enableBrowserNotifications(api, storage);
+  assert.strictEqual(NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api)).notifications, 'on');
+  api.permission = 'denied'; // changed in the browser's site settings
+  const after = NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api));
+  assert.strictEqual(after.permissionLabel, 'Denied');
+  assert.strictEqual(after.notifications, 'off');
+});
+
+test('[status] the explanation says the page has to be open and no longer says reminders cannot be missed', () => {
+  assert.match(NP.EXPLANATION, /while RELIEF is open in a browser tab/);
+  assert.ok(!/will not miss/.test(NP.EXPLANATION));
+});
+
+test('[status] the dashboard shows the permission line and the delivery note, and tells the user when a notification failed', () => {
+  const html = read('pages', 'dashboard.html');
+  assert.match(html, /id="notify-permission"/);
+  assert.match(html, /id="notify-delivery"/);
+  const js = read('assets', 'js', 'dashboard.js');
+  assert.match(js, /NP\.describeStatus\(/);
+  assert.match(js, /result\.browser === 'failed'[\s\S]{0,120}NP\.FAILED_NOTE/);
+  assert.match(NP.FAILED_NOTE, /appears only on this page/);
+  assert.strictEqual(NP.deliver([reminder()], fakeNotification('granted', { constructorThrows: true }), { browser: true }).browser, 'failed');
+});
