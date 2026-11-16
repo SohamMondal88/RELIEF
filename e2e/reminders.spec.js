@@ -116,6 +116,47 @@ test.describe('medicine reminders', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('the timeline is dated with the local day, also between midnight and 05:30 in India', async ({ page }) => {
+    // 02:00 on 24 Oct in Asia/Kolkata (the project's test zone) is still 23 Oct in UTC.
+    await page.clock.install({ time: new Date('2026-10-24T02:00:00+05:30') });
+    await page.reload();
+    await addReminder(page, { medicine: 'Vitamin D', time: '08:00' });
+
+    const firstRow = page.locator('#timeline tr').first();
+    await expect(firstRow).toContainText('Medication reminder created');
+    await expect(firstRow.locator('td').first()).toHaveText('2026-10-24');
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('relief_history_v1'))[0].date);
+    expect(saved).toBe('2026-10-24');
+  });
+
+  test('the timeline follows a device time zone change made while the tab stays open', async ({ page }) => {
+    // 02:00 on 24 Oct in Asia/Kolkata is 23 Oct in Los Angeles.
+    await page.clock.install({ time: new Date('2026-10-24T02:00:00+05:30') });
+    await page.reload();
+    await addReminder(page, { medicine: 'Vitamin D', time: '08:00' });
+    await expect(page.locator('#timeline tr').first().locator('td').first()).toHaveText('2026-10-24');
+
+    // The device moves to Los Angeles without a reload: anything asking Intl for the device zone
+    // (no explicit timeZone option) is told Los Angeles from now on.
+    await page.evaluate(() => {
+      const make = (target, args, newTarget) => {
+        const formatter = Reflect.construct(target, args, newTarget || target);
+        if (!(args[1] && args[1].timeZone)) {
+          const resolved = formatter.resolvedOptions.bind(formatter);
+          formatter.resolvedOptions = () => Object.assign({}, resolved(), { timeZone: 'America/Los_Angeles' });
+        }
+        return formatter;
+      };
+      Intl.DateTimeFormat = new Proxy(Intl.DateTimeFormat, {
+        construct: (target, args, newTarget) => make(target, args, newTarget),
+        apply: (target, thisArg, args) => make(target, args)
+      });
+    });
+    await addReminder(page, { medicine: 'Iron', time: '20:00' });
+    await expect(page.locator('#timeline tr').first()).toContainText('Iron at 20:00');
+    await expect(page.locator('#timeline tr').first().locator('td').first()).toHaveText('2026-10-23');
+  });
+
   test('the page says what reminders are not (no medical advice)', async ({ page }) => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });

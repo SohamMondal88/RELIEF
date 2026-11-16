@@ -82,6 +82,19 @@
         };
     }
 
+    /**
+     * Today's calendar date, 'YYYY-MM-DD', in the given IANA time zone (the device zone when none is given
+     * or the name is unknown). Use this for a date that a person reads as "today". It is not
+     * new Date().toISOString().slice(0, 10), which is the UTC date and is a day behind or ahead
+     * for part of every day in most zones (in Asia/Kolkata, 00:00 to 05:30 gives yesterday).
+     * `now` can be a Date or a number of milliseconds.
+     */
+    function getTodayInZone(now, timeZone) {
+        const at = now instanceof Date ? now : new Date(now === undefined ? Date.now() : now);
+        const instant = Number.isNaN(at.getTime()) ? new Date() : at;
+        return getLocalParts(instant, isValidTimeZone(timeZone) ? timeZone : getLocalTimeZone()).date;
+    }
+
     function isValidTime(value) {
         return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
     }
@@ -500,6 +513,7 @@
         isValidTimeZone,
         getEffectiveTimeZone,
         getLocalParts,
+        getTodayInZone,
         isValidTime,
         isValidDate,
         escapeHtml,
