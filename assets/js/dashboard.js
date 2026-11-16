@@ -127,7 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
             : `Daily at ${r.time} on this device's clock`;
     }
 
-    function render() {
+    // Draws the lists from memory without saving. render() below also saves.
+    function draw() {
         const now = new Date();
         list.innerHTML = reminders.length
             ? reminders.map((r) => renderItem(r, now)).join('')
@@ -138,7 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiReminders) {
             kpiReminders.textContent = R.countActive(reminders, now, timeZone);
         }
+    }
 
+    function render() {
+        draw();
         persist();
     }
 
@@ -275,6 +279,27 @@ document.addEventListener('DOMContentLoaded', () => {
         dataDeleted = true;
         reminders = [];
         history.length = 0;
+        bannerMessages.innerHTML = '';
+        banner.hidden = true;
+        resetForm();
+        render();
+    });
+
+    // A backup was restored (data-backup-ui.js): take the saved reminders and timeline as they are now.
+    // detail.otherTab is set when the restore (or a save) happened in another tab. Then this tab only
+    // reloads and redraws: it does not save, so two tabs cannot keep overwriting each other, and it
+    // keeps a half-typed form unless the reminder being edited is gone.
+    document.addEventListener('relief:data-imported', (e) => {
+        const otherTab = !!(e.detail && e.detail.otherTab);
+        dataDeleted = false;
+        reminders = R.loadReminders(localStorage);
+        history.length = 0;
+        R.loadHistory(localStorage, historyKey, []).forEach((entry) => history.push(entry));
+        if (otherTab) {
+            if (fields.id.value && !reminders.some((r) => r.id === fields.id.value)) resetForm();
+            draw();
+            return;
+        }
         bannerMessages.innerHTML = '';
         banner.hidden = true;
         resetForm();

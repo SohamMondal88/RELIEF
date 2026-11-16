@@ -297,6 +297,92 @@ select[aria-invalid="true"] {
     outline-offset: 2px;
 }
 
+.backup-card h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+}
+
+.backup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.backup-restore {
+    max-width: 420px;
+}
+
+.backup-restore label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.backup-restore p {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+}
+
+.backup-preview {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 2px solid #f5c26b;
+    border-radius: 10px;
+    background: #fff8e8;
+    color: #5c3b00;
+}
+
+.backup-preview ul {
+    margin: 0 0 8px;
+    padding-left: 20px;
+}
+
+.backup-preview[hidden],
+.backup-status[hidden] {
+    display: none;
+}
+
+.backup-status {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #dbe7ff;
+    background: #f0f6ff;
+}
+
+.backup-status p {
+    margin: 0 0 6px;
+}
+
+.backup-status--success {
+    border-color: #1a7f4b;
+    background: #effaf3;
+    color: #0e4d2c;
+}
+
+.backup-status--warning {
+    border-color: #f5c26b;
+    background: #fff8e8;
+    color: #5c3b00;
+}
+
+.backup-status--error {
+    border-color: #d92d20;
+    background: #fff1f0;
+    color: #7a1410;
+}
+
+#backup-export:focus-visible,
+#backup-file:focus-visible,
+.backup-preview .btn:focus-visible,
+#backup-status:focus-visible,
+#backup-preview-title:focus-visible {
+    outline: 3px solid #134293;
+    outline-offset: 2px;
+}
+
 .privacy-card h3 {
     margin: 14px 0 6px;
     font-size: 1rem;

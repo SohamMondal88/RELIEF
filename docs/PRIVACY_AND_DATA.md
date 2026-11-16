@@ -58,6 +58,19 @@ Other things in the browser, none of which hold personal data:
 - **Logging.** The check never logs. Its result holds counts only (kept, dropped), never names, medicines or dates.
 - **Adding a format change later.** Raise `CURRENT_VERSION`, add an entry to `MIGRATIONS` that plans the writes for the old version, and add a test in `tests/storage-schema.test.js` with a stored value from the old format.
 
+### 2.2 Backup and restore of dashboard data (Issue #82)
+
+The dashboard section **Back up or restore your dashboard data** lets you save the reminders (`relief_reminders_v1`) and the health timeline (`relief_history_v1`) as a JSON file and load it back. Logic: `assets/js/data-backup.js`, page wiring: `assets/js/data-backup-ui.js`, tests: `tests/data-backup.test.js` and `e2e/data-backup.spec.js`.
+
+- **What it is.** A personal, local backup that you download yourself. It is not a medical record and nobody has verified its content. The file says so in its `notice` field. Nothing is uploaded: the file is built and read in your browser.
+- **What is in it.** `format` (`relief-local-backup`), `version` (`1`), `exportedAt`, `notice` and `data.reminders` / `data.timeline`. The two example timeline rows the dashboard adds on first open are left out because they are not your entries. Appointment requests, saved facilities, your location, notification choices and sign-in data are not exported.
+- **Who can read it.** Anyone who gets the file can read your medicine names and notes. Keep it somewhere private. It is outside the browser, so **Delete my account and data** cannot remove it (section 6.3).
+- **Restore is checked before anything is written.** A file over 512 KB, a file that is not JSON, one without the `relief-local-backup` format, a missing or unsupported `version` (including a newer one than this page reads), more than 200 reminders or 200 timeline entries, or any single entry that is invalid (blank or over long medicine name, time not `HH:MM`, date that does not exist, unknown status or schedule type, unknown time zone for a fixed schedule, repeated reminder id, timeline entry without a date or event) is refused as a whole. The message says why and that nothing was changed. Entries are never half loaded.
+- **Preview, then replace.** A valid file shows what it holds and what it will replace. Nothing is saved until you press **Replace with this backup**. Restore replaces the saved reminders and timeline, it does not merge them, and it cannot be undone.
+- **All or nothing.** Both lists are written and read back. If the browser refuses a write or does not keep it, the previous values are put back and you are told. Other keys are never touched.
+- **Other open tabs.** If the dashboard is open in more than one tab, a restore (or any save) in one tab reaches the others through the browser's `storage` event. The other tab reloads the saved reminders and timeline, redraws them and says "Reminders and timeline updated from another tab". It does not save while doing so, so it cannot write its older list back over what you restored, and a form you are typing in is kept unless the reminder you were editing is gone. `isOtherTabSave()` in `data-backup.js` decides which events count (a removal does not, that is the delete and clear controls).
+- **Changing the format.** Raise `VERSION` in `data-backup.js`, keep reading older versions, and add a test with a file of the old version.
+
 ### Kept only in the page (never saved)
 
 - **Relief Assistant chat:** answered in the browser with no network request and not saved. Reloading or pressing Clear chat removes it.
@@ -142,6 +155,7 @@ After deleting, the language key and the last-visit timestamp are written again 
 - **Delete something on a server that is not there.** This repository has no backend. Real server-side deletion needs a trusted server (for example a function that deletes the user's records and backups). `ReliefAPI.deleteAccount()` does the most a browser can do (documents it creates in `users`, `patients`, `appointments`, `emergencyRequests`, `medicineDeliveries`, then the auth user) and has only been tested against a fake Firebase, not a real project.
 - **Delete things you sent elsewhere:** an SMS, a call, a map search on Google or OpenStreetMap, or a request log on a third party.
 - **Delete other browsers or devices.** Each browser profile has its own copy.
+- **Delete a backup file you downloaded** (section 2.2). It is a normal file on your device, outside the browser.
 
 ### 6.4 Deletion request process (server side)
 
@@ -155,7 +169,7 @@ What you can do today, without asking anyone:
 - **Correct it:** edit or remove reminders, saved facilities and requests; submit an appointment request again.
 - **Delete it:** section 6, or clear the site's data in your browser settings.
 - **Withdraw location access:** change the permission in your browser. The saved location expires on its own and is removed by deletion.
-- **Move it elsewhere:** not supported yet. There is no export button.
+- **Move it elsewhere:** the dashboard can download your reminders and timeline as a JSON file and restore them (section 2.2). Other stored data cannot be exported yet.
 
 Legal rights such as access, correction or erasure under a specific law depend on where you live and who operates a deployment. This repository cannot promise them.
 
@@ -192,7 +206,7 @@ Run once per release, and after adding a form, a link or a `console` call.
 - No server exists, so server-side deletion cannot be verified end to end here.
 - Demo accounts are not secure: a salted hash in `localStorage` protects the password from casual reading, not from someone with access to the browser.
 - The dashboard has no sign-in guard. Anyone using the same browser profile sees the same dashboard.
-- No data export.
+- Data export covers only reminders and the timeline (section 2.2). Appointment requests and saved facilities cannot be exported.
 - Third-party hosts (section 4) are not under RELIEF's control. Self-hosting fonts, icons and Leaflet would remove most of them.
 - The contact form shows a "received" message without sending anything.
 
