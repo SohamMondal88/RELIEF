@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const NP = window.ReliefNotificationPrefs;
     const notifyStatus = document.getElementById('notify-status');
     const notifyExplain = document.getElementById('notify-explain');
+    const notifyPermission = document.getElementById('notify-permission');
+    const notifyDelivery = document.getElementById('notify-delivery');
     const notifyBtn = document.getElementById('notify-enable');
     const notifyOffBtn = document.getElementById('notify-disable');
     const notifyDetails = document.getElementById('notify-details');
@@ -215,6 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
             line.textContent = message;
             bannerMessages.appendChild(line);
         });
+        if (result.browser === 'failed') {
+            const line = document.createElement('p');
+            line.textContent = NP.FAILED_NOTE;
+            bannerMessages.appendChild(line);
+        }
         due.forEach((r) => {
             const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, timeZone)).date;
             reminders = R.markNotified(reminders, r.id, date, now.getTime());
@@ -228,9 +235,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const prefs = NP.loadPrefs(localStorage);
         const permission = NP.getPermission(window.Notification);
         const plan = NP.getPlan(prefs, permission);
+        const status = NP.describeStatus(prefs, permission);
 
         notifyExplain.textContent = NP.EXPLANATION;
+        notifyPermission.textContent = status.line;
         notifyStatus.textContent = plan.message;
+        notifyDelivery.textContent = status.delivery;
 
         // Offer "turn on" unless the browser cannot or will not show them.
         notifyBtn.hidden = !(plan.state === 'off' || plan.state === 'needs-permission') || permission === 'denied';
@@ -363,6 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('reminder-disclaimer').textContent = R.REMINDER_DISCLAIMER;
         document.getElementById('reminder-persistence').textContent = `${R.PERSISTENCE_NOTE} ${R.TIMEZONE_NOTE}`;
         renderNotifyPanel();
+        // The permission can be changed in the browser's site settings while this page stays open.
+        window.addEventListener('focus', renderNotifyPanel);
         setInterval(checkDue, 30000);
     }
 

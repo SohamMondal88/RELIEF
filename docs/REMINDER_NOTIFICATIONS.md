@@ -31,6 +31,23 @@ after the user presses the button**, never when the page loads.
 
 If the browser says no, or the prompt is dismissed, the preference is **not** switched on.
 
+## What the dashboard says about permission and delivery
+
+Under the explanation, the Notifications panel always shows two things. They come from `describeStatus()` in `notification-prefs.js` and are checked in `tests/notification-prefs.test.js` and `e2e/reminders.spec.js`.
+
+1. **A status line** with the browser permission and whether RELIEF will send browser notifications: `Browser permission: <label>. Browser notifications from RELIEF: on|off.`
+
+| Browser says | Label shown | Can RELIEF notify? |
+| --- | --- | --- |
+| No notification support | Not supported by this browser | No |
+| Not granted (`default`) | Not granted | No, until the user presses the button and allows it |
+| `denied` | Denied | No |
+| `granted` | Allowed | Only if the user has also turned them on in RELIEF |
+
+2. **A delivery note.** When notifications are on it says RELIEF has no server and sends no push messages, so a reminder only appears while the dashboard is open in a browser tab on this device, that Do Not Disturb and similar settings can still hide a notification, and not to rely on RELIEF as the only reminder. In every other state it says no browser notification will be sent and the reminder appears on the page only while the dashboard is open. Nothing on the page promises that a reminder will arrive.
+
+If the browser allows notifications but refuses to create one (some mobile browsers only allow notifications from a service worker), the banner adds a line saying the reminder appears only on this page. The status line is refreshed when the tab gets focus back, so a change made in the browser's site settings shows up.
+
 ## Turning off
 
 "Turn off browser notifications" stops notifications immediately, even if the browser still allows

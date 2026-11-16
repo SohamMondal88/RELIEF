@@ -120,3 +120,94 @@ test.describe('medicine reminders', () => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });
 });
+
+// Notification permission is simulated with a stand-in for window.Notification that is added before the page
+// loads. Real browser prompts and real operating system notifications are not exercised here.
+async function stubNotification(page, { permission, answer = 'granted', constructorThrows = false, prefs } = {}) {
+  await page.addInitScript(({ permission, answer, constructorThrows, prefs }) => {
+    window.__notif = { asked: 0, shown: [] };
+    if (permission === 'unsupported') {
+      Object.defineProperty(window, 'Notification', { configurable: true, value: undefined });
+    } else {
+      function FakeNotification(title, init) {
+        if (constructorThrows) throw new TypeError('Illegal constructor');
+        window.__notif.shown.push({ title, body: init && init.body });
+      }
+      FakeNotification.permission = permission;
+      FakeNotification.requestPermission = function () {
+        window.__notif.asked += 1;
+        FakeNotification.permission = answer;
+        return Promise.resolve(answer);
+      };
+      Object.defineProperty(window, 'Notification', { configurable: true, writable: true, value: FakeNotification });
+    }
+    if (prefs) localStorage.setItem('relief_notification_prefs_v1', JSON.stringify(prefs));
+  }, { permission, answer, constructorThrows, prefs });
+}
+
+test.describe('notification permission status', () => {
+  const STATES = [
+    { permission: 'unsupported', label: 'Not supported by this browser', relief: 'off', button: null },
+    { permission: 'default', label: 'Not granted', relief: 'off', button: 'Turn on browser notifications' },
+    { permission: 'denied', label: 'Denied', relief: 'off', button: null },
+    { permission: 'granted', prefs: { browser: true }, label: 'Allowed', relief: 'on', button: null }
+  ];
+
+  for (const state of STATES) {
+    test(`${state.permission}: the dashboard says so, never asks on load and does not promise delivery`, async ({ page }) => {
+      await stubNotification(page, { permission: state.permission, prefs: state.prefs });
+      await page.goto('/pages/dashboard.html');
+
+      await expect(page.locator('#notify-permission')).toHaveText(`Browser permission: ${state.label}. Browser notifications from RELIEF: ${state.relief}.`);
+      const delivery = page.locator('#notify-delivery');
+      await expect(delivery).toContainText('open in a browser tab');
+      await expect(delivery).toContainText('Do not rely on RELIEF as your only reminder');
+      await expect(delivery).not.toContainText(/guarantee|never miss/i);
+      if (state.button) await expect(page.locator('#notify-enable')).toBeVisible();
+      else await expect(page.locator('#notify-enable')).toBeHidden();
+
+      expect(await page.evaluate(() => (window.__notif ? window.__notif.asked : 0))).toBe(0);
+      // Reminders can still be added whatever the permission is.
+      await addReminder(page, { medicine: 'Vitamin C', time: '09:00' });
+      await expect(item(page, 'Vitamin C')).toContainText('Active');
+    });
+  }
+
+  test('permission is asked only after the button is pressed, and the answer is shown', async ({ page }) => {
+    await stubNotification(page, { permission: 'default', answer: 'denied' });
+    await page.goto('/pages/dashboard.html');
+    expect(await page.evaluate(() => window.__notif.asked)).toBe(0);
+    await page.getByRole('button', { name: 'Turn on browser notifications' }).click();
+    await expect(page.locator('#notify-permission')).toContainText('Denied');
+    expect(await page.evaluate(() => window.__notif.asked)).toBe(1);
+    expect(await storedJson(page, 'relief_notification_prefs_v1')).toMatchObject({ browser: false });
+  });
+
+  test('a permission changed in the browser settings shows up when the page gets focus back', async ({ page }) => {
+    await stubNotification(page, { permission: 'granted', prefs: { browser: true } });
+    await page.goto('/pages/dashboard.html');
+    await expect(page.locator('#notify-permission')).toContainText('Allowed');
+    await page.evaluate(() => { window.Notification.permission = 'denied'; window.dispatchEvent(new Event('focus')); });
+    await expect(page.locator('#notify-permission')).toHaveText('Browser permission: Denied. Browser notifications from RELIEF: off.');
+  });
+
+  test('a due reminder reaches the page banner and one notification when the permission allows it', async ({ page }) => {
+    await stubNotification(page, { permission: 'granted', prefs: { browser: true } });
+    await page.clock.install({ time: new Date('2026-10-24T08:00:30+05:30') });
+    await page.goto('/pages/dashboard.html');
+    await addReminder(page, { medicine: 'Thyroxine', time: '08:00' });
+    await expect(page.locator('#reminder-banner')).toContainText('Thyroxine');
+    const shown = await page.evaluate(() => window.__notif.shown);
+    expect(shown).toHaveLength(1);
+    expect(shown[0].body).not.toContain('Thyroxine');
+  });
+
+  test('when the browser refuses to create the notification the banner says it is only on the page', async ({ page }) => {
+    await stubNotification(page, { permission: 'granted', constructorThrows: true, prefs: { browser: true } });
+    await page.clock.install({ time: new Date('2026-10-24T08:00:30+05:30') });
+    await page.goto('/pages/dashboard.html');
+    await addReminder(page, { medicine: 'Thyroxine', time: '08:00' });
+    await expect(page.locator('#reminder-banner')).toContainText('Thyroxine');
+    await expect(page.locator('#reminder-banner')).toContainText('could not show a notification for this reminder');
+  });
+});
