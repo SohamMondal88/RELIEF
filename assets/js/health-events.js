@@ -22,6 +22,11 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
+  // Email and phone rules are shared with the other forms (validators.js).
+  var Validators = (typeof module === "object" && module.exports)
+    ? require("./validators.js")
+    : ReliefValidators;
+
   var DEMO_QUEUE_KEY = "relief_demo_health_events";
   var SUBMISSION_LOG_KEY = "relief_health_event_submissions";
 
@@ -102,22 +107,6 @@
       }
     });
     return out;
-  }
-
-  function digitCount(text) {
-    return (String(text).match(/\d/g) || []).length;
-  }
-
-  function isPhone(text) {
-    return (
-      /^[+\d][\d\s\-().]*$/.test(text) &&
-      digitCount(text) >= 7 &&
-      digitCount(text) <= 15
-    );
-  }
-
-  function isEmail(text) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
   }
 
   function cleanSourceUrl(raw) {
@@ -299,8 +288,8 @@
       organiser: sanitizeText(raw.organiser, LIMITS.maxOrganiser),
       services: parseServices(raw.services).slice(0, LIMITS.maxServices),
       eligibility: sanitizeText(raw.eligibility, LIMITS.maxEligibility),
-      contactPhone: phone && isPhone(phone) ? phone : "",
-      contactEmail: email && isEmail(email) ? email : "",
+      contactPhone: phone && Validators.isPhone(phone) ? phone : "",
+      contactEmail: email && Validators.isEmail(email) ? email : "",
       sourceUrl: source.value || "",
       status: status,
       lastUpdated: isFinite(updated) ? raw.lastUpdated : null,
@@ -557,10 +546,10 @@
 
     var phone = sanitizeText(data.contactPhone, 31);
     var email = sanitizeText(data.contactEmail, LIMITS.maxEmail + 1);
-    if (phone && !isPhone(phone))
+    if (phone && !Validators.isPhone(phone))
       errors.contactPhone =
         "Enter a phone number using digits, spaces, +, - and brackets (7 to 15 digits).";
-    if (email && (email.length > LIMITS.maxEmail || !isEmail(email)))
+    if (email && (email.length > LIMITS.maxEmail || !Validators.isEmail(email)))
       errors.contactEmail = "Enter a valid email address.";
     if (!phone && !email)
       errors.contactPhone =

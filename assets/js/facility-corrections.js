@@ -32,6 +32,11 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
+  // Email and phone rules are shared with the other forms (validators.js).
+  var Validators = (typeof module === 'object' && module.exports)
+    ? require('./validators.js')
+    : ReliefValidators;
+
   var DEMO_QUEUE_KEY = 'relief_demo_facility_corrections';
   var SUBMISSION_LOG_KEY = 'relief_correction_submissions';
 
@@ -102,10 +107,6 @@
     return normalizeForCompare(a) === normalizeForCompare(b);
   }
 
-  function digitCount(text) {
-    return (String(text).match(/\d/g) || []).length;
-  }
-
   function cleanSourceUrl(raw) {
     var text = sanitizeText(raw, LIMITS.maxSourceUrl + 1);
     if (!text) return { value: '' };
@@ -126,9 +127,7 @@
     var text = sanitizeText(raw, LIMITS.maxContact + 1);
     if (!text) return { value: '' };
     if (text.length > LIMITS.maxContact) return { error: 'The contact detail is too long.' };
-    var isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
-    var isPhone = /^[+\d][\d\s\-().]*$/.test(text) && digitCount(text) >= 7 && digitCount(text) <= 15;
-    if (!isEmail && !isPhone) return { error: 'Enter an email address or a phone number, or leave this empty.' };
+    if (!Validators.isEmail(text) && !Validators.isPhone(text)) return { error: 'Enter an email address or a phone number, or leave this empty.' };
     return { value: text };
   }
 
@@ -188,7 +187,7 @@
           errors.proposedValue = 'Enter the correct ' + spec.label.toLowerCase() + ' (at least ' + spec.min + ' characters).';
         } else if (text.length > spec.max) {
           errors.proposedValue = 'Keep the ' + spec.label.toLowerCase() + ' under ' + spec.max + ' characters.';
-        } else if (clean.field === 'phone' && (!/^[+\d][\d\s\-().]*$/.test(text) || digitCount(text) < 7 || digitCount(text) > 15)) {
+        } else if (clean.field === 'phone' && !Validators.isPhone(text)) {
           errors.proposedValue = 'Enter a phone number using digits, spaces, +, - and brackets (7 to 15 digits).';
         } else {
           clean.proposedValue = text;

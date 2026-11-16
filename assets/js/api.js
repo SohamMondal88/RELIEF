@@ -180,10 +180,11 @@ const ReliefAPI = (function() {
         }
     };
 
-    const validateEmail = (email) => {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    };
+    // Shared with the forms (validators.js). Loaded before this file on pages; in Node tests it is required.
+    const validators = (typeof ReliefValidators !== 'undefined' && ReliefValidators)
+        || (typeof require === 'function' && typeof module !== 'undefined' ? require('./validators.js') : null);
+
+    const validateEmail = (email) => validators.isEmail(email);
 
     const validatePassword = (password) => {
         return password && password.length >= 6;

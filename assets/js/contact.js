@@ -76,7 +76,6 @@ function validateEmail() {
     const emailInput = document.getElementById('email');
     const errorElement = emailInput.nextElementSibling;
     const emailValue = emailInput.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (emailValue === '') {
         showError(emailInput, errorElement, 'Please enter your email');
@@ -88,7 +87,7 @@ function validateEmail() {
         return false;
     }
 
-    if (!emailRegex.test(emailValue)) {
+    if (!ReliefValidators.isEmail(emailValue)) {
         showError(emailInput, errorElement, 'Please enter a valid email address');
         return false;
     }
