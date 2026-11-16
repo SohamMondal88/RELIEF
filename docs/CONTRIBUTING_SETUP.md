@@ -142,7 +142,7 @@ Remove-Item Env:E2E_BASE_URL
 
 For one spec, use `npm run test:e2e -- e2e/firstaid-offline.spec.js`. Use `npm run test:e2e -- --list` to check discovery without launching Chromium. The fixtures mock permissions and external services; do not grant real geolocation or notification access to make tests pass.
 
-Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that is your Python 3 command), the README's JavaScript syntax checks, and `git diff --check`. These complement browser tests; passing a link checker does not establish that a user flow works.
+Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that is your Python 3 command), the README's JavaScript syntax checks, and `git diff --check`. These complement browser tests; passing a link checker does not establish that a user flow works. The link checker has no exceptions: a missing image or script fails it. It reads the HTML only, so the page addresses that scripts build (`window.location.href = 'dashboard.html'`, sign-in links) are checked by `tests/page-paths.test.js`, which resolves each one from the page that loads the script. Keep those addresses written as relative `.html` paths: Vercel's clean URLs (`/pages/login`) redirect them without trouble, but a check on `location.pathname` must accept both forms (see `reliefIsAuthPage` in `assets/js/main.js`).
 
 ### Setup troubleshooting
 
