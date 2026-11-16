@@ -241,6 +241,22 @@
     return null;
   }
 
+  /**
+   * False when the browser will not let the page read storage at all (blocked or disabled), as opposed
+   * to storage that works and is simply empty. The key lookups below swallow read errors, so without
+   * this check a blocked storage looks like "nothing stored" and the page would say there is nothing to clear.
+   */
+  function isStorageReadable(storage) {
+    var store = storage === undefined ? getDefaultStorage() : storage;
+    if (!store) return false;
+    try {
+      store.getItem(INVENTORY[0].key);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function readItem(storage, key) {
     try {
       return storage.getItem(key);
@@ -284,7 +300,7 @@
    */
   function deleteLocalData(storage) {
     var store = storage === undefined ? getDefaultStorage() : storage;
-    if (!store) {
+    if (!store || !isStorageReadable(store)) {
       return { state: 'unavailable', found: [], removed: [], failed: [], remaining: [] };
     }
 
@@ -302,6 +318,22 @@
 
     var state = failed.length ? 'partial' : (found.length ? 'deleted' : 'nothing');
     return { state: state, found: found, removed: removed, failed: failed, remaining: findStoredKeys(store) };
+  }
+
+  // The two keys the dashboard keeps a copy of in memory. A removal of either in another tab means the
+  // data was cleared there (a logout removes the session key, which must not count).
+  var DASHBOARD_KEYS = ['relief_reminders_v1', 'relief_history_v1'];
+
+  /**
+   * True for a `storage` event that says the dashboard's saved data was removed by another tab:
+   * a removal of the reminders or timeline key, or storage.clear() (key is null). The browser only
+   * sends this event to the other tabs, never to the one that made the change.
+   */
+  function isDashboardDataRemoval(event, storage) {
+    if (!event || event.newValue !== null) return false;
+    var store = storage === undefined ? getDefaultStorage() : storage;
+    if (event.storageArea && store && event.storageArea !== store) return false;
+    return event.key === null || DASHBOARD_KEYS.indexOf(event.key) !== -1;
   }
 
   function withTimeout(promise, ms) {
@@ -322,7 +354,8 @@
     unavailable: 'The sign-in service is not connected, so RELIEF could not delete an account on a server. If you created one, it still exists. Ask whoever runs this deployment to delete it.',
     deleted: 'The sign-in service confirmed that your account and its data were deleted.',
     recentLogin: 'The sign-in service needs a recent sign-in before it will delete an account. Nothing was deleted on the server. Sign in again and retry.',
-    failed: 'The sign-in service did not delete your account, so it may still exist on the server and some of its data may already be gone. Try again later or contact whoever runs this deployment.'
+    failed: 'The sign-in service did not delete your account, so it may still exist on the server and some of its data may already be gone. Try again later or contact whoever runs this deployment.',
+    'not-contacted': 'RELIEF did not contact any server. Nothing was deleted on a server, so an account with an online sign-in service, if you have one, still exists.'
   };
 
   /**
@@ -431,6 +464,67 @@
     return { tone: tone, headline: headline, lines: lines };
   }
 
+  /** How many keys in storage are not RELIEF's and are therefore left alone. null when they cannot be counted. */
+  function countOtherKeys(storage) {
+    var store = storage === undefined ? getDefaultStorage() : storage;
+    var all = listStorageKeys(store);
+    if (!all) return null;
+    var ours = findStoredKeys(store);
+    return all.filter(function (key) { return ours.indexOf(key) === -1; }).length;
+  }
+
+  /**
+   * "Clear data stored in this browser": the local half of deleteAccount() on its own. It never
+   * contacts a server and never signs anyone out of one, so it cannot claim anything about an account.
+   * status: 'cleared' | 'nothing' | 'partial' | 'failed'
+   */
+  function clearLocalData(storage) {
+    var local = deleteLocalData(storage);
+    var status = local.state === 'unavailable' ? 'failed'
+      : local.state === 'partial' ? 'partial'
+      : local.state === 'nothing' ? 'nothing'
+      : 'cleared';
+    return { status: status, local: local, server: { state: 'not-contacted', message: SERVER_MESSAGES['not-contacted'] } };
+  }
+
+  // Shown when storage cannot be read, so the page cannot list or remove anything itself.
+  var MANUAL_CLEAR_NOTE = 'RELIEF cannot see what is stored because this browser is blocking storage for this site. If anything was saved earlier, remove it yourself: open your browser settings, find this site under cookies and site data, and clear its data.';
+
+  /** Text for the page after clearLocalData(): { tone, headline, lines }. */
+  function describeClearResult(result) {
+    var local = result.local;
+    var lines = [];
+    var headline;
+    var tone;
+
+    if (result.status === 'failed') {
+      headline = 'Nothing was cleared.';
+      tone = 'error';
+      lines.push('Browser storage is not available or is blocked, so RELIEF could not remove its data from this browser.');
+      lines.push(MANUAL_CLEAR_NOTE);
+    } else if (result.status === 'partial') {
+      headline = 'Some data could not be cleared.';
+      tone = 'error';
+      if (local.removed.length) lines.push('Removed from this browser: ' + local.removed.map(labelFor).join(', ') + '.');
+      lines.push('Could not remove: ' + local.failed.map(labelFor).join(', ') + '. Clear this site\'s data in your browser settings to remove it.');
+    } else if (result.status === 'nothing') {
+      headline = 'There was nothing to clear.';
+      tone = 'success';
+      lines.push('There was no RELIEF data stored in this browser.');
+    } else {
+      headline = 'Data stored in this browser was cleared.';
+      tone = 'success';
+      lines.push('Removed from this browser: ' + local.removed.map(labelFor).join(', ') + '.');
+    }
+
+    if (result.status !== 'failed') {
+      lines.push(result.server.message);
+      lines.push('Files you downloaded or saved yourself, and other browsers or devices, are not affected. Copies you shared with others (an SMS, a phone call, a map search on another site) are not stored by RELIEF and cannot be cleared by it.');
+      lines.push('Your language choice and a last-visit timestamp are written again the next time you use the site.');
+    }
+    return { tone: tone, headline: headline, lines: lines };
+  }
+
   return {
     KEY_PREFIX: KEY_PREFIX,
     INVENTORY: INVENTORY,
@@ -438,8 +532,14 @@
     isReliefKey: isReliefKey,
     listStorageKeys: listStorageKeys,
     findStoredKeys: findStoredKeys,
+    isStorageReadable: isStorageReadable,
+    isDashboardDataRemoval: isDashboardDataRemoval,
+    MANUAL_CLEAR_NOTE: MANUAL_CLEAR_NOTE,
     describeStored: describeStored,
     deleteLocalData: deleteLocalData,
+    countOtherKeys: countOtherKeys,
+    clearLocalData: clearLocalData,
+    describeClearResult: describeClearResult,
     deleteServerAccount: deleteServerAccount,
     deleteAccount: deleteAccount,
     describeResult: describeResult

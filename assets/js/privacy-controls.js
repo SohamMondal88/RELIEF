@@ -15,9 +15,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('privacy-confirm-cancel');
     const status = document.getElementById('privacy-status');
 
+    // "Clear data stored in this browser": the local half only, no server step (privacy-data.js clearLocalData).
+    const clearBtn = document.getElementById('privacy-clear');
+    const clearConfirm = document.getElementById('privacy-clear-confirm');
+    const clearTitle = document.getElementById('privacy-clear-title');
+    const clearList = document.getElementById('privacy-clear-list');
+    const clearOther = document.getElementById('privacy-clear-other');
+    const clearYes = document.getElementById('privacy-clear-yes');
+    const clearCancel = document.getElementById('privacy-clear-cancel');
+
+    // The page's localStorage, or null when the browser blocks it (reading the property can throw).
+    function getStore() {
+        try {
+            return window.localStorage || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     function renderStored() {
-        const rows = P.describeStored();
         stored.innerHTML = '';
+        const store = getStore();
+        // Blocked storage is not the same as empty storage: say we cannot tell.
+        if (!P.isStorageReadable(store)) {
+            const li = document.createElement('li');
+            li.className = 'muted';
+            li.textContent = 'Unknown. ' + P.MANUAL_CLEAR_NOTE;
+            stored.appendChild(li);
+            return;
+        }
+        const rows = P.describeStored(store);
         if (!rows.length) {
             const li = document.createElement('li');
             li.className = 'muted';
@@ -49,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openConfirm() {
+        closeClearConfirm();
         status.hidden = true;
         confirmBox.hidden = false;
         deleteBtn.setAttribute('aria-expanded', 'true');
@@ -100,6 +128,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     deleteBtn.addEventListener('click', openConfirm);
+
+    // ---- clear data stored in this browser ----
+
+    function closeClearConfirm() {
+        if (!clearConfirm) return;
+        clearConfirm.hidden = true;
+        clearBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    // Lists exactly what is in storage and would go, read again each time the box opens.
+    function openClearConfirm() {
+        closeConfirm();
+        status.hidden = true;
+        clearList.textContent = '';
+        const store = getStore();
+        const readable = P.isStorageReadable(store);
+        const rows = readable ? P.describeStored(store) : [];
+        rows.forEach((row) => {
+            const li = document.createElement('li');
+            li.textContent = row.label + ' ';
+            const code = document.createElement('code');
+            code.textContent = row.key;
+            li.appendChild(code);
+            clearList.appendChild(li);
+        });
+        if (!readable) {
+            // Not "nothing stored": the browser will not let RELIEF look. Point to the manual way out.
+            const li = document.createElement('li');
+            li.textContent = 'Unknown. ' + P.MANUAL_CLEAR_NOTE;
+            clearList.appendChild(li);
+            clearOther.textContent = 'RELIEF cannot clear anything itself, so the button below is off.';
+        } else {
+            if (!rows.length) {
+                const li = document.createElement('li');
+                li.textContent = 'Nothing. RELIEF has no data stored in this browser.';
+                clearList.appendChild(li);
+            }
+            const others = P.countOtherKeys(store);
+            clearOther.textContent = others === null
+                ? 'Anything else stored for this site by other apps is kept.'
+                : others + (others === 1 ? ' other item' : ' other items') + ' stored for this site by other apps will be kept.';
+        }
+        clearYes.disabled = !rows.length;
+        clearConfirm.hidden = false;
+        clearBtn.setAttribute('aria-expanded', 'true');
+        clearTitle.focus();
+    }
+
+    function runClear() {
+        let result;
+        try {
+            result = P.clearLocalData(window.localStorage);
+        } catch (e) {
+            result = { status: 'failed', local: { state: 'unavailable', found: [], removed: [], failed: [], remaining: [] }, server: { state: 'not-contacted', message: '' } };
+        }
+        closeClearConfirm();
+        // Same event as the full deletion, so the dashboard drops what it holds in memory.
+        document.dispatchEvent(new CustomEvent('relief:data-deleted', { detail: result }));
+        if (typeof updateAuthUI === 'function') updateAuthUI(null);
+
+        const text = P.describeClearResult(result);
+        showStatus(text.tone, text.headline, text.lines);
+        renderStored();
+        status.focus();
+    }
+
+    if (clearBtn && clearConfirm) {
+        clearBtn.addEventListener('click', openClearConfirm);
+        clearYes.addEventListener('click', runClear);
+        clearCancel.addEventListener('click', () => {
+            closeClearConfirm();
+            showStatus('', 'Cancelled. Nothing was cleared.', []);
+            clearBtn.focus();
+        });
+        clearConfirm.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') clearCancel.click();
+        });
+    }
+
+    // Another dashboard tab cleared or deleted the data. This tab still holds the old reminders and
+    // timeline in memory and would write them back on its next save, so tell it to drop them. The
+    // browser sends this event only to the other tabs, so it never fires for our own clear.
+    window.addEventListener('storage', (e) => {
+        let removed = false;
+        try {
+            removed = P.isDashboardDataRemoval(e, window.localStorage);
+        } catch (err) {
+            removed = false;
+        }
+        if (!removed) return;
+        closeConfirm();
+        closeClearConfirm();
+        document.dispatchEvent(new CustomEvent('relief:data-deleted', {
+            detail: { status: 'cleared-elsewhere', otherTab: true, local: { state: 'deleted', found: [], removed: [], failed: [], remaining: [] }, server: { state: 'not-contacted', message: '' } }
+        }));
+        showStatus('warning', 'Data was cleared in another tab.', ['The reminders and timeline on this page were emptied so they are not saved again by this tab.']);
+        renderStored();
+    });
 
     cancelBtn.addEventListener('click', () => {
         closeConfirm();

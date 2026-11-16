@@ -307,6 +307,22 @@ select[aria-invalid="true"] {
     padding-left: 20px;
 }
 
+.privacy-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.privacy-buttons-hint {
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+}
+
+.privacy-confirm ul {
+    margin: 0 0 10px;
+    padding-left: 20px;
+}
+
 .privacy-confirm {
     margin-top: 14px;
     padding: 12px 14px;
@@ -356,6 +372,8 @@ select[aria-invalid="true"] {
     color: #7a1410;
 }
 
+#privacy-clear:focus-visible,
+#privacy-clear-title:focus-visible,
 #privacy-delete:focus-visible,
 .privacy-confirm .btn:focus-visible,
 .privacy-status:focus-visible,

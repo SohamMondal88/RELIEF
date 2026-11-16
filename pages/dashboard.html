@@ -164,7 +164,23 @@
         <h3 id="privacy-stored-heading">Stored in this browser right now</h3>
         <ul id="privacy-stored" class="privacy-stored" aria-labelledby="privacy-stored-heading"></ul>
 
-        <button type="button" class="btn btn-danger" id="privacy-delete" aria-controls="privacy-confirm" aria-expanded="false">Delete my account and data</button>
+        <div class="privacy-buttons">
+            <button type="button" class="btn" id="privacy-clear" aria-controls="privacy-clear-confirm" aria-expanded="false" aria-describedby="privacy-clear-hint">Clear data stored in this browser</button>
+            <button type="button" class="btn btn-danger" id="privacy-delete" aria-controls="privacy-confirm" aria-expanded="false">Delete my account and data</button>
+        </div>
+        <p class="muted privacy-buttons-hint" id="privacy-clear-hint">Clearing only removes what RELIEF stored in this browser and does not contact any server. Deleting also asks the online sign-in service, if you use one, to delete your account.</p>
+
+        <div id="privacy-clear-confirm" class="privacy-confirm" role="group" aria-labelledby="privacy-clear-title" hidden>
+            <h3 id="privacy-clear-title" tabindex="-1">Clear what RELIEF stored in this browser?</h3>
+            <p>This removes exactly the items below from this browser. It cannot be undone.</p>
+            <ul id="privacy-clear-list"></ul>
+            <p id="privacy-clear-other"></p>
+            <p>It does not contact any server and does not delete an account on one. If sign-in sessions are on the list, you will be signed out on this device.</p>
+            <div class="privacy-actions">
+                <button type="button" class="btn btn-danger" id="privacy-clear-yes">Yes, clear this data</button>
+                <button type="button" class="btn" id="privacy-clear-cancel">Cancel</button>
+            </div>
+        </div>
 
         <div id="privacy-confirm" class="privacy-confirm" role="group" aria-labelledby="privacy-confirm-title" hidden>
             <h3 id="privacy-confirm-title" tabindex="-1">Delete everything RELIEF stores here?</h3>

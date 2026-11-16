@@ -433,3 +433,295 @@ describe('pages', () => {
         });
     });
 });
+
+// ---------------------------------------------------------------------------
+// "Clear data stored in this browser" (Issue #81): the local half on its own
+// ---------------------------------------------------------------------------
+
+describe('clearLocalData', () => {
+    it('removes every RELIEF key, keeps unrelated keys and reports exactly what went', () => {
+        const store = filled();
+        const r = P.clearLocalData(store);
+        assert.strictEqual(r.status, 'cleared');
+        assert.deepStrictEqual(store.keys().sort(), ['some_other_app', 'theme']);
+        assert.strictEqual(store.getItem('some_other_app'), 'keep me');
+        assert.strictEqual(r.local.removed.length, P.inventoryKeys().length + 1);
+        assert.deepStrictEqual(r.local.failed, []);
+    });
+
+    it('does not touch a key that only looks similar (no relief_ prefix, not in the inventory)', () => {
+        const store = memoryStorage({ relief_reminders_v1: '[]', 'my_relief_notes': 'x', Relief_upper: 'x', reliefx: 'x', userLocationBackup: 'x' });
+        P.clearLocalData(store);
+        assert.deepStrictEqual(store.keys().sort(), ['Relief_upper', 'my_relief_notes', 'reliefx', 'userLocationBackup']);
+    });
+
+    it('never contacts a server: no sign-in service is involved and the result says so', () => {
+        const r = P.clearLocalData(filled());
+        assert.strictEqual(r.server.state, 'not-contacted');
+        assert.match(r.server.message, /did not contact any server/);
+        assert.match(r.server.message, /still exists/);
+    });
+
+    it('says there was nothing to clear when nothing is stored, and is safe to run twice', () => {
+        const store = filled();
+        P.clearLocalData(store);
+        assert.strictEqual(P.clearLocalData(store).status, 'nothing');
+        assert.strictEqual(P.clearLocalData(memoryStorage({ theme: 'dark' })).status, 'nothing');
+    });
+
+    it('reports partial when a key refuses to go, names it, and still removes the rest', () => {
+        const store = memoryStorage({ relief_reminders_v1: '[]', userLocation: '{}', theme: 'dark' }, {
+            removeItem: (k) => (k === 'userLocation' ? 'ignore' : undefined)
+        });
+        const r = P.clearLocalData(store);
+        assert.strictEqual(r.status, 'partial');
+        assert.deepStrictEqual(r.local.failed, ['userLocation']);
+        assert.deepStrictEqual(store.keys().sort(), ['theme', 'userLocation']);
+    });
+
+    it('treats a storage that throws on removeItem as partial, not as cleared', () => {
+        const store = memoryStorage({ relief_lang: 'en' }, { removeItem: () => { throw new Error('SecurityError'); } });
+        assert.strictEqual(P.clearLocalData(store).status, 'partial');
+    });
+
+    it('reports failed, without throwing, when storage is missing or cannot be listed', () => {
+        assert.strictEqual(P.clearLocalData(null).status, 'failed');
+        const blocked = { getItem() { throw new Error('SecurityError'); }, removeItem() {}, get length() { throw new Error('SecurityError'); } };
+        assert.doesNotThrow(() => P.clearLocalData(blocked));
+        assert.ok(['failed', 'nothing'].includes(P.clearLocalData(blocked).status));
+    });
+});
+
+describe('countOtherKeys', () => {
+    it('counts the keys that are not RELIEF\'s, so the page can say how many are kept', () => {
+        assert.strictEqual(P.countOtherKeys(filled()), 2);
+        assert.strictEqual(P.countOtherKeys(memoryStorage({})), 0);
+        assert.strictEqual(P.countOtherKeys(null), null);
+    });
+});
+
+describe('describeClearResult wording', () => {
+    it('cleared: lists what was removed, says no server was contacted and never says an account was deleted', () => {
+        const t = P.describeClearResult(P.clearLocalData(filled()));
+        assert.strictEqual(t.tone, 'success');
+        assert.match(t.headline, /Data stored in this browser was cleared/);
+        assert.ok(t.lines.some((l) => /^Removed from this browser: .*Medicine reminders/.test(l)));
+        assert.ok(t.lines.some((l) => /did not contact any server/.test(l)));
+        assert.ok(!/account (was|were) deleted/i.test(t.headline + t.lines.join(' ')));
+        assert.ok(t.lines.some((l) => /other browsers or devices/.test(l)));
+    });
+
+    it('partial: names the key that stayed and the manual fallback', () => {
+        const store = memoryStorage({ userLocation: '{}', relief_lang: 'en' }, { removeItem: (k) => (k === 'userLocation' ? 'ignore' : undefined) });
+        const t = P.describeClearResult(P.clearLocalData(store));
+        assert.strictEqual(t.tone, 'error');
+        assert.ok(t.lines.some((l) => /Could not remove: Saved location/.test(l) && /browser settings/.test(l)));
+        assert.ok(t.lines.some((l) => /^Removed from this browser: .*Language choice/.test(l)));
+    });
+
+    it('nothing and failed are told apart', () => {
+        assert.strictEqual(P.describeClearResult(P.clearLocalData(memoryStorage({}))).headline, 'There was nothing to clear.');
+        const failed = P.describeClearResult(P.clearLocalData(null));
+        assert.strictEqual(failed.headline, 'Nothing was cleared.');
+        assert.strictEqual(failed.tone, 'error');
+        assert.ok(!failed.lines.some((l) => /did not contact/.test(l)));
+    });
+});
+
+describe('clear control on the dashboard', () => {
+    const html = read('pages/dashboard.html');
+    const controls = read('assets/js/privacy-controls.js');
+
+    it('has a clear button with its own confirmation that lists what goes, next to the delete button', () => {
+        assert.match(html, /id="privacy-clear"[^>]*aria-controls="privacy-clear-confirm"[^>]*aria-expanded="false"/);
+        assert.match(html, /id="privacy-clear-confirm"[^>]*role="group"[^>]*hidden/);
+        assert.match(html, /id="privacy-clear-list"/);
+        assert.match(html, /id="privacy-clear-yes"/);
+        assert.match(html, /id="privacy-clear-cancel"/);
+        assert.match(html, /does not contact any server and does not delete an account/);
+    });
+
+    it('only clears from the confirmation button, and never calls the account deletion', () => {
+        const at = controls.indexOf('P.clearLocalData(');
+        assert.ok(at > -1);
+        assert.ok(controls.lastIndexOf('function runClear', at) > -1, 'clearLocalData is called inside runClear');
+        assert.match(controls, /clearYes\.addEventListener\('click', runClear\)/);
+        const runClear = controls.slice(controls.indexOf('function runClear'), controls.indexOf('if (clearBtn && clearConfirm)'));
+        assert.ok(!/deleteAccount|ReliefAPI/.test(runClear));
+    });
+
+    it('the documentation names the clear control and what it leaves alone', () => {
+        const doc = read('docs/PRIVACY_AND_DATA.md');
+        assert.match(doc, /Clear data stored in this browser/);
+        assert.match(doc, /6\.5/);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Blocked storage and clears made in another tab (review follow-up on Issue #81)
+// ---------------------------------------------------------------------------
+
+// A Storage whose reads throw, like a browser that blocks site data.
+function blockedStorage() {
+    const boom = () => { throw new Error('SecurityError'); };
+    return { get length() { return boom(); }, key: boom, getItem: boom, setItem: boom, removeItem: boom };
+}
+
+describe('blocked storage is not the same as empty storage', () => {
+    it('isStorageReadable tells a working empty storage from a blocked one', () => {
+        assert.strictEqual(P.isStorageReadable(memoryStorage({})), true);
+        assert.strictEqual(P.isStorageReadable(memoryStorage({ relief_lang: 'en' })), true);
+        assert.strictEqual(P.isStorageReadable(blockedStorage()), false);
+        assert.strictEqual(P.isStorageReadable(null), false);
+    });
+
+    it('describeStored still returns [] for blocked storage, so callers must check readability first', () => {
+        assert.deepStrictEqual(P.describeStored(blockedStorage()), []);
+        assert.deepStrictEqual(P.describeStored(memoryStorage({})), []);
+    });
+
+    it('clearing blocked storage is "failed", never "nothing to clear"', () => {
+        const r = P.clearLocalData(blockedStorage());
+        assert.strictEqual(r.status, 'failed');
+        assert.strictEqual(r.local.state, 'unavailable');
+        // an empty but working storage stays "nothing"
+        assert.strictEqual(P.clearLocalData(memoryStorage({})).status, 'nothing');
+    });
+
+    it('the failed result tells the user how to remove the data in the browser settings', () => {
+        const t = P.describeClearResult(P.clearLocalData(blockedStorage()));
+        assert.strictEqual(t.headline, 'Nothing was cleared.');
+        assert.ok(t.lines.some((l) => l === P.MANUAL_CLEAR_NOTE));
+        assert.match(P.MANUAL_CLEAR_NOTE, /browser settings/);
+        assert.match(P.MANUAL_CLEAR_NOTE, /cannot see what is stored/);
+    });
+});
+
+describe('isDashboardDataRemoval (storage event from another tab)', () => {
+    const store = memoryStorage({});
+    const ev = (over) => Object.assign({ key: 'relief_reminders_v1', oldValue: '[]', newValue: null, storageArea: store }, over);
+
+    it('is true when the reminders or timeline key was removed, or storage was cleared', () => {
+        assert.strictEqual(P.isDashboardDataRemoval(ev(), store), true);
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ key: 'relief_history_v1' }), store), true);
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ key: null }), store), true);
+    });
+
+    it('is false for a write, for other keys (a logout removes the session key) and for another storage area', () => {
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ newValue: '[{"id":"a"}]' }), store), false);
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ key: 'relief_auth_sessions' }), store), false);
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ key: 'theme' }), store), false);
+        assert.strictEqual(P.isDashboardDataRemoval(ev({ storageArea: memoryStorage({}) }), store), false);
+        assert.strictEqual(P.isDashboardDataRemoval(null, store), false);
+        assert.strictEqual(P.isDashboardDataRemoval({}, store), false);
+    });
+});
+
+// Runs the real privacy-controls.js against a tiny fake page.
+function mountControls(options) {
+    const opts = options || {};
+    const listeners = { document: {}, window: {} };
+    const make = (id) => {
+        const el = {
+            id, hidden: false, disabled: false, className: '', textContent: '', children: [], attrs: {},
+            appendChild(c) { this.children.push(c); return c; },
+            setAttribute(k, v) { this.attrs[k] = v; },
+            addEventListener(type, fn) { (this.l = this.l || {})[type] = fn; },
+            focus() { this.focused = true; },
+            set innerHTML(v) { this.children = []; },
+            get innerHTML() { return ''; },
+            allText() { return [this.textContent].concat(this.children.map((c) => c.allText())).join(' '); }
+        };
+        return el;
+    };
+    const ids = ['privacy-delete', 'privacy-stored', 'privacy-confirm', 'privacy-confirm-title', 'privacy-confirm-yes',
+        'privacy-confirm-cancel', 'privacy-status', 'privacy-clear', 'privacy-clear-confirm', 'privacy-clear-title',
+        'privacy-clear-list', 'privacy-clear-other', 'privacy-clear-yes', 'privacy-clear-cancel'];
+    const els = {};
+    ids.forEach((id) => { els[id] = make(id); });
+    const dispatched = [];
+    const document = {
+        getElementById: (id) => els[id] || null,
+        createElement: () => make('x'),
+        addEventListener: (type, fn) => { listeners.document[type] = fn; },
+        dispatchEvent: (e) => { dispatched.push(e); return true; }
+    };
+    const window = {
+        ReliefPrivacy: P,
+        addEventListener: (type, fn) => { listeners.window[type] = fn; }
+    };
+    if (opts.blocked) {
+        Object.defineProperty(window, 'localStorage', { get() { throw new Error('SecurityError'); } });
+    } else {
+        window.localStorage = opts.storage || memoryStorage({});
+    }
+    const ctx = vm.createContext({ window, document, CustomEvent: function (type, init) { this.type = type; this.detail = init && init.detail; } });
+    new vm.Script(read('assets/js/privacy-controls.js')).runInContext(ctx);
+    listeners.document.DOMContentLoaded();
+    return { els, listeners, dispatched, window };
+}
+
+describe('privacy-controls.js with blocked storage', () => {
+    it('does not say "nothing stored": the list and the confirmation say it is unknown and give the manual way', () => {
+        {
+            const page = mountControls({ blocked: true });
+            const shown = page.els['privacy-stored'].allText();
+            assert.match(shown, /Unknown/);
+            assert.match(shown, /browser settings/);
+            assert.doesNotMatch(shown, /has no data stored/);
+
+            page.els['privacy-clear'].l.click();
+            const box = page.els['privacy-clear-list'].allText();
+            assert.match(box, /Unknown/);
+            assert.match(box, /browser settings/);
+            assert.doesNotMatch(box, /has no data stored/);
+            assert.strictEqual(page.els['privacy-clear-yes'].disabled, true);
+            assert.match(page.els['privacy-clear-other'].textContent, /cannot clear anything itself/);
+        }
+    });
+
+    it('working but empty storage still says nothing is stored', () => {
+        const page = mountControls({});
+        assert.match(page.els['privacy-stored'].allText(), /has no data stored/);
+        page.els['privacy-clear'].l.click();
+        assert.match(page.els['privacy-clear-list'].allText(), /has no data stored/);
+        assert.strictEqual(page.els['privacy-clear-yes'].disabled, true);
+    });
+});
+
+describe('privacy-controls.js when another tab clears the data', () => {
+    it('tells this tab to drop what it holds in memory, once per removal event, and says so', () => {
+        const store = memoryStorage({ relief_reminders_v1: '[]' });
+        const page = mountControls({ storage: store });
+        const fire = page.listeners.window.storage;
+        assert.strictEqual(typeof fire, 'function');
+
+        fire({ key: 'relief_reminders_v1', newValue: null, storageArea: store });
+        assert.strictEqual(page.dispatched.length, 1);
+        assert.strictEqual(page.dispatched[0].type, 'relief:data-deleted');
+        assert.strictEqual(page.dispatched[0].detail.otherTab, true);
+        assert.notStrictEqual(page.dispatched[0].detail.local.state, 'unavailable');
+        assert.match(page.els['privacy-status'].allText(), /cleared in another tab/);
+        assert.strictEqual(page.els['privacy-status'].hidden, false);
+    });
+
+    it('ignores writes, unrelated keys and a different storage area', () => {
+        const store = memoryStorage({});
+        const page = mountControls({ storage: store });
+        const fire = page.listeners.window.storage;
+        fire({ key: 'relief_reminders_v1', newValue: '[]', storageArea: store });
+        fire({ key: 'relief_auth_sessions', newValue: null, storageArea: store });
+        fire({ key: 'relief_reminders_v1', newValue: null, storageArea: memoryStorage({}) });
+        assert.strictEqual(page.dispatched.length, 0);
+    });
+
+    it('the dashboard handler that receives the event empties memory and stops saving (wiring)', () => {
+        const dash = read('assets/js/dashboard.js');
+        const at = dash.indexOf("addEventListener('relief:data-deleted'");
+        assert.ok(at > -1);
+        const body = dash.slice(at, at + 400);
+        assert.match(body, /dataDeleted = true/);
+        assert.match(body, /reminders = \[\]/);
+        assert.match(body, /history\.length = 0/);
+    });
+});

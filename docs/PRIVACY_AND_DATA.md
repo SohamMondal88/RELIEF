@@ -111,7 +111,7 @@ Checked by searching for `console.`, URL building and `<form>` tags in `assets/j
 
 ### 6.1 How to delete
 
-Open the dashboard, go to **Your data and account**, press **Delete my account and data**, read the confirmation and press **Yes, delete my data**. Cancel (or the Escape key) leaves everything as it was. The panel first lists what is stored right now.
+Open the dashboard, go to **Your data and account**. To remove only what is stored in this browser, use **Clear data stored in this browser** (section 6.5). To also ask the sign-in service to delete your account, press **Delete my account and data**, read the confirmation and press **Yes, delete my data**. Cancel (or the Escape key) leaves everything as it was. The panel first lists what is stored right now.
 
 ### 6.2 What it does
 
@@ -147,6 +147,19 @@ After deleting, the language key and the last-visit timestamp are written again 
 
 For a deployment that connects a sign-in service, the operator of that deployment is responsible for server-side deletion requests and for publishing a contact for them. This repository has no operator contact of its own (the old policy page listed an address that nothing in the repository backs up, so it was removed). Until a maintainer adds one, open an issue on the [RELIEF repository](https://github.com/SohamMondal88/RELIEF/issues) without personal details and ask for a deletion process for your deployment.
 
+### 6.5 Clear data stored in this browser (Issue #81)
+
+Next to the delete button the dashboard has a second control, **Clear data stored in this browser**. It is the local step of section 6.2 on its own:
+
+- **What it removes.** The same keys as the local step in 6.2: every key listed in section 2 and any other key that starts with `relief_`. Pressing the button opens a confirmation that lists, from what is in storage at that moment, each item and its key name, so what you read is what is removed. If a key is not stored it is not listed. If nothing is stored the confirm button is disabled.
+- **What it keeps.** Everything that is not RELIEF's, for example entries other apps or sites on the same origin keep in `localStorage` (this happens on `localhost`). The confirmation says how many such items there are. Cache Storage (the offline copy of public pages, section 2) is kept for the reason given there.
+- **What it does not do.** It does not contact any server and does not delete an account on one. The result says "RELIEF did not contact any server" and that an account with an online sign-in service, if you have one, still exists. Use **Delete my account and data** for the server step. It does not remove files you downloaded or saved yourself, or data in other browsers or devices.
+- **Sign-in sessions.** `relief_auth_sessions` is on the list when present, so clearing signs you out on this device.
+- **Storage that refuses.** Every key is read back after removal. A key that is still there is named in the result as "Could not remove" with the advice to clear the site's data in the browser settings. Storage that is blocked entirely gives "Nothing was cleared".
+- **Storage that is blocked.** If the browser will not let the page read storage at all, RELIEF cannot tell what is stored, so it does not say "Nothing". The list under "Stored in this browser right now" and the confirmation say "Unknown", the clear button is off, and the text tells you to remove the site's data in your browser settings (cookies and site data) yourself. `isStorageReadable()` in `privacy-data.js` makes that call; an empty but working storage still reads as "nothing stored".
+- **After clearing.** The dashboard empties the reminders and timeline it shows, and does not save them again. Other dashboard tabs open on the same site do the same: the browser sends them a `storage` event when the reminders or timeline key is removed (or storage is cleared), the tab empties what it holds, shows "Data was cleared in another tab" and does not write the old list back. A sign-out in another tab removes a different key and does not trigger this (`isDashboardDataRemoval()`). Your language choice and a last-visit timestamp are written again the next time you use the site.
+- Logic: `clearLocalData()`, `describeClearResult()` and `countOtherKeys()` in `assets/js/privacy-data.js`. Tests: `tests/privacy-data.test.js` and `e2e/privacy-clear.spec.js`.
+
 ## 7. Your rights
 
 What you can do today, without asking anyone:
@@ -172,6 +185,8 @@ Run with a fresh browser profile and developer tools open. Serve the site with `
 - [ ] **Location expiry.** `userLocation` has an `expiresAt` about 1 day (GPS) or 7 days (manual) ahead.
 - [ ] **Delete asks first.** Press Delete my account and data: a confirmation appears and focus moves to it. Cancel: nothing changes, message says nothing was deleted, focus returns to the button.
 - [ ] **Delete works.** Confirm: every `relief_*` key, `userLocation` and `selectedDoctor` are gone from Local Storage, unrelated keys are untouched, the reminders list and timeline on the page are empty, and reloading `pages/dashboard.html` shows no old reminders.
+- [ ] **Clear reaches other tabs.** Open the dashboard in two tabs with a reminder saved, clear in the first. The second tab empties its reminder list and says the data was cleared in another tab. Reload it: still empty.
+- [ ] **Clear keeps what is not RELIEF's.** Add a key such as `theme` in Local Storage, press Clear data stored in this browser, read the list (every item with its key), confirm. Every listed key is gone, `theme` is still there, and the message says RELIEF did not contact any server. Cancel and Escape change nothing.
 - [ ] **Honest message.** As a demo user the message says "demo account". Signed out, or with a real sign-in service missing, it says no account on a server was deleted. It never says "your account was deleted" unless the service confirmed it.
 - [ ] **Keyboard and screen reader.** Reach the button with Tab, confirm with Enter, cancel with Escape. The result is announced (status region) and focus lands on it.
 - [ ] **Policy pages match.** `pages/privacy-policy.html` and `pages/cookie-policy.html` say no cookies, name Vercel Web Analytics and link to the dashboard delete control.
