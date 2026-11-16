@@ -204,24 +204,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Due reminders always show in the in-app banner. A browser notification is added only when the
     // user turned it on here AND the browser allows it, and it says only "a reminder is due" unless
     // they chose to show medicine names (see notification-prefs.js).
-    function checkDue() {
-        const now = new Date();
-        const due = R.getDueReminders(reminders, now, timeZone);
-        if (!due.length) return;
-
-        const result = NP.deliver(due, window.Notification, NP.loadPrefs(localStorage));
-        result.inApp.forEach((message) => {
-            const line = document.createElement('p');
-            line.textContent = message;
-            bannerMessages.appendChild(line);
-        });
-        due.forEach((r) => {
-            const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, timeZone)).date;
-            reminders = R.markNotified(reminders, r.id, date, now.getTime());
-        });
-        banner.hidden = false;
-        persist();
-    }
+    // The scheduler (reminder-scheduler.js) owns the timer and reads the reminders from storage on
+    // every check, so a second dashboard tab cannot fire the same reminder twice.
+    const scheduler = R ? window.ReliefReminderScheduler.createScheduler({
+        storage: localStorage,
+        timeZone,
+        deliver: (due) => {
+            const result = NP.deliver(due, window.Notification, NP.loadPrefs(localStorage));
+            result.inApp.forEach((message) => {
+                const line = document.createElement('p');
+                line.textContent = message;
+                bannerMessages.appendChild(line);
+            });
+            banner.hidden = false;
+        },
+        // Take the copy from storage so this tab never writes an older lastNotifiedOn back.
+        onChange: (fresh) => {
+            if (JSON.stringify(fresh) === JSON.stringify(reminders)) return;
+            reminders = fresh;
+            render();
+        }
+    }) : null;
 
     // Shows what will actually happen: the user's choice combined with the browser's permission.
     function renderNotifyPanel() {
@@ -263,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetForm();
         render();
         announce(`${r.medicine} reminder ${editId ? 'updated' : 'saved'} for ${r.time} every day.`);
-        checkDue();
+        scheduler.check();
         savedEl.textContent = `Reminder saved.${firstLine ? ' First reminder:' + firstLine : ''}`;
         savedEl.hidden = false;
     });
@@ -363,13 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('reminder-disclaimer').textContent = R.REMINDER_DISCLAIMER;
         document.getElementById('reminder-persistence').textContent = `${R.PERSISTENCE_NOTE} ${R.TIMEZONE_NOTE}`;
         renderNotifyPanel();
-        setInterval(checkDue, 30000);
     }
 
     initializeChatbot();
     if (form && R) {
         render();
-        checkDue();
+        scheduler.start();
     }
 });
 

@@ -116,6 +116,31 @@ test.describe('medicine reminders', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('two dashboard tabs show one due reminder between them, not one each', async ({ page, context }) => {
+    // 07:59:50 in Asia/Kolkata, then the clock runs past 08:00 in both tabs.
+    await context.clock.install({ time: new Date('2026-10-24T07:59:50+05:30') });
+    await page.reload();
+    const other = await context.newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(other.locator('#reminder-list')).toContainText('No reminders yet.');
+
+    await addReminder(page, { medicine: 'Thyroxine', time: '08:00' });
+    await expect(page.locator('#reminder-banner')).toBeHidden();
+    // The other tab picks the new reminder up from storage without a reload.
+    await expect(item(other, 'Thyroxine')).toBeVisible();
+
+    await context.clock.runFor(60000);
+    const bannersShown = async () => (await page.locator('#reminder-banner').isVisible() ? 1 : 0) + (await other.locator('#reminder-banner').isVisible() ? 1 : 0);
+    await expect.poll(bannersShown).toBe(1);
+    // Later ticks in both tabs must not add a second one.
+    await context.clock.runFor(60000);
+    expect(await bannersShown()).toBe(1);
+
+    const saved = await storedJson(page, KEY);
+    expect(saved[0].lastNotifiedOn).toBe('2026-10-24');
+    await other.close();
+  });
+
   test('the page says what reminders are not (no medical advice)', async ({ page }) => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });
