@@ -15,7 +15,7 @@ The mode **never turns itself on**. If the browser reports Data Saver or a slow 
 - turns off every animation and transition, and smooth scrolling;
 - skips the 3 second landing splash on the home page, and does not use its animated ambulance picture (1.85 MB);
 - hides decorative pictures in the page body and footer: hero and video photos, partner logos, app screenshots, store and certificate badges, testimonial photos. The brand logo and map tiles/markers stay;
-- marks the pictures it hides as `loading="lazy"` while the page is being read, so the browser does not download a hidden picture. Pictures that script adds later (map tiles) are not touched.
+- marks the pictures it hides as `loading="lazy"` while the page is being read, so the browser does not download a hidden picture. Pictures that script adds later are marked the same way while the mode is on, except map tiles and markers (anything with a `leaflet` class), which are never hidden or deferred. When the mode is switched on from the bar on a page that is already open, pictures the browser is still downloading are cancelled (their address is parked in a `data-relief-src` attribute), and switching it off puts the addresses and the loading attribute back.
 
 It does not hide or change text, buttons, links, forms, the SOS dialog, facility search, first aid guides or any `tel:` link, and no critical action waits for a picture or an animation. A test checks that no rule in the stylesheet targets those.
 
@@ -43,7 +43,7 @@ On slow 3G as Chrome DevTools defines it (400 ms round trip, 400 kbit/s), time u
 
 The home page gains most: the splash picture and the decorative photos are most of its weight, and the splash no longer waits 3 seconds. The other three pages only lose the footer badges (about 40 KB), because their weight is scripts and the facility list. Those are not changed here. Each number is one run, so treat the timings as rough.
 
-Not measured: Firefox and Safari. The `loading="lazy"` step needs the browser to honour the attribute before it starts a picture. Where it does not, the pictures are hidden but may still be downloaded.
+Not measured: Firefox and Safari. The `loading="lazy"` step needs the browser to honour the attribute before it starts a picture. Where it does not, the pictures are hidden but may still be downloaded. A picture that has already finished downloading when the mode is switched on from the bar stays in the browser's cache and is only hidden.
 
 ## For developers
 

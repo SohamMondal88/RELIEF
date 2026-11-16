@@ -192,6 +192,53 @@ test.describe('low-data mode: what it changes', () => {
     expect(off.seen.length, 'requests with the mode off').toBeGreaterThanOrEqual(6);
   });
 
+  test('map pictures inside .main-content stay visible with the mode on, ordinary pictures there are hidden', async ({ page }) => {
+    await withMode(page, 'on');
+    await page.goto('/pages/hospitals.html');
+    // Leaflet may not be reachable from the test machine, so stand in for its tile and marker.
+    const png = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    await page.evaluate((src) => {
+      const host = document.querySelector('.main-content #map') || document.querySelector('.main-content');
+      [['leaflet-tile', 'probe-tile'], ['leaflet-marker-icon', 'probe-marker'], ['', 'probe-plain']].forEach(([cls, id]) => {
+        const img = document.createElement('img');
+        img.id = id; img.alt = ''; img.width = 20; img.height = 20; img.src = src;
+        if (cls) img.className = cls;
+        host.appendChild(img);
+      });
+    }, png);
+    await expect(page.locator('#probe-tile')).toBeVisible();
+    await expect(page.locator('#probe-marker')).toBeVisible();
+    await expect(page.locator('#probe-plain')).toBeHidden();
+  });
+
+  test('switching the mode on from the bar cancels pictures that are still downloading, and turning it off brings them back', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1280, height: 800 } });
+    await context.route((url) => url.origin !== new URL(baseURL).origin, (route) => route.abort());
+    await context.addInitScript(() => {
+      try { localStorage.setItem('relief_onboarding_status', JSON.stringify({ status: 'skipped', timestamp: 0 })); } catch (e) { /* blocked */ }
+    });
+    // Hold the decorative pictures back so they are still in flight when the person switches the mode on.
+    await context.route(/\/assets\/images\/(hero-image|partner\d|app-screens|app-store|google-play|hipaa-badge|ssl-badge)/, () => { /* never answered */ });
+    const page = await context.newPage();
+    const started = [];
+    page.on('request', (r) => { if (/\/assets\/images\/hero-image/.test(r.url())) started.push(r.url()); });
+    await page.goto(baseURL + '/index.html', { waitUntil: 'domcontentloaded' });
+    await expect(bar(page)).toContainText('Low-data mode is off.');
+    await expect.poll(() => started.length).toBeGreaterThan(0);
+
+    const hero = page.locator('.hero-image img').first();
+    await expect(hero).toHaveAttribute('src', /hero-image/);
+    await page.getByRole('button', { name: 'Turn on low-data mode' }).click();
+    await expect(hero).not.toHaveAttribute('src', /./);
+    await expect(hero).toHaveAttribute('data-relief-src', /hero-image/);
+    await expect(page.locator('.logo img')).toHaveAttribute('src', /./);
+
+    await bar(page).getByRole('button', { name: 'Turn off' }).click();
+    await expect(hero).toHaveAttribute('src', /hero-image/);
+    await expect(hero).not.toHaveAttribute('data-relief-src', /./);
+    await context.close();
+  });
+
   test('hospitals: facility search and the phone links work with the mode on', async ({ page }) => {
     await withMode(page, 'on');
     await page.goto('/pages/hospitals.html');

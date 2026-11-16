@@ -24,6 +24,8 @@
 
   var KEY = 'relief_low_bandwidth';
   var CLASS = 'relief-lite';
+  var MARK_SRC = 'data-relief-src';
+  var MARK_LAZY = 'data-relief-lazy';
   var SLOW_TYPES = ['slow-2g', '2g', '3g'];
 
   /** 'on', 'off' or null (never chosen, or unreadable). Anything but the two exact words counts as never chosen. */
@@ -82,24 +84,65 @@
     return !(node.closest && node.closest('.logo, .brand, .leaflet-container'));
   }
 
+  // Marks one picture as lazy, remembering that this script did it so switching off can undo it.
+  function markLazy(img) {
+    if (img.getAttribute('loading') === 'lazy') return;
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute(MARK_LAZY, '1');
+  }
+
   /**
    * Marks pictures as lazy while the page is being read. A lazy picture that is hidden or far below the
-   * screen is never requested, which is what keeps the decorative ones off the network. Stops when the
-   * page has been read, so pictures that script adds later (map tiles) load as usual. It uses the
-   * browser's own loading="lazy" and so depends on browser support: where the browser has already
+   * screen is never requested, which is what keeps the decorative ones off the network. Pictures that
+   * script adds later are handled until the returned stop function is called: at the end of reading the
+   * page when stopAtLoad is true (map tiles then load as usual), or when the mode is turned off. It uses
+   * the browser's own loading="lazy" and so depends on browser support: where the browser has already
    * started a picture by then, it is only hidden, not saved.
    */
-  function deferPictures(win) {
-    if (!win.MutationObserver) return;
+  function deferPictures(win, stopAtLoad) {
+    if (!win.MutationObserver) return function () {};
     var observer = new win.MutationObserver(function (records) {
       records.forEach(function (record) {
         Array.prototype.forEach.call(record.addedNodes, function (node) {
-          if (deferable(node)) node.loading = 'lazy';
+          if (deferable(node)) markLazy(node);
         });
       });
     });
     observer.observe(win.document, { childList: true, subtree: true });
-    win.document.addEventListener('DOMContentLoaded', function () { observer.disconnect(); });
+    function stop() {
+      observer.disconnect();
+      win.document.removeEventListener('DOMContentLoaded', stop);
+    }
+    if (stopAtLoad) win.document.addEventListener('DOMContentLoaded', stop);
+    return stop;
+  }
+
+  /**
+   * For a page that is already loaded when the mode is switched on from the bar. Pictures the browser
+   * has started but not finished are cancelled by taking their address out (it is kept on the element and
+   * put back by restorePictures), because display:none alone does not stop a download. Pictures that
+   * are finished, lazy already, brand logos and map pieces are left alone.
+   */
+  function deferExisting(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('img'), function (img) {
+      if (!deferable(img) || img.complete || img.getAttribute('loading') === 'lazy') return;
+      var src = img.getAttribute('src');
+      if (!src) return;
+      img.setAttribute(MARK_SRC, src);
+      img.removeAttribute('src');
+    });
+  }
+
+  /** Undoes deferExisting and the lazy marks, so pictures load again once the mode is off. */
+  function restorePictures(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('img[' + MARK_SRC + ']'), function (img) {
+      img.setAttribute('src', img.getAttribute(MARK_SRC));
+      img.removeAttribute(MARK_SRC);
+    });
+    Array.prototype.forEach.call(doc.querySelectorAll('img[' + MARK_LAZY + ']'), function (img) {
+      img.removeAttribute('loading');
+      img.removeAttribute(MARK_LAZY);
+    });
   }
 
   var api = {
@@ -111,7 +154,11 @@
     isActive: isActive,
     barState: barState,
     apply: apply,
-    deferable: deferable
+    deferable: deferable,
+    markLazy: markLazy,
+    deferPictures: deferPictures,
+    deferExisting: deferExisting,
+    restorePictures: restorePictures
   };
 
   // ---- in the browser -------------------------------------------------------------------------
@@ -122,7 +169,19 @@
   try { storage = root.localStorage; } catch (e) { storage = null; }
   var pref = storage ? readPreference(storage) : null;
   apply(document, isActive(pref));
-  if (isActive(pref)) deferPictures(root);
+  var stopDeferring = null;
+
+  // Starts or ends the picture deferral together with the class, so both always follow the choice.
+  function setDeferral(active) {
+    if (stopDeferring) { stopDeferring(); stopDeferring = null; }
+    if (active) {
+      stopDeferring = deferPictures(root, document.readyState === 'loading');
+      if (document.readyState !== 'loading') deferExisting(document);
+    } else if (document.readyState !== 'loading') {
+      restorePictures(document);
+    }
+  }
+  if (isActive(pref)) setDeferral(true);
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -151,6 +210,7 @@
       var saved = storage ? writePreference(storage, value) : false;
       pref = value;
       apply(document, isActive(value));
+      setDeferral(isActive(value));
       buildBar();
       if (!saved) {
         var note = document.querySelector('#relief-lite-bar .relief-lite-note');

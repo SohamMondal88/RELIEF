@@ -68,16 +68,18 @@ html.relief-lite .loader-ambulance {
 }
 
 /* Decorative pictures: the hero and video photos, partner logos, app screenshots, store badges, footer badges
-   and testimonial photos. The brand logo stays. Text, buttons and links are never hidden. */
+   and testimonial photos. The brand logo stays, and so does every map picture (class contains "leaflet"),
+   including the ones inside .main-content. Text, buttons and links are never hidden. */
 html.relief-lite main img:not([class*="leaflet"]),
-html.relief-lite .main-content img,
-html.relief-lite footer img,
-html.relief-lite .splash-screen img {
+html.relief-lite .main-content img:not([class*="leaflet"]),
+html.relief-lite footer img:not([class*="leaflet"]),
+html.relief-lite .splash-screen img:not([class*="leaflet"]) {
     display: none !important;
 }
 
-/* The brand logo stays, and so do the map tiles and markers (a map is a feature, not decoration). */
-html.relief-lite .logo img,
-html.relief-lite .brand img {
+/* The brand logo stays, and so do the map tiles and markers (a map is a feature, not decoration).
+   The :not() matches the hiding rules above in weight, and this rule comes later, so it wins. */
+html.relief-lite .logo img:not([class*="leaflet"]),
+html.relief-lite .brand img:not([class*="leaflet"]) {
     display: inline-block !important;
 }

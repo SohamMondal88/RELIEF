@@ -111,6 +111,84 @@ test('pictures are deferred except the brand logo, map pieces and anything that 
   assert.strictEqual(L.deferable(null), false);
 });
 
+// A small stand-in for the page: images as plain objects with attributes, and a document that finds them.
+function fakeImg(attrs, extra) {
+  const a = Object.assign({}, attrs);
+  return Object.assign({
+    nodeType: 1, tagName: 'IMG', className: a.class || '', complete: false, attrs: a,
+    closest: () => null,
+    getAttribute: (k) => (k in a ? a[k] : null),
+    setAttribute: (k, v) => { a[k] = String(v); },
+    removeAttribute: (k) => { delete a[k]; }
+  }, extra);
+}
+function fakeDoc(imgs) {
+  const has = (img, k) => k in img.attrs;
+  return {
+    querySelectorAll(sel) {
+      const m = sel.match(/^img\[([\w-]+)\]$/);
+      return m ? imgs.filter((i) => has(i, m[1])) : imgs;
+    }
+  };
+}
+
+test('switching on after the page has loaded cancels pictures still downloading, and leaves the rest alone', () => {
+  const hero = fakeImg({ src: 'assets/images/hero-image.png' });
+  const done = fakeImg({ src: 'assets/images/partner1.png' }, { complete: true });
+  const lazyAlready = fakeImg({ src: 'assets/images/a.png', loading: 'lazy' });
+  const logo = fakeImg({ src: 'assets/images/logo.png' }, { closest: (sel) => (sel.includes('.logo') ? {} : null) });
+  const tile = fakeImg({ src: 'https://tile/1.png', class: 'leaflet-tile' });
+  const noSrc = fakeImg({});
+  L.deferExisting(fakeDoc([hero, done, lazyAlready, logo, tile, noSrc]));
+  assert.strictEqual(hero.getAttribute('src'), null);
+  assert.strictEqual(hero.getAttribute('data-relief-src'), 'assets/images/hero-image.png');
+  [done, lazyAlready, logo, tile].forEach((i) => assert.ok(i.getAttribute('src'), i.attrs.src));
+  [done, lazyAlready, logo, tile, noSrc].forEach((i) => assert.strictEqual(i.getAttribute('data-relief-src'), null));
+});
+
+test('switching off puts the addresses and the loading attribute back, and touches nothing this script did not change', () => {
+  const hero = fakeImg({ src: 'assets/images/hero-image.png' });
+  const marked = fakeImg({ src: 'assets/images/b.png' });
+  const own = fakeImg({ src: 'assets/images/c.png', loading: 'lazy' }); // lazy before the mode, so it stays lazy
+  L.deferExisting(fakeDoc([hero, marked, own]));
+  L.markLazy(marked);
+  L.markLazy(own);
+  assert.strictEqual(marked.getAttribute('loading'), 'lazy');
+  L.restorePictures(fakeDoc([hero, marked, own]));
+  assert.strictEqual(hero.getAttribute('src'), 'assets/images/hero-image.png');
+  assert.strictEqual(hero.getAttribute('data-relief-src'), null);
+  assert.strictEqual(marked.getAttribute('loading'), null);
+  assert.strictEqual(marked.getAttribute('data-relief-lazy'), null);
+  assert.strictEqual(own.getAttribute('loading'), 'lazy');
+});
+
+test('deferPictures marks pictures added while it runs, and stops when told to', () => {
+  let callback; let disconnected = false; const listeners = {};
+  const win = {
+    MutationObserver: function (cb) { callback = cb; this.observe = () => {}; this.disconnect = () => { disconnected = true; }; },
+    document: { addEventListener: (n, f) => { listeners[n] = f; }, removeEventListener: (n) => { delete listeners[n]; } }
+  };
+  const stop = L.deferPictures(win, false);
+  assert.strictEqual(listeners.DOMContentLoaded, undefined, 'it keeps running after load when asked to');
+  const added = fakeImg({ src: 'x.png' });
+  const tile = fakeImg({ src: 't.png', class: 'leaflet-tile' });
+  callback([{ addedNodes: [added, tile] }]);
+  assert.strictEqual(added.getAttribute('loading'), 'lazy');
+  assert.strictEqual(tile.getAttribute('loading'), null);
+  stop();
+  assert.strictEqual(disconnected, true);
+  L.deferPictures(win, true);
+  assert.strictEqual(typeof listeners.DOMContentLoaded, 'function');
+  assert.strictEqual(typeof L.deferPictures({ document: {} }, true), 'function');
+});
+
+test('the bar starts the picture deferral when the mode is switched on, and ends it when switched off', () => {
+  const code = read('assets/js/low-bandwidth.js');
+  const choose = code.slice(code.indexOf('function choose('), code.indexOf("if (state === 'suggest')"));
+  assert.match(choose, /apply\(document, isActive\(value\)\);\s*setDeferral\(isActive\(value\)\)/);
+  assert.match(code, /function setDeferral\(active\)[\s\S]*deferPictures\(root[\s\S]*deferExisting\(document\)[\s\S]*restorePictures\(document\)/);
+});
+
 // ---- the stylesheet ---------------------------------------------------------------------------
 
 const css = read('assets/css/low-bandwidth.css');
@@ -135,6 +213,27 @@ test('the mode never hides text, buttons, links, forms, the SOS or the map', () 
   // pictures are hidden only in the page body and footer, and map tiles and markers are left alone
   const imgRule = rules.find((r) => r.selectors.some((s) => /\bimg\b/.test(s)) && /display:\s*none/.test(r.body));
   assert.ok(imgRule.selectors.some((s) => s.includes('[class*="leaflet"]')));
+});
+
+test('every branch that hides pictures leaves map pictures alone, including the one for .main-content (the maps sit inside it)', () => {
+  const imgRule = rules.find((r) => r.selectors.some((s) => /\bimg\b/.test(s)) && /display:\s*none/.test(r.body));
+  assert.ok(imgRule.selectors.some((s) => s.startsWith('html.relief-lite .main-content img')));
+  imgRule.selectors.forEach((sel) => assert.ok(sel.endsWith(':not([class*="leaflet"])'), sel));
+});
+
+test('the brand logo rule is at least as heavy as the hiding rules and comes after them', () => {
+  const weight = (sel) => ({
+    ids: (sel.match(/#[\w-]+/g) || []).length,
+    classes: (sel.match(/\.[\w-]+|\[[^\]]*\]/g) || []).length,
+    tags: (sel.replace(/\[[^\]]*\]/g, '').replace(/:not\(|\)/g, ' ').match(/(^|[\s>+~])[a-z][\w-]*/gi) || []).length
+  });
+  const heavier = (a, b) => (a.ids - b.ids) || (a.classes - b.classes) || (a.tags - b.tags);
+  const hideIdx = rules.findIndex((r) => r.selectors.some((s) => /\bimg\b/.test(s)) && /display:\s*none/.test(r.body));
+  const logoIdx = rules.findIndex((r) => r.selectors.some((s) => s.includes('.logo img')));
+  assert.ok(logoIdx > hideIdx);
+  rules[hideIdx].selectors.forEach((h) => rules[logoIdx].selectors.forEach((l) => {
+    assert.ok(heavier(weight(l), weight(h)) >= 0, l + ' vs ' + h);
+  }));
 });
 
 test('animations and transitions are switched off, the splash is skipped and the 1.8 MB loader picture is not used', () => {
