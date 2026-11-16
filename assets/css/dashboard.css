@@ -115,6 +115,24 @@
     margin: 0 0 4px;
 }
 
+.storage-notice {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border: 1px solid #f5c26b;
+    border-left: 4px solid #b26a00;
+    border-radius: 10px;
+    background: #fff8e6;
+    color: #4e3b00;
+}
+
+.storage-notice p {
+    margin: 0 0 4px;
+}
+
+.storage-notice p:last-child {
+    margin-bottom: 0;
+}
+
 .notify-panel {
     margin: 10px 0;
     padding: 10px 12px;

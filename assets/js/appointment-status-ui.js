@@ -11,9 +11,10 @@
 
   var Request = window.ReliefAppointmentRequest;
   var Status = window.ReliefAppointmentStatus;
+  var Safe = window.ReliefSafeStorage;
   var list = document.getElementById('my-requests-list');
   var statusRegion = document.getElementById('my-requests-status');
-  if (!Request || !Status || !list) return;
+  if (!Request || !Status || !Safe || !list) return;
 
   var WINDOW_LABELS = {};
   Object.keys(Request.TIME_WINDOWS || {}).forEach(function (key) {
@@ -90,7 +91,7 @@
   }
 
   function render(focusSelector) {
-    var items = Status.toDisplayList(Request.loadRequests(window.localStorage));
+    var items = Status.toDisplayList(Request.loadRequests(Safe.getStorage(window)));
     list.textContent = '';
     if (items.length === 0) {
       list.appendChild(el('li', 'request-empty', 'You have not sent any appointment requests from this device.'));
@@ -105,15 +106,14 @@
 
   function saveAll(requests) {
     try {
-      window.localStorage.setItem(Request.STORAGE_KEY, JSON.stringify(requests));
-      return true;
+      return Safe.setItem(Safe.getStorage(window), Request.STORAGE_KEY, JSON.stringify(requests));
     } catch (e) {
       return false;
     }
   }
 
   function cancel(id) {
-    var result = Status.cancelRequest(Request.loadRequests(window.localStorage), id, new Date());
+    var result = Status.cancelRequest(Request.loadRequests(Safe.getStorage(window)), id, new Date());
     if (!result.ok) {
       announce(result.message);
       confirming = null;

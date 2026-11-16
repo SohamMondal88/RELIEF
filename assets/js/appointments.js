@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         selectedDoctor = null;
     }
+    // Anything that is not one doctor record (an old build, a hand edit) counts as no doctor chosen.
+    if (!selectedDoctor || typeof selectedDoctor !== 'object' || Array.isArray(selectedDoctor)) {
+        selectedDoctor = null;
+    }
 
     // DOM elements
     var doctorSummary = document.querySelector('.doctor-summary');
@@ -238,7 +242,12 @@ document.addEventListener('DOMContentLoaded', function() {
         clearErrors();
         setSending(true);
         var request = Request.buildRequest(input);
-        var saved = Request.saveRequest(window.localStorage, request);
+        // Storage can be blocked (reading window.localStorage throws). A damaged saved list is copied
+        // aside before the new request is saved over it.
+        var Safe = window.ReliefSafeStorage;
+        var store = Safe.getStorage(window);
+        Safe.preserveUnreadable(store, Request.STORAGE_KEY, Array.isArray);
+        var saved = Request.saveRequest(store, request);
         if (saved.ok) {
             showSuccess(request);
             document.dispatchEvent(new CustomEvent('relief:request-saved', { detail: { id: request.id } }));

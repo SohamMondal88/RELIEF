@@ -58,6 +58,15 @@ Other things in the browser, none of which hold personal data:
 - **Logging.** The check never logs. Its result holds counts only (kept, dropped), never names, medicines or dates.
 - **Adding a format change later.** Raise `CURRENT_VERSION`, add an entry to `MIGRATIONS` that plans the writes for the old version, and add a test in `tests/storage-schema.test.js` with a stored value from the old format.
 
+### 2.2 Damaged, blocked or full storage (Issue #168)
+
+`assets/js/safe-storage.js` is what the dashboard, the doctors page and the appointments page use to read and write the browser's storage. None of its functions throws.
+
+- **Blocked storage.** Some browsers throw an error just from touching `localStorage` (site data blocked). The pages treat that as "no storage": they load, work for that visit, and the dashboard says that reminders and the timeline can not be saved and will be gone when the page is closed.
+- **Full storage.** A write the browser refuses is reported (the dashboard shows a notice that the latest changes could not be saved) and the page keeps what it has in memory.
+- **Damaged saved data.** If a saved list is not valid JSON, is the wrong type, or has entries that can not be used (dashboard reminders and timeline, appointment requests), the page shows its empty state or the good entries and, before anything is saved over it, copies the original text to a second key named after the first with `.unreadable` added (for example `relief_reminders_v1.unreadable`). The dashboard says so. Only the first copy is kept, so a later accident does not replace it. The copy is not read by the site; it is only there so the text can be recovered by hand. It starts with `relief_`, so "Delete my data" removes it with the rest.
+- **Not covered by the copy.** The sign-in session list (`relief_auth_sessions`) is not copied: it holds tokens and a damaged list just means signing in again. The one-time migration in 2.1 still removes unreadable values from data written by older builds without keeping a copy.
+
 ### Kept only in the page (never saved)
 
 - **Relief Assistant chat:** answered in the browser with no network request and not saved. Reloading or pressing Clear chat removes it.

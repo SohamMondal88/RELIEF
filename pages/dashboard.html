@@ -53,6 +53,8 @@
             <h2>Medication Reminders</h2>
             <p id="reminder-disclaimer" class="muted reminder-note">These reminders only repeat what you type in. RELIEF does not suggest medicines, doses or schedules, so follow your doctor or pharmacist for that.</p>
 
+            <div id="storage-notice" class="storage-notice" role="status" hidden></div>
+
             <div id="reminder-banner" class="reminder-banner" role="alert" hidden>
                 <div id="reminder-banner-messages"></div>
                 <button type="button" class="btn" data-dismiss>Dismiss</button>
@@ -183,6 +185,7 @@
 <footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
 
 <script src="../assets/js/storage-schema.js"></script>
+<script src="../assets/js/safe-storage.js"></script>
 <script src="../assets/js/reminders.js"></script>
 <script src="../assets/js/notification-prefs.js"></script>
 <script src="../assets/js/form-errors.js"></script>

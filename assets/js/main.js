@@ -12,19 +12,28 @@ function getDeviceType() {
     return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ? 'mobile' : 'desktop';
 }
 
+// main.js is on every page, so these three keep their own small guards instead of needing another
+// script tag everywhere. Reading localStorage itself throws when the browser blocks storage.
 function loadSessions() {
     try {
         if (typeof localStorage === 'undefined') return [];
-        return JSON.parse(localStorage.getItem(RELIEF_SESSION_STORAGE_KEY) || '[]');
+        const parsed = JSON.parse(localStorage.getItem(RELIEF_SESSION_STORAGE_KEY) || '[]');
+        // A damaged or old value must not reach the code that reads session.expiresAt and friends.
+        return Array.isArray(parsed) ? parsed.filter(session => session && typeof session === 'object' && !Array.isArray(session)) : [];
     } catch (error) {
-        console.error('Failed to parse stored sessions:', error && error.name);
+        console.error('Failed to read stored sessions:', error && error.name);
         return [];
     }
 }
 
 function saveSessions(sessions) {
-    if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(RELIEF_SESSION_STORAGE_KEY, JSON.stringify(sessions));
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(RELIEF_SESSION_STORAGE_KEY, JSON.stringify(sessions));
+        }
+    } catch (error) {
+        // blocked or full: the page keeps working, the session is just not remembered
+        console.error('Failed to save sessions:', error && error.name);
     }
 }
 
@@ -69,8 +78,12 @@ function touchActiveSession() {
 }
 
 function clearSessions() {
-    if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(RELIEF_SESSION_STORAGE_KEY);
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(RELIEF_SESSION_STORAGE_KEY);
+        }
+    } catch (error) {
+        console.error('Failed to clear sessions:', error && error.name);
     }
 }
 
@@ -603,7 +616,11 @@ function getLocation() {
                         reject(new Error('Invalid coordinates'));
                         return;
                     }
-                    localStorage.setItem('userLocation', JSON.stringify({ lat, lng }));
+                    try {
+                        localStorage.setItem('userLocation', JSON.stringify({ lat, lng }));
+                    } catch (error) {
+                        // storage blocked or full: the position is still returned, it just is not remembered
+                    }
                     resolve({ lat, lng });
                 },
                 error => {

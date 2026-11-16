@@ -31,14 +31,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedEl = document.getElementById('reminder-saved');
 
     const historyKey = 'relief_history_v1';
+    const remindersKey = 'relief_reminders_v1';
     const timeZone = R ? R.getLocalTimeZone() : 'UTC';
 
-    let reminders = R ? R.loadReminders(localStorage) : [];
+    // Browser storage can be blocked (reading window.localStorage then throws), damaged or full.
+    // `store` is null when blocked; every read and write below copes with that (see safe-storage.js).
+    const S = window.ReliefSafeStorage;
+    const store = S.getStorage(window);
+    const storageNotice = document.getElementById('storage-notice');
+    const storageProblems = { blocked: !store, unreadable: [], partial: 0, notKept: false, saveFailed: false };
+
+    // A damaged saved value is copied aside before anything is saved over it, so it is not lost.
+    const remindersRead = S.preserveUnreadable(store, remindersKey, Array.isArray);
+    const historyRead = S.preserveUnreadable(store, historyKey, Array.isArray);
+    if (remindersRead.status === 'unreadable') storageProblems.unreadable.push('reminders');
+    if (historyRead.status === 'unreadable') storageProblems.unreadable.push('timeline');
+    if (remindersRead.kept === false || historyRead.kept === false) storageProblems.notKept = true;
+
+    let reminders = R ? R.loadReminders(store) : [];
+    // Entries that were in the list but not usable are dropped from the page: keep the original text too.
+    if (remindersRead.status === 'ok' && reminders.length < remindersRead.value.length) {
+        storageProblems.partial = remindersRead.value.length - reminders.length;
+        if (!S.keepUnreadable(store, remindersKey, remindersRead.raw)) storageProblems.notKept = true;
+    }
     // Set after "Delete my account and data" so the page does not write its old state back.
     let dataDeleted = false;
     const sampleHistory = [{ date: '2026-01-02', event: 'Symptom check completed', status: 'Advised doctor consult' }, { date: '2026-01-04', event: 'Appointment booked', status: 'Dr. A. Sen - 10:30 AM' }];
     // Broken or oversized stored data must not stop the rest of the page from loading.
-    const history = R ? R.loadHistory(localStorage, historyKey, sampleHistory) : sampleHistory;
+    const history = R ? R.loadHistory(store, historyKey, sampleHistory) : sampleHistory;
 
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
 
@@ -87,10 +107,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     FE.bindSummaryLinks(document, 'reminder-error-summary');
 
+    // One short, plain notice when saved data could not be read or cannot be saved. It stays on the
+    // page (it is not a one-off alert) and says what happened to the data.
+    function renderStorageNotice() {
+        if (!storageNotice) return;
+        const lines = [];
+        if (storageProblems.blocked) {
+            lines.push('Your browser is blocking storage for this site, so reminders and the timeline can not be saved. They will be gone when you close or reload this page.');
+        } else if (storageProblems.saveFailed) {
+            lines.push('Your latest changes could not be saved because browser storage is full or not allowed. They will be lost when you close or reload this page.');
+        }
+        if (storageProblems.unreadable.length) {
+            lines.push('Saved ' + storageProblems.unreadable.join(' and ') + ' could not be read, so they are not shown. ' +
+                (storageProblems.notKept ? 'A copy could not be kept.' : 'The original text was kept in this browser and is not deleted.'));
+        }
+        if (storageProblems.partial) {
+            lines.push(storageProblems.partial + ' saved reminder' + (storageProblems.partial === 1 ? '' : 's') + ' could not be read and ' +
+                (storageProblems.partial === 1 ? 'is' : 'are') + ' not shown. ' +
+                (storageProblems.notKept ? 'A copy could not be kept.' : 'The original list was kept in this browser and is not deleted.'));
+        }
+        storageNotice.textContent = '';
+        lines.forEach((line) => {
+            const p = document.createElement('p');
+            p.textContent = line;
+            storageNotice.appendChild(p);
+        });
+        storageNotice.hidden = lines.length === 0;
+    }
+
     function persist() {
         if (dataDeleted) return;
-        const saved = R.saveReminders(localStorage, reminders);
-        localStorage.setItem(historyKey, JSON.stringify(history));
+        const saved = R.saveReminders(store, reminders);
+        const savedHistory = S.setItem(store, historyKey, JSON.stringify(history));
+        storageProblems.saveFailed = !saved || !savedHistory;
+        renderStorageNotice();
         if (!saved) showErrors({ form: 'Could not save reminders in this browser (storage may be full or blocked).' });
     }
 
@@ -209,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const due = R.getDueReminders(reminders, now, timeZone);
         if (!due.length) return;
 
-        const result = NP.deliver(due, window.Notification, NP.loadPrefs(localStorage));
+        const result = NP.deliver(due, window.Notification, NP.loadPrefs(store));
         result.inApp.forEach((message) => {
             const line = document.createElement('p');
             line.textContent = message;
@@ -225,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Shows what will actually happen: the user's choice combined with the browser's permission.
     function renderNotifyPanel() {
-        const prefs = NP.loadPrefs(localStorage);
+        const prefs = NP.loadPrefs(store);
         const permission = NP.getPermission(window.Notification);
         const plan = NP.getPlan(prefs, permission);
 
@@ -277,21 +327,27 @@ document.addEventListener('DOMContentLoaded', () => {
         history.length = 0;
         bannerMessages.innerHTML = '';
         banner.hidden = true;
+        // Everything RELIEF stored is gone, including any copy of damaged data.
+        storageProblems.unreadable = [];
+        storageProblems.partial = 0;
+        storageProblems.notKept = false;
+        storageProblems.saveFailed = false;
+        renderStorageNotice();
         resetForm();
         render();
     });
 
     notifyBtn?.addEventListener('click', () => {
-        NP.enableBrowserNotifications(window.Notification, localStorage).then(renderNotifyPanel, renderNotifyPanel);
+        NP.enableBrowserNotifications(window.Notification, store).then(renderNotifyPanel, renderNotifyPanel);
     });
 
     notifyOffBtn?.addEventListener('click', () => {
-        NP.disableBrowserNotifications(window.Notification, localStorage);
+        NP.disableBrowserNotifications(window.Notification, store);
         renderNotifyPanel();
     });
 
     notifyDetails?.addEventListener('change', () => {
-        NP.setShowDetails(window.Notification, localStorage, notifyDetails.checked);
+        NP.setShowDetails(window.Notification, store, notifyDetails.checked);
         renderNotifyPanel();
     });
 
@@ -369,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeChatbot();
     if (form && R) {
         render();
+        renderStorageNotice();
         checkDue();
     }
 });
