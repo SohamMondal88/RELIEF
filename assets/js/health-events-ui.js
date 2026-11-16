@@ -321,17 +321,33 @@
             if (first) first.focus();
         }
 
+        // One submission at a time. A second submit while one is pending is ignored, and a retry of the
+        // same content after a failure reuses the same idempotency key (assets/js/submit-lock.js).
+        var lock = window.ReliefSubmitLock.createSubmitLock({
+            onChange: function (busy) { window.ReliefSubmitLock.setBusy(form, button, busy); }
+        });
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+            if (lock.isPending()) return;
             clearErrors();
             var input = {};
             SUBMIT_FIELDS.concat(['website']).forEach(function (name) {
                 input[name] = form.elements[name] ? form.elements[name].value : '';
             });
-            button.disabled = true;
-            setStatus('Sending…', '');
-            store.submit(input).then(function (result) {
-                button.disabled = false;
+            setStatus('Sending your event, please wait…', '');
+            lock.run(function (attempt) {
+                return store.submit(input, { idempotencyKey: attempt.idempotencyKey });
+            }, {
+                fingerprint: window.ReliefSubmitLock.fingerprintOf(input),
+                keepKey: function (result) { return !!result && result.kind === 'unavailable'; }
+            }).then(function (outcome) {
+                if (outcome.status === 'busy') return;
+                if (outcome.status === 'error') {
+                    setStatus('Something went wrong and your event was not sent. What you typed is still here. Press Submit to try again.', 'error');
+                    return;
+                }
+                var result = outcome.value;
                 if (!result.ok) {
                     showErrors(result.errors || {});
                     setStatus(result.message, 'error');

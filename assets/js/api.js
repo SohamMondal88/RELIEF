@@ -619,8 +619,9 @@ const ReliefAPI = (function() {
     const listHealthEvents = () => backendRequest('/v1/health-events');
 
     // Organiser submission. The server always starts it as unverified.
-    const submitHealthEvent = (event) =>
-        backendRequest('/v1/health-events/submissions', { method: 'POST', body: event });
+    // Pass the same options.idempotencyKey when the organiser retries after a failure.
+    const submitHealthEvent = (event, options = {}) =>
+        backendRequest('/v1/health-events/submissions', { method: 'POST', body: event, idempotencyKey: options.idempotencyKey });
 
     // Moderator review queue.
     const listHealthEventSubmissions = (filter = {}) => {

@@ -28,7 +28,9 @@ emergency number now."
   server. They are retried only if the request never left the browser (offline).
 * Every write sends an `Idempotency-Key` header. If the first attempt fails, the error carries
   `error.idempotencyKey`; a user-initiated "Try again" must pass it back
-  (`submitFacilityCorrection(data, { idempotencyKey })`). Facility corrections do this per suggestion.
+  (`submitFacilityCorrection(data, { idempotencyKey })`, `submitHealthEvent(data, { idempotencyKey })`).
+  The health event and facility correction forms do this through `assets/js/submit-lock.js`, which keeps one
+  key per attempt and reuses it for the same content ([FORM_PROTECTION.md](FORM_PROTECTION.md)).
   **Backend requirement:** to make a repeat truly safe, the backend must treat a repeated
   `Idempotency-Key` as the same submission, and its CORS config must allow the header.
 

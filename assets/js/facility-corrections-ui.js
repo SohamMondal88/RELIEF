@@ -185,20 +185,38 @@
         facilitySelect.addEventListener('change', updateHints);
         fieldSelect.addEventListener('change', updateHints);
 
+        // One submission at a time. A second submit while one is pending is ignored, and a retry of the
+        // same suggestion after a failure reuses the same idempotency key (assets/js/submit-lock.js).
+        var lock = window.ReliefSubmitLock.createSubmitLock({
+            onChange: function (busy) { window.ReliefSubmitLock.setBusy(form, submitButton, busy); }
+        });
+
         form.addEventListener('submit', function (event) {
             event.preventDefault();
+            if (lock.isPending()) return;
             clearErrors();
-            setStatus('');
-            submitButton.disabled = true;
-            var store = makeStore(facilities);
-            store.submit({
+            var input = {
                 facilityId: facilitySelect.value,
                 field: fieldSelect.value,
                 proposedValue: valueInput.value,
                 sourceUrl: el('correction-source').value,
                 contact: el('correction-contact').value,
                 website: el('correction-website').value
-            }).then(function (result) {
+            };
+            setStatus('Sending your suggestion, please wait…', '');
+            var store = makeStore(facilities);
+            lock.run(function (attempt) {
+                return store.submit(input, { idempotencyKey: attempt.idempotencyKey });
+            }, {
+                fingerprint: window.ReliefSubmitLock.fingerprintOf(input),
+                keepKey: function (result) { return !!result && result.kind === 'unavailable'; }
+            }).then(function (outcome) {
+                if (outcome.status === 'busy') return;
+                if (outcome.status === 'error') {
+                    setStatus('Something went wrong and your suggestion was not sent. What you typed is still here. Press Send suggestion to try again.', 'error');
+                    return;
+                }
+                var result = outcome.value;
                 if (result.ok) {
                     form.reset();
                     updateHints();
@@ -209,11 +227,6 @@
                 }
                 if (result.kind === 'invalid') showErrors(result.errors || {});
                 setStatus(result.message, result.kind === 'duplicate' ? 'info' : 'error');
-            }).then(function () {
-                submitButton.disabled = false;
-            }, function () {
-                setStatus('Something went wrong. Please try again.', 'error');
-                submitButton.disabled = false;
             });
         });
     }

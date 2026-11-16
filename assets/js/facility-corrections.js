@@ -489,7 +489,9 @@
     }
     function forgetIdempotencyKey(fp) { delete idempotencyKeys[fp]; }
 
-    async function submit(input) {
+    // options.idempotencyKey: a key the caller keeps across retries (assets/js/submit-lock.js). Without
+    // one, the store remembers a key per suggestion for as long as this store object lives.
+    async function submit(input, options) {
       var checked = validateSubmission(input, { facilities: d.facilities });
       if (checked.spam) return { ok: false, kind: 'spam', message: checked.errors.form, errors: checked.errors };
       if (!checked.valid) return { ok: false, kind: 'invalid', message: 'Please fix the highlighted fields.', errors: checked.errors };
@@ -511,7 +513,7 @@
         try {
           // The same suggestion keeps the same key, so pressing "send" again after a failure
           // is recognised by the server as a repeat instead of a second submission.
-          var idemKey = idempotencyKeyFor(fingerprint(checked.clean));
+          var idemKey = (options && options.idempotencyKey) || idempotencyKeyFor(fingerprint(checked.clean));
           var answer = await api.submitFacilityCorrection({
             facilityId: checked.clean.facilityId,
             field: checked.clean.field,

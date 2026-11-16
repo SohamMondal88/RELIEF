@@ -898,7 +898,9 @@
       };
     }
 
-    async function submit(input) {
+    // options.idempotencyKey: the page keeps one key for a send and reuses it when the person
+    // retries the same event after a failure (assets/js/submit-lock.js).
+    async function submit(input, options) {
       var now = clock();
       var checked = validateSubmission(input, { now: now });
       if (checked.spam)
@@ -943,6 +945,7 @@
           // Send only validated event details. The server, not this page, sets status.
           var answer = await api.submitHealthEvent(
             Object.assign({}, checked.clean),
+            { idempotencyKey: options && options.idempotencyKey },
           );
           return done("server", answer);
         } catch (error) {
