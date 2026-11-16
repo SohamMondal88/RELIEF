@@ -131,6 +131,61 @@ if (typeof window !== 'undefined') {
     window.ReliefSession = ReliefSession;
 }
 
+// In-page links and deep links. The browser does the work (sets the hash, scrolls, moves focus, fills the
+// Back/Forward history), the space above the target comes from scroll-margin-top in the stylesheets, and
+// smooth scrolling from `scroll-behavior` (which reduced motion switches off). The two things the browser
+// cannot do on these pages are handled here.
+
+// Finds the element a "#fragment" points at. An id is looked up as an id, not turned into a selector, so
+// "#1a", "#a:b" or "#%E0%A4%A" cannot throw. Returns null for "", "#" and ids that do not exist.
+function reliefHashTarget(hash, doc = (typeof document !== 'undefined' ? document : null)) {
+    if (!doc || typeof hash !== 'string' || hash.length < 2 || hash.charAt(0) !== '#') return null;
+    let id = hash.slice(1);
+    try {
+        id = decodeURIComponent(id);
+    } catch (e) {
+        // not valid percent-encoding: the raw text is the best guess
+    }
+    return doc.getElementById ? doc.getElementById(id) : null;
+}
+
+// Click handler for every in-page link (one listener on the document). A real "#section" link is left to
+// the browser. A bare "#" (placeholder links and the Services toggle) would only jump to the top, so that
+// one is stopped.
+function reliefAnchorClick(event) {
+    if (!event || event.defaultPrevented) return;
+    const link = event.target && typeof event.target.closest === 'function' ? event.target.closest('a[href^="#"]') : null;
+    if (link && link.getAttribute('href') === '#') {
+        event.preventDefault();
+    }
+}
+
+// Every page wraps its content in .main-content with display:none until this script shows it (and the
+// home page waits for the splash screen too). A deep link such as /pages/contact#contact-form has no box
+// to scroll to while the content is hidden, so once it is shown the scroll is done again. Not done on
+// reload or Back/Forward, where the browser puts the person back where they were.
+function reliefRestoreHashScroll(doc = (typeof document !== 'undefined' ? document : null), loc = (typeof location !== 'undefined' ? location : null), navigationType) {
+    if (!doc || !loc) return false;
+    if (navigationType === undefined) {
+        try {
+            const entry = performance.getEntriesByType('navigation')[0];
+            navigationType = entry ? entry.type : 'navigate';
+        } catch (e) {
+            navigationType = 'navigate';
+        }
+    }
+    if (navigationType !== 'navigate') return false;
+    const target = reliefHashTarget(loc.hash, doc);
+    if (!target || typeof target.scrollIntoView !== 'function') return false;
+    target.scrollIntoView({ block: 'start', behavior: 'instant' });
+    return true;
+}
+
+function reliefShowMainContent(mainContent) {
+    mainContent.style.display = 'block';
+    reliefRestoreHashScroll();
+}
+
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
     // Only proceed if splash screen exists
@@ -143,7 +198,7 @@ if (typeof document !== 'undefined') {
             splashScreen.style.opacity = '0';
 
             if (mainContent) {
-                mainContent.style.display = 'block';
+                reliefShowMainContent(mainContent);
             }
 
             // Remove splash screen from DOM after fade out
@@ -154,48 +209,14 @@ if (typeof document !== 'undefined') {
             }, reliefPrefersReducedMotion() ? 0 : 500);
         }, reliefPrefersReducedMotion() ? 0 : 3000);
     } else if (mainContent) {
-        mainContent.style.display = 'block';
+        reliefShowMainContent(mainContent);
     }
 
     // Mobile Menu & Navigation Accessibility
     initMobileNavigation();
 
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') {
-                e.preventDefault();
-                return;
-            }
-
-            // A skip link has to move keyboard focus, not just the scroll position. Leave it to
-            // the browser, which scrolls to the target and starts the next Tab from there
-            // (every page marks its <main> with tabindex="-1" so focus lands on it).
-            if (this.classList.contains('skip-link')) return;
-
-            e.preventDefault();
-
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth'
-                });
-
-                // Close mobile menu if open
-                const openMenu = document.querySelector('.nav-links.active');
-                const menuButton = document.querySelector('.hamburger');
-                if (openMenu) {
-                    openMenu.classList.remove('active');
-                    if (menuButton) {
-                        menuButton.classList.remove('active');
-                        menuButton.setAttribute('aria-expanded', 'false');
-                    }
-                }
-            }
-        });
-    });
+    // In-page links: the browser sets the hash and scrolls (see reliefAnchorClick)
+    document.addEventListener('click', reliefAnchorClick);
 
     // Animation on scroll
     function animateOnScroll() {
@@ -711,6 +732,9 @@ if (typeof document !== 'undefined' && typeof navigator !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         initMobileNavigation,
+        reliefHashTarget,
+        reliefAnchorClick,
+        reliefRestoreHashScroll,
         getDeviceType,
         ReliefSession
     };

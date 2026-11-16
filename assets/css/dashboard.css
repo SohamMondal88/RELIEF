@@ -435,3 +435,8 @@ select[aria-invalid="true"] {
     font-size: 0.85rem;
     font-weight: 400;
 }
+
+/* The Privacy and data card is a deep link target (from the privacy and cookie pages). Leave some space above it. */
+:target:not(main) {
+    scroll-margin-top: 5rem;
+}

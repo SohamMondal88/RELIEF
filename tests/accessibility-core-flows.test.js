@@ -149,11 +149,13 @@ describe('skip link', () => {
     }
 
     it('main.js does not take over the click on the skip link', () => {
-        const src = read('assets/js/main.js');
-        const handler = src.slice(src.indexOf("document.querySelectorAll('a[href^=\"#\"]')"));
-        assert.ok(handler.indexOf("classList.contains('skip-link')") > -1);
-        assert.ok(handler.indexOf("classList.contains('skip-link')") < handler.indexOf('e.preventDefault();\n\n            const targetElement'),
-            'the skip link check must come before the preventDefault that handles smooth scrolling');
+        const { reliefAnchorClick } = require('../assets/js/main.js');
+        const link = { getAttribute: () => '#main-content', classList: { contains: (c) => c === 'skip-link' } };
+        link.closest = () => link;
+        const event = { target: link, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+        reliefAnchorClick(event);
+        assert.strictEqual(event.defaultPrevented, false,
+            'the browser has to follow the skip link itself so that focus moves to <main>');
     });
 });
 

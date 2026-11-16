@@ -42,6 +42,12 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Space above whatever an in-page link or a deep link scrolls to. This replaces the 80 that three scripts
+   subtracted by hand. The skip link target (main) is left alone, focus moves there. */
+:target:not(main) {
+    scroll-margin-top: 5rem;
+}
+
 /* Accessibility: Skip to Content Link */
 .skip-link {
     position: absolute;
