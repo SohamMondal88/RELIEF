@@ -35,6 +35,15 @@
   }
 
   var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // The pattern alone lets "asha@example..com", "asha@.example.com" and "asha@-example.com" through. Every part of the
+  // domain between the dots has to be there and may not start or end with a hyphen.
+  function isEmail(value) {
+    if (!EMAIL_PATTERN.test(value)) return false;
+    return value.slice(value.indexOf('@') + 1).split('.').every(function (label) {
+      return label !== '' && label.charAt(0) !== '-' && label.charAt(label.length - 1) !== '-';
+    });
+  }
   var FIELD_ORDER = ['name', 'email', 'message', 'consent'];
 
   /**
@@ -54,7 +63,7 @@
 
     if (email === '') errors.email = 'Please enter your email';
     else if (email.length > LIMITS.email) errors.email = 'Email address must be ' + LIMITS.email + ' characters or fewer';
-    else if (!EMAIL_PATTERN.test(email)) errors.email = 'Please enter a valid email address';
+    else if (!isEmail(email)) errors.email = 'Please enter a valid email address';
 
     if (message === '') errors.message = 'Please enter your message';
     else if (message.length < 10) errors.message = 'Message must be at least 10 characters';

@@ -606,6 +606,28 @@ test('[contact] validate does not change the values it is given', () => {
   assert.deepStrictEqual(ContactSend.validate(values), {}, 'surrounding spaces are not an error');
 });
 
+const BAD_DOMAINS = ['asha@example..com', 'asha@.example.com', 'asha@example.com.', 'asha@-example.com', 'asha@example-.com', 'asha@example.-com', 'asha@example.com-', 'asha@..'];
+const GOOD_DOMAINS = ['asha@example.com', 'a.b+c@sub.example.co.in', 'asha@my-site.example.org', 'asha@xn--mnchen-3ya.de'];
+
+test('[contact] an email with an empty or hyphen-edged domain label is refused, normal ones pass', () => {
+  BAD_DOMAINS.forEach((email) => {
+    assert.match(ContactSend.validate(goodContact({ email })).email || '', /valid email/, 'should reject "' + email + '"');
+  });
+  GOOD_DOMAINS.forEach((email) => {
+    assert.strictEqual(ContactSend.validate(goodContact({ email })).email, undefined, 'should accept "' + email + '"');
+  });
+});
+
+test('[auth] sign-in and sign-up refuse the same malformed domains', () => {
+  BAD_DOMAINS.forEach((email) => {
+    assert.match(Auth.validateLogin({ email, password: 'x' }).email || '', /valid email/, 'login should reject "' + email + '"');
+    assert.match(Auth.validateSignup({ name: 'Asha', email, password: 'secret1', confirmPassword: 'secret1', terms: true }).email || '', /valid email/, 'signup should reject "' + email + '"');
+  });
+  GOOD_DOMAINS.forEach((email) => {
+    assert.strictEqual(Auth.validateLogin({ email, password: 'x' }).email, undefined, 'login should accept "' + email + '"');
+  });
+});
+
 // ---- sign-in rules ----
 
 test('[auth] login needs a valid email and a password, and says which one is missing', () => {

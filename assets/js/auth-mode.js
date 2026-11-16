@@ -246,6 +246,15 @@
   }
 
   var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // The pattern alone lets "asha@example..com", "asha@.example.com" and "asha@-example.com" through. Every part of the
+  // domain between the dots has to be there and may not start or end with a hyphen.
+  function isEmail(value) {
+    if (!EMAIL_PATTERN.test(value)) return false;
+    return value.slice(value.indexOf('@') + 1).split('.').every(function (label) {
+      return label !== '' && label.charAt(0) !== '-' && label.charAt(label.length - 1) !== '-';
+    });
+  }
   var MIN_PASSWORD_LENGTH = 6;
 
   function text(value) {
@@ -259,7 +268,7 @@
   function emailProblem(value) {
     var email = text(value);
     if (email === '') return 'Please enter your email address.';
-    if (!EMAIL_PATTERN.test(email)) return 'Please enter a valid email address, like name@example.com.';
+    if (!isEmail(email)) return 'Please enter a valid email address, like name@example.com.';
     return null;
   }
 
