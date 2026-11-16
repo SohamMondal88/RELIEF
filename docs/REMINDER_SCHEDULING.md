@@ -1,7 +1,8 @@
 # Reminder scheduling rules
 
-How medicine reminders decide when to fire. The logic is in `assets/js/reminders.js`
-and is tested in `tests/reminder-timezone.test.js`.
+How medicine reminders decide when to fire. The rules are in `assets/js/reminders.js`
+and are tested in `tests/reminder-timezone.test.js`. The timer that applies them is in
+`assets/js/reminder-scheduler.js` and is tested in `tests/reminder-scheduler.test.js`.
 
 Reminders only repeat what the user typed. They never suggest a medicine, a dosage or a
 schedule, and nothing here should be changed to do so.
@@ -32,6 +33,39 @@ A reminder is due when all of these are true:
 
 The dashboard checks every 30 seconds. Reminders **only fire while** the dashboard is open in a tab. A reminder
 for a time that passed while the tab was closed appears when the tab is next open, once.
+
+## The timer, sleep and resume
+
+`reminder-scheduler.js` owns the one timer that does the checking:
+
+- `start()` can be called more than once. Only the first call creates a timer.
+- `stop()` clears the timer and removes the `visibilitychange`, `pageshow` and `storage` listeners.
+- Besides the 30 second tick, a check also runs when the tab becomes visible again and when the page is
+  shown from the back/forward cache. Browsers slow down or freeze timers in hidden tabs and during sleep, so a
+  reminder that became overdue in the meantime shows up on the first of these, once.
+- Every check reads the reminders from `localStorage` again instead of trusting the copy the page loaded at
+  the start, and saves "fired today" **before** it shows the banner or the browser notification.
+- If the browser refuses the write (storage full or blocked), the reminder still fires once and the scheduler
+  remembers it until a save works, so it does not repeat every 30 seconds. The page shows the existing
+  "could not save" message. Every later check tries the save again, even when no reminder is due, so a mark
+  is not lost if storage works again while the tab stays open. A mark for a reminder that was deleted in
+  the meantime is dropped.
+
+## More than one tab
+
+With the dashboard open in more than one tab, the first tab to check after the time is reached marks the
+reminder as fired in `localStorage` and shows it. The other tabs read that mark on their next check and stay
+quiet, so one reminder is one banner and one notification. A tab also takes over the list when another tab
+changes it (the `storage` event), so it does not write an older `lastNotifiedOn` back later.
+
+If another tab removes the reminders (for example "Delete my account and data", or clearing site data), the
+`storage` event arrives with no new value. The tab then empties its own list and timeline and writes nothing,
+the same as after the `relief:data-deleted` event, so deleted data does not come back. It saves again only
+after the user changes something on the page.
+
+Two tabs checking in the very same instant could in theory both read before either writes, because
+`localStorage` has no lock. The window is a few microseconds and the checks run at different moments, so this is
+not guarded against. A worst case is a second banner, never a missed reminder.
 
 ## Saving a reminder for a time that has passed
 

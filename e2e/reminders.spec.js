@@ -116,6 +116,56 @@ test.describe('medicine reminders', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('two dashboard tabs show one due reminder between them, not one each', async ({ page, context }) => {
+    // The two tabs share one fake clock, so a single runFor() ticks both renderers at the same
+    // instant and they can both check before the first tab's write reaches the other one. The
+    // tabs therefore run on different 30 second phases and the clock moves in separate steps.
+    await context.clock.install({ time: new Date('2026-10-24T07:59:00+05:30') });
+    await page.reload();
+    const other = await context.newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(other.locator('#reminder-list')).toContainText('No reminders yet.');
+
+    // Start the first tab's timer 15 seconds after the other tab's.
+    await context.clock.runFor(15000);
+    await page.reload();
+    await addReminder(page, { medicine: 'Thyroxine', time: '08:00' });
+    await expect(page.locator('#reminder-banner')).toBeHidden();
+    // The other tab picks the new reminder up from storage without a reload.
+    await expect(item(other, 'Thyroxine')).toBeVisible();
+
+    // 07:59:15 to 08:00:00: only the other tab's timer reaches the due time.
+    await context.clock.runFor(45000);
+    const bannersShown = async () => (await page.locator('#reminder-banner').isVisible() ? 1 : 0) + (await other.locator('#reminder-banner').isVisible() ? 1 : 0);
+    await expect.poll(bannersShown).toBe(1);
+    await expect.poll(async () => (await storedJson(page, KEY))[0].lastNotifiedOn).toBe('2026-10-24');
+
+    // The first tab's next check (08:00:15) now reads the saved mark and must not add a second banner.
+    await context.clock.runFor(30000);
+    expect(await bannersShown()).toBe(1);
+    await other.close();
+  });
+
+  test('data deleted in another tab is not written back by a tab that still shows it', async ({ page, context }) => {
+    await addReminder(page, { medicine: 'Zinc', time: '18:00' });
+    const other = await context.newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(item(other, 'Zinc')).toBeVisible();
+
+    // The other tab deletes the data the way "Delete my account and data" does: the keys go away.
+    await other.evaluate(() => {
+      localStorage.removeItem('relief_reminders_v1');
+      localStorage.removeItem('relief_history_v1');
+    });
+
+    // The first tab follows the deletion and leaves storage empty.
+    await expect(page.locator('#reminder-list')).toContainText('No reminders yet.');
+    await expect(page.locator('#timeline')).not.toContainText('Medication reminder created');
+    const keys = await page.evaluate(() => [localStorage.getItem('relief_reminders_v1'), localStorage.getItem('relief_history_v1')]);
+    expect(keys).toEqual([null, null]);
+    await other.close();
+  });
+
   test('the page says what reminders are not (no medical advice)', async ({ page }) => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });

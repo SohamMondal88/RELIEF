@@ -522,8 +522,10 @@ test('[wiring] the dashboard offers both clocks, explains them, and confirms the
 
 test('[wiring] the dashboard uses each reminder\'s own zone and records when it fired', () => {
   const js = read('assets', 'js', 'dashboard.js');
-  assert.match(js, /R\.getEffectiveTimeZone\(r, timeZone\)/);
-  assert.match(js, /R\.markNotified\(reminders, r\.id, date, now\.getTime\(\)\)/);
+  const scheduler = read('assets', 'js', 'reminder-scheduler.js');
+  assert.match(scheduler, /R\.getEffectiveTimeZone\(r, opts\.timeZone\)/);
+  assert.match(scheduler, /R\.markNotified\(list, r\.id, date, now\.getTime\(\)\)/);
+  assert.match(js, /createScheduler\(\{[\s\S]*?timeZone,/);
   assert.match(js, /R\.explainSchedule\(/);
   assert.match(js, /scheduleMode: fields\.modeFixed\.checked \? 'fixed' : 'local'/);
 });
