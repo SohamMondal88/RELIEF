@@ -98,13 +98,14 @@ document.addEventListener('DOMContentLoaded', function() {
         newsletterButton.addEventListener('click', function(e) {
             e.preventDefault();
 
-            if (!newsletterInput.value || !newsletterInput.value.includes('@')) {
+            const email = newsletterInput.value.trim();
+            if (!ReliefValidators.isEmail(email)) {
                 alert('Please enter a valid email address');
                 return;
             }
 
             // Here you would typically send the email to your server
-            alert(`Thank you for subscribing with ${newsletterInput.value}!`);
+            alert(`Thank you for subscribing with ${email}!`);
             newsletterInput.value = '';
         });
     }

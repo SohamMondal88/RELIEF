@@ -20,6 +20,11 @@
     ? require('./appointment-status.js')
     : (typeof ReliefAppointmentStatus !== 'undefined' ? ReliefAppointmentStatus : null);
 
+  // Email shape and length rules are shared with the other forms (validators.js).
+  var Validators = (typeof module === 'object' && module.exports)
+    ? require('./validators.js')
+    : ReliefValidators;
+
   var STORAGE_KEY = 'relief_appointment_requests';
   var MAX_DAYS_AHEAD = 60;
   var MAX_NOTES = 500;
@@ -97,7 +102,7 @@
   }
 
   function isValidEmail(value) {
-    return typeof value === 'string' && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    return Validators.isEmail(value);
   }
 
   function asText(value) {

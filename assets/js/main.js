@@ -465,7 +465,7 @@ function validateForm(formId) {
 
         // Validate email
         const email = form.querySelector('input[type="email"]');
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+        if (email && !ReliefValidators.isEmail(email.value)) {
             isValid = false;
             if (email.nextElementSibling) {
                 email.nextElementSibling.textContent = 'Please enter a valid email address';

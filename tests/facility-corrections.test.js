@@ -394,7 +394,8 @@ describe('approved changes are handed to maintainers, not applied', () => {
     it('no function in the module changes a facility, and the module never touches verification fields', () => {
         const code = stripComments(read('assets/js/facility-corrections.js'));
         assert.doesNotMatch(code, /\.(verified|lastChecked|source|reviewState|verifiedBy|reviewLog)\s*=[^=]/);
-        assert.doesNotMatch(code, /facilities\.json|writeFile|require\(/);
+        // the only thing it may load is the shared email and phone check, never a file or the facility data
+        assert.doesNotMatch(code, /facilities\.json|writeFile|require\((?!'\.\/validators\.js'\))/);
         const names = Object.keys(C);
         assert.ok(!names.some((n) => /^apply|^publish|^update|^edit/i.test(n)), names.join(','));
     });

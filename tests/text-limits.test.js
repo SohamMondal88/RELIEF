@@ -93,7 +93,8 @@ function contactPage(values) {
   const fields = { name: make(values.name), email: make(values.email), message: make(values.message), consent: make('') };
   const context = {
     document: { getElementById: (id) => fields[id] || null, querySelectorAll: () => [], addEventListener() {} },
-    window: {}
+    window: {},
+    ReliefValidators: require('../assets/js/validators.js')
   };
   vm.createContext(context);
   vm.runInContext(read('assets/js/contact.js'), context);
@@ -112,7 +113,10 @@ test('contact form refuses oversized name, email and message with a message, and
 });
 
 test('contact form accepts text at the limit, markup and non-Latin scripts', () => {
-  const edge = contactPage({ name: 'N'.repeat(100), email: 'a'.repeat(240) + '@b.co', message: 'm'.repeat(2000) });
+  // 254 characters is the longest an address may be, and the part before the @ is at most 64 (validators.js)
+  const longest = 'a'.repeat(64) + '@' + ['b'.repeat(63), 'b'.repeat(63), 'b'.repeat(58), 'co'].join('.');
+  assert.strictEqual(longest.length, 254);
+  const edge = contactPage({ name: 'N'.repeat(100), email: longest, message: 'm'.repeat(2000) });
   assert.strictEqual(edge.run('validateName()'), true);
   assert.strictEqual(edge.run('validateEmail()'), true);
   assert.strictEqual(edge.run('validateMessage()'), true);
