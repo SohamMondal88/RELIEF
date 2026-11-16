@@ -108,8 +108,9 @@
             </div>
 
             <div class="saved-facilities" id="saved-facilities">
-                <h3 data-i18n="hospitals.saved.title">Saved Facilities</h3>
-                <p class="saved-note" data-i18n="hospitals.saved.note">Saved on this device. These stay available offline.</p>
+                <h3 id="saved-heading" tabindex="-1" data-i18n="hospitals.saved.title">Saved Facilities</h3>
+                <div id="saved-notes" class="saved-notes"><p class="saved-note">Saved on this device only.</p></div>
+                <p id="saved-status" class="saved-status" role="status" aria-live="polite"></p>
                 <div id="saved-facilities-list" class="saved-facilities-list"></div>
             </div>
 
@@ -266,6 +267,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha384-RFZC58YeKApoNsIbBxf4z6JJXmh+geBSgkCQXFyh+4tiFSJmJBt+2FbjxW7Ar16M" crossorigin="anonymous"></script>
 
     <script src="../assets/js/storage-schema.js"></script>
+    <script src="../assets/js/saved-facilities.js"></script>
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/auth-mode.js"></script>
