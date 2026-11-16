@@ -11,18 +11,6 @@ import argparse
 from html.parser import HTMLParser
 from urllib.parse import unquote
 
-# Narrowly scoped allowlist for known pre-existing legacy avatar references in profiles/
-# These references point to missing files in profiles/assets/ that predate the current
-# repository structure and do not currently have replacement assets in the repository.
-# All other missing references in profiles/ or elsewhere will cause validation to fail.
-KNOWN_LEGACY_EXCEPTIONS = {
-    ("profiles/ambulance/ambulance.html", "../assets/driver-avatar.jpg"),
-    ("profiles/doctor/doctor.html", "../assets/doctor-avatar.jpg"),
-    ("profiles/doctor/doctor.html", "../assets/patient-avatar2.jpg"),
-    ("profiles/patient/patient.html", "../assets/patient-avatar.jpg"),
-    ("profiles/pharmacy/pharmacy.html", "../assets/pharmacist-avatar.jpg"),
-}
-
 # Directories to skip when scanning for HTML files
 IGNORED_DIRS = {
     ".git",
@@ -90,7 +78,6 @@ def validate_repository(root_dir):
     html_files.sort()
     total_refs_checked = 0
     broken_references = []
-    legacy_exceptions_found = []
 
     for file_path in html_files:
         rel_html_path = os.path.relpath(file_path, root_dir).replace("\\", "/")
@@ -136,16 +123,6 @@ def validate_repository(root_dir):
 
             total_refs_checked += 1
 
-            # Check if this reference is a documented legacy exception
-            if (rel_html_path, raw_val.strip()) in KNOWN_LEGACY_EXCEPTIONS:
-                legacy_exceptions_found.append({
-                    "source": rel_html_path,
-                    "line": line_num,
-                    "tag": tag,
-                    "ref": raw_val.strip(),
-                })
-                continue
-
             # Resolve path: handle root-relative (/assets/...) and document-relative (../assets/...)
             if cleaned.startswith("/"):
                 resolved = os.path.normpath(os.path.join(root_dir, cleaned.lstrip("/\\")))
@@ -176,7 +153,7 @@ def validate_repository(root_dir):
                         "error": "Directory does not contain an index.html entry file"
                     })
 
-    return html_files, total_refs_checked, broken_references, legacy_exceptions_found
+    return html_files, total_refs_checked, broken_references
 
 
 def main():
@@ -191,14 +168,9 @@ def main():
     root_dir = os.path.abspath(args.root)
     print(f"Scanning HTML references in: {root_dir}")
 
-    html_files, total_refs, broken_refs, legacy_found = validate_repository(root_dir)
+    html_files, total_refs, broken_refs = validate_repository(root_dir)
 
     print(f"Scanned {len(html_files)} HTML files. Validated {total_refs} local references.")
-
-    if legacy_found:
-        print(f"\n[NOTE] Found {len(legacy_found)} documented legacy exception(s):")
-        for item in legacy_found:
-            print(f"  - {item['source']}:{item['line']} <{item['tag']}> \"{item['ref']}\" (known missing avatar)")
 
     if broken_refs:
         print(f"\n[ERROR] Found {len(broken_refs)} broken local reference(s):")

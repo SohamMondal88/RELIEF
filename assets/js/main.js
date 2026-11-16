@@ -3,6 +3,11 @@ function reliefPrefersReducedMotion() {
     return typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
+
+// True for the login and signup pages, with or without ".html": the live site runs with cleanUrls, so it is /pages/login.
+function reliefIsAuthPage(pathname) {
+    return /\/(login|signup)(?:\.html)?$/.test(pathname || '');
+}
 // Splash Screen
 
 const RELIEF_SESSION_STORAGE_KEY = 'relief_auth_sessions';
@@ -405,8 +410,7 @@ function checkAuthStatus() {
     if (activeSession?.user) {
         updateAuthUI(activeSession.user);
 
-        const isAuthPage = /\/(login|signup)\.html$/.test(window.location.pathname);
-        if (isAuthPage) {
+        if (reliefIsAuthPage(window.location.pathname)) {
             window.location.href = 'dashboard.html';
         }
 
