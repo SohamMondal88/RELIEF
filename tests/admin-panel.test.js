@@ -191,11 +191,11 @@ describe('browser code holds no secret and no role check', () => {
     });
   });
 
-  it('only the placeholder Firebase settings are in the repo, and no page loads that file', () => {
-    const config = read('assets/js/firebase-config.js');
-    assert.match(config, /apiKey:\s*"your_api_key"/);
+  it('only the placeholder Firebase settings are in the repo, and no page loads the Firebase SDK', () => {
+    assert.match(read('assets/js/api.js'), /apiKey:\s*"your_firebase_api_key"/);
+    assert.ok(!fs.existsSync(path.join(ROOT, 'assets/js/firebase-config.js')), 'the unused firebase-config.js is gone');
     browserFiles.filter((f) => f.endsWith('.html')).forEach((file) => {
-      assert.doesNotMatch(read(file), /firebase-config\.js/, file);
+      assert.doesNotMatch(read(file), /firebase-config\.js|firebasejs|gstatic\.com\/firebase/, file);
     });
   });
 });

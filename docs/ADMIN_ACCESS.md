@@ -66,7 +66,7 @@ Forged state does nothing: `localStorage` keys such as `isAdmin` or `role`, a ma
 
 ## Secrets
 
-Everything in a page or a script is public. The repo ships no key, token or service account in browser code: `assets/js/firebase-config.js` holds placeholders and no page loads it, and `tests/admin-panel.test.js` scans every page and script for private keys, service accounts and live API key shapes. A Firebase web `apiKey` is an identifier, not a secret, but it is protected by the rules and App Check, not by hiding it.
+Everything in a page or a script is public. The repo ships no key, token or service account in browser code: `assets/js/api.js` holds Firebase placeholders and no page loads the Firebase SDK, and `tests/admin-panel.test.js` scans every page and script for private keys, service accounts and live API key shapes. A Firebase web `apiKey` is an identifier, not a secret, but it is protected by the rules and App Check, not by hiding it.
 
 ## Not done (needs a backend)
 

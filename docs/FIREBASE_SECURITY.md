@@ -8,6 +8,25 @@ in the Firebase console.
 > No page loads Firebase today (see [PRIVACY_AND_DATA.md](PRIVACY_AND_DATA.md)). Do this
 > before connecting a real project.
 
+## Firebase setup in `api.js`
+
+`api.js` starts Firebase in one place, `getFirebase()`, and never lets a bad setup throw while the
+file loads (that used to stop `ReliefAPI` from being defined at all):
+
+- With no Firebase SDK on the page nothing happens, and `getCurrentUser()` answers `null`.
+- With the SDK but no usable setup (a missing `apiKey`, `authDomain`, `projectId` or `appId`, a leftover `your_*` placeholder, or the Auth or Firestore script not loaded) Firebase is marked unavailable and one warning is logged and `getFirebaseStatus()` says why (never the config values).
+- `login`, `signup` and `getCurrentUser` then reject with the error code `auth-unavailable` and the message "Sign-in is unavailable right now. Please try again later." They never report a successful sign-in.
+- An app that already exists (another script, or a second copy of `api.js`) is reused instead of being started again, so there is no duplicate-app error.
+- `ReliefAPI.getFirebaseStatus()` returns `{ available, reason }` for a page that wants to show a notice.
+
+To use your own project, load the Firebase compat scripts (`firebase-app-compat.js`, `firebase-auth-compat.js`, `firebase-firestore-compat.js`) before `api.js` and set the public web config before it too:
+
+```html
+<script>window.RELIEF_FIREBASE_CONFIG = { apiKey: '...', authDomain: '...', projectId: '...', appId: '...' };</script>
+```
+
+Without that, `api.js` uses its own placeholder settings, which are rejected on purpose.
+
 For admin and moderator controls (which ones are real, what a server must check, and how to add roles with custom claims) see [ADMIN_ACCESS.md](ADMIN_ACCESS.md).
 
 ## 1. Firestore Security Rules

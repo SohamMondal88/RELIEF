@@ -28,22 +28,86 @@ const ReliefAPI = (function() {
         RELIEF_BACKEND_URL: ''
     };
 
-    // Initialize Firebase only if the SDK is on the page. No page loads it today, and
-    // without this guard api.js throws on load, so ReliefAPI would never exist.
-    const firebaseLoaded = typeof firebase !== 'undefined';
-    if (firebaseLoaded && !firebase.apps.length) {
-        firebase.initializeApp(config.FIREBASE_CONFIG);
-    }
+    // ---- Firebase ----------------------------------------------------------
+    // One place that starts Firebase. getFirebase() answers with either
+    //   { available: true, app, auth, db }
+    // or { available: false, reason, message }. It never throws and never exposes config values.
+    // reason: sdk-missing | incomplete-config | placeholder-config | init-failed | service-missing
+    // No page loads the Firebase SDK today (see docs/FIREBASE_SECURITY.md), so 'sdk-missing' is
+    // the normal state and stays silent. Any other reason means someone added the SDK but not a
+    // working setup, so it is logged once. Deployments can supply the public web config with
+    // window.RELIEF_FIREBASE_CONFIG instead of editing this file.
+    const FIREBASE_REQUIRED_FIELDS = ['apiKey', 'authDomain', 'projectId', 'appId'];
+    const FIREBASE_UNAVAILABLE_MESSAGE = 'Sign-in is unavailable right now. Please try again later.';
 
-    // App Check lets Firebase reject traffic that does not come from the real site.
-    // Opt in per deployment: load the App Check SDK and set window.RELIEF_APP_CHECK_SITE_KEY
-    // to your reCAPTCHA v3 site key. Does nothing otherwise. See docs/FIREBASE_SECURITY.md.
-    const appCheckSiteKey = (typeof window !== 'undefined' && window.RELIEF_APP_CHECK_SITE_KEY) || '';
-    if (firebaseLoaded && appCheckSiteKey && typeof firebase.appCheck === 'function') {
-        firebase.appCheck().activate(appCheckSiteKey, true);
-    }
-    const auth = firebaseLoaded ? firebase.auth() : null;
-    const db = firebaseLoaded ? firebase.firestore() : null;
+    const firebaseUnavailable = (reason) => ({ available: false, reason, message: FIREBASE_UNAVAILABLE_MESSAGE });
+
+    const firebaseConfigProblem = () => {
+        const override = typeof window !== 'undefined' && window.RELIEF_FIREBASE_CONFIG;
+        const settings = override && typeof override === 'object' ? override : config.FIREBASE_CONFIG;
+        const values = FIREBASE_REQUIRED_FIELDS.map((name) => settings[name]);
+        if (values.some((value) => typeof value !== 'string' || !value.trim())) return { reason: 'incomplete-config' };
+        if (Object.keys(settings).some((name) => /your[_-]/i.test(String(settings[name])))) {
+            return { reason: 'placeholder-config' };
+        }
+        return { settings };
+    };
+
+    const startFirebase = () => {
+        if (typeof firebase === 'undefined' || !firebase) return firebaseUnavailable('sdk-missing');
+        try {
+            // Reuse an app another script (or an earlier copy of this file) already started.
+            // Starting a second default app throws "duplicate-app".
+            let app = firebase.apps && firebase.apps.length ? firebase.apps[0] : null;
+            if (!app) {
+                const checked = firebaseConfigProblem();
+                if (!checked.settings) return firebaseUnavailable(checked.reason);
+                app = firebase.initializeApp(checked.settings);
+            }
+            if (typeof firebase.auth !== 'function' || typeof firebase.firestore !== 'function') {
+                return firebaseUnavailable('service-missing');
+            }
+
+            // App Check lets Firebase reject traffic that does not come from the real site.
+            // Opt in per deployment: load the App Check SDK and set window.RELIEF_APP_CHECK_SITE_KEY
+            // to your reCAPTCHA v3 site key. Does nothing otherwise. See docs/FIREBASE_SECURITY.md.
+            const appCheckSiteKey = (typeof window !== 'undefined' && window.RELIEF_APP_CHECK_SITE_KEY) || '';
+            if (appCheckSiteKey && typeof firebase.appCheck === 'function') {
+                firebase.appCheck().activate(appCheckSiteKey, true);
+            }
+            return { available: true, app, auth: firebase.auth(), db: firebase.firestore() };
+        } catch (error) {
+            return firebaseUnavailable('init-failed');
+        }
+    };
+
+    let firebaseState = null;
+    const getFirebase = () => {
+        if (!firebaseState) {
+            firebaseState = startFirebase();
+            if (!firebaseState.available && firebaseState.reason !== 'sdk-missing' && typeof console !== 'undefined') {
+                console.warn('Firebase is not set up, so sign-in stays unavailable. See docs/FIREBASE_SECURITY.md.');
+            }
+        }
+        return firebaseState;
+    };
+
+    // What login, signup and getCurrentUser throw when Firebase cannot be used.
+    const authUnavailableError = () => {
+        const error = new Error(FIREBASE_UNAVAILABLE_MESSAGE);
+        error.name = 'ReliefAuthUnavailableError';
+        error.code = 'auth-unavailable';
+        error.reason = getFirebase().reason;
+        return error;
+    };
+
+    const firebaseStatus = () => {
+        const { available, reason } = getFirebase();
+        return { available, reason: reason || null };
+    };
+
+    const auth = getFirebase().auth || null;
+    const db = getFirebase().db || null;
 
     // Helper functions
     const handleError = (error) => {
@@ -196,6 +260,7 @@ const ReliefAPI = (function() {
                 throw new Error('Invalid email or password format');
             }
 
+            if (!auth) throw authUnavailableError();
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
             const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
 
@@ -218,6 +283,7 @@ const ReliefAPI = (function() {
                 throw new Error('Invalid email or password format');
             }
 
+            if (!auth) throw authUnavailableError();
             const userCredential = await auth.createUserWithEmailAndPassword(
                 userData.email,
                 userData.password
@@ -242,7 +308,8 @@ const ReliefAPI = (function() {
 
     const logout = async () => {
         try {
-            await auth.signOut();
+            // Without Firebase nobody is signed in there, so there is nothing to sign out of.
+            if (auth) await auth.signOut();
             return { success: true };
         } catch (error) {
             return handleError(error);
@@ -260,7 +327,12 @@ const ReliefAPI = (function() {
 
     const getCurrentUser = async () => {
         try {
-            if (!auth) return null; // Firebase SDK not on this page
+            if (!auth) {
+                // No SDK on this page: nobody can be signed in. A page that has the SDK but no
+                // usable setup is reported instead of being treated as signed out.
+                if (getFirebase().reason === 'sdk-missing') return null;
+                throw authUnavailableError();
+            }
             const user = auth.currentUser;
             if (!user) return null;
 
@@ -640,6 +712,7 @@ const ReliefAPI = (function() {
         logout,
         refreshSession,
         getCurrentUser,
+        getFirebaseStatus: firebaseStatus,
         deleteAccount,
 
         // Subscription (server-verified, see docs/SUBSCRIPTION_SERVER_CONTRACT.md)

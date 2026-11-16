@@ -86,7 +86,7 @@ These are the requests the pages actually make. Each third party sees your IP ad
 | Vercel Web Analytics (`/_vercel/insights/script.js`, loaded by `assets/js/vercel-analytics.js` on most pages) | Page load on the deployed site. It only works when Web Analytics is enabled in the Vercel project | The address of the page you opened, the referrer, and browser and device type. No cookies. Because RELIEF never puts form fields or health details in the address (section 4.1), none reach it that way |
 | The site host (Vercel for the public demo) | Every request | Standard request logs kept by the host. This repository does not control them |
 
-**Not loaded by any page today:** `assets/js/api.js` and `assets/js/firebase-config.js` hold placeholder settings for Firebase, OpenMRS, a local Rasa chatbot and Jitsi. No HTML page includes them, so none of those services is contacted. If a deployment wires them in, this table and the deletion code must be updated first.
+**Not loaded by any page today:** `assets/js/api.js` holds placeholder settings for Firebase, OpenMRS, a local Rasa chatbot and Jitsi, and no HTML page loads the Firebase SDK, so Firebase is never contacted. If a deployment wires them in, this table and the deletion code must be updated first.
 
 ## 4.1 Logs and URLs (Issue #107)
 
