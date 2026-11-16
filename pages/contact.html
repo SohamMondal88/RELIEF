@@ -119,16 +119,17 @@
                     <h2>Send Us a Message</h2>
                     <p>Tell us how we can help</p>
                 </div>
-                <form id="contactForm" class="contact-form" method="post">
+                <form id="contactForm" class="contact-form" method="post" novalidate>
+                    <div class="error-summary" id="contact-error-summary" role="alert" tabindex="-1" hidden></div>
                     <div class="form-group">
                         <label for="name">Full Name*</label>
-                        <input type="text" id="name" name="name" maxlength="100" required>
-                        <span class="error-message"></span>
+                        <input type="text" id="name" name="name" maxlength="100" autocomplete="name" required aria-describedby="name-error">
+                        <span class="error-message" id="name-error" hidden></span>
                     </div>
                     <div class="form-group">
                         <label for="email">Email Address*</label>
-                        <input type="email" id="email" name="email" maxlength="254" required>
-                        <span class="error-message"></span>
+                        <input type="email" id="email" name="email" maxlength="254" autocomplete="email" required aria-describedby="email-error">
+                        <span class="error-message" id="email-error" hidden></span>
                     </div>
                     <div class="form-group">
                         <label for="subject">Subject</label>
@@ -143,13 +144,13 @@
                     </div>
                     <div class="form-group">
                         <label for="message">Your Message*</label>
-                        <textarea id="message" name="message" rows="6" maxlength="2000" required></textarea>
-                        <span class="error-message"></span>
+                        <textarea id="message" name="message" rows="6" maxlength="2000" required aria-describedby="message-error"></textarea>
+                        <span class="error-message" id="message-error" hidden></span>
                     </div>
                     <div class="form-group checkbox-group">
-                        <input type="checkbox" id="consent" name="consent" required>
+                        <input type="checkbox" id="consent" name="consent" required aria-describedby="consent-error">
                         <label for="consent">I agree to ReliefConnect's <a href="privacy.html">Privacy Policy</a> and consent to my data being processed.*</label>
-                        <span class="error-message"></span>
+                        <span class="error-message" id="consent-error" hidden></span>
                     </div>
                     <button type="submit" class="btn btn-primary">Send Message</button>
                 </form>
@@ -357,6 +358,7 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/form-guard.js"></script>
     <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/form-errors.js"></script>
     <script src="../assets/js/contact-send.js"></script>
     <script src="../assets/js/contact.js"></script>
 

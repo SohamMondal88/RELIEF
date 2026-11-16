@@ -1,155 +1,60 @@
-// Contact Form Validation
-// Longest accepted text. Longer input is refused with a message, never cut off silently.
-const CONTACT_LIMITS = { name: 100, email: 254, message: 2000 };
+// Contact form: validation and error handling.
+// The rules live in contact-send.js (ReliefContactSend.validate) and the way errors are shown
+// lives in form-errors.js (ReliefFormErrors), the same helper the appointment and reminder forms use.
 
 const contactForm = document.getElementById('contactForm');
 const contactGuard = contactForm && window.ReliefFormGuard
     ? window.ReliefFormGuard.createGuard('contact', { maxAttempts: 3, windowMs: 60 * 1000, minFillMs: 1500 })
     : null;
 
+// Each field points at its own message element, and all of them report into one summary.
+const CONTACT_FIELDS = {
+    name: { focusId: 'name', errorId: 'name-error' },
+    email: { focusId: 'email', errorId: 'email-error' },
+    message: { focusId: 'message', errorId: 'message-error' },
+    consent: { focusId: 'consent', errorId: 'consent-error' }
+};
+const CONTACT_ERROR_OPTIONS = {
+    fields: CONTACT_FIELDS,
+    order: ['name', 'email', 'message', 'consent'],
+    summaryId: 'contact-error-summary',
+    title: 'Please fix the following'
+};
+
 if (contactForm) {
     window.ReliefFormGuard?.attachHoneypot(contactForm);
 
     contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        clearSendFailure();
+        window.ReliefFormGuard?.showGuardMessage(contactForm, '');
 
-        // Reset previous error states
-        resetErrors();
-
-        // Validate form
-        const isValid = validateForm();
-
-        if (isValid) {
-            submitContactForm();
+        // One problem sends focus to its field, several send it to the summary that links to each field.
+        // What the person typed is never cleared.
+        const errors = window.ReliefContactSend.validate(readContactFields());
+        if (Object.keys(errors).length > 0) {
+            window.ReliefFormErrors.applyErrors(document, errors, CONTACT_ERROR_OPTIONS);
+            return;
         }
+
+        window.ReliefFormErrors.clearErrors(document, CONTACT_ERROR_OPTIONS);
+        submitContactForm();
     });
 
-    // Real-time validation for fields
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const messageInput = document.getElementById('message');
-    const consentCheckbox = document.getElementById('consent');
-
-    nameInput.addEventListener('blur', validateName);
-    emailInput.addEventListener('blur', validateEmail);
-    messageInput.addEventListener('blur', validateMessage);
-    consentCheckbox.addEventListener('change', validateConsent);
+    // A field is checked when the person leaves it, and its message goes away as soon as they edit it.
+    ['name', 'email', 'message'].forEach(function(key) {
+        document.getElementById(key).addEventListener('blur', function() { checkContactField(key); });
+    });
+    document.getElementById('consent').addEventListener('change', function() { checkContactField('consent'); });
+    window.ReliefFormErrors.bindFieldClearing(document, CONTACT_ERROR_OPTIONS);
+    window.ReliefFormErrors.bindSummaryLinks(document, CONTACT_ERROR_OPTIONS.summaryId);
 }
 
-function validateForm() {
-    let isValid = true;
-
-    // Validate each field
-    isValid = validateName() && isValid;
-    isValid = validateEmail() && isValid;
-    isValid = validateMessage() && isValid;
-    isValid = validateConsent() && isValid;
-
-    return isValid;
-}
-
-function validateName() {
-    const nameInput = document.getElementById('name');
-    const errorElement = nameInput.nextElementSibling;
-    const nameValue = nameInput.value.trim();
-
-    if (nameValue === '') {
-        showError(nameInput, errorElement, 'Please enter your name');
-        return false;
-    }
-
-    if (nameValue.length < 2) {
-        showError(nameInput, errorElement, 'Name must be at least 2 characters');
-        return false;
-    }
-
-    if (nameValue.length > CONTACT_LIMITS.name) {
-        showError(nameInput, errorElement, 'Name must be ' + CONTACT_LIMITS.name + ' characters or fewer');
-        return false;
-    }
-
-    clearError(nameInput, errorElement);
-    return true;
-}
-
-function validateEmail() {
-    const emailInput = document.getElementById('email');
-    const errorElement = emailInput.nextElementSibling;
-    const emailValue = emailInput.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (emailValue === '') {
-        showError(emailInput, errorElement, 'Please enter your email');
-        return false;
-    }
-
-    if (emailValue.length > CONTACT_LIMITS.email) {
-        showError(emailInput, errorElement, 'Email address must be ' + CONTACT_LIMITS.email + ' characters or fewer');
-        return false;
-    }
-
-    if (!emailRegex.test(emailValue)) {
-        showError(emailInput, errorElement, 'Please enter a valid email address');
-        return false;
-    }
-
-    clearError(emailInput, errorElement);
-    return true;
-}
-
-function validateMessage() {
-    const messageInput = document.getElementById('message');
-    const errorElement = messageInput.nextElementSibling;
-    const messageValue = messageInput.value.trim();
-
-    if (messageValue === '') {
-        showError(messageInput, errorElement, 'Please enter your message');
-        return false;
-    }
-
-    if (messageValue.length < 10) {
-        showError(messageInput, errorElement, 'Message must be at least 10 characters');
-        return false;
-    }
-
-    if (messageValue.length > CONTACT_LIMITS.message) {
-        showError(messageInput, errorElement, 'Message must be ' + CONTACT_LIMITS.message + ' characters or fewer (now ' + messageValue.length + ')');
-        return false;
-    }
-
-    clearError(messageInput, errorElement);
-    return true;
-}
-
-function validateConsent() {
-    const consentCheckbox = document.getElementById('consent');
-    const errorElement = consentCheckbox.nextElementSibling.nextElementSibling;
-
-    if (!consentCheckbox.checked) {
-        showError(consentCheckbox, errorElement, 'You must agree to the privacy policy');
-        return false;
-    }
-
-    clearError(consentCheckbox, errorElement);
-    return true;
-}
-
-function showError(input, errorElement, message) {
-    input.style.borderColor = 'var(--danger-color)';
-    errorElement.textContent = message;
-}
-
-function clearError(input, errorElement) {
-    input.style.borderColor = '#ddd';
-    errorElement.textContent = '';
-}
-
-function resetErrors() {
-    const errorMessages = document.querySelectorAll('.error-message');
-    errorMessages.forEach(el => el.textContent = '');
-
-    const inputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
-    inputs.forEach(input => input.style.borderColor = '#ddd');
+function checkContactField(key) {
+    const FE = window.ReliefFormErrors;
+    const message = window.ReliefContactSend.validate(readContactFields())[key];
+    if (message) FE.showFieldError(document, CONTACT_FIELDS[key], message);
+    else FE.clearFieldError(document, key, CONTACT_ERROR_OPTIONS);
 }
 
 function readContactFields() {
@@ -179,6 +84,9 @@ async function submitContactForm() {
     // The guard message (for example "Too many attempts") is shown when it is the reason, or on top of a failure.
     const guardText = !failedToSend || outcome.retryAfterMs > 0 ? outcome.message : '';
     if (contactGuard) window.ReliefFormGuard.showGuardMessage(contactForm, guardText);
+    // "Too many attempts" and similar are alerts too. Focus goes there when there is no send failure box.
+    const guardBox = !failedToSend && guardText ? contactForm.querySelector('.form-guard-message') : null;
+    if (guardBox) { guardBox.tabIndex = -1; guardBox.focus(); }
 }
 
 // Sends the message through ReliefAPI. Shows the thank-you text only after the backend confirmed it.
@@ -200,6 +108,7 @@ async function sendContactMessage() {
     const successMessage = document.createElement('div');
     successMessage.className = 'form-success';
     successMessage.setAttribute('role', 'status');
+    successMessage.tabIndex = -1;
     successMessage.innerHTML = `
         <div class="success-content">
             <i class="fas fa-check-circle"></i>
@@ -208,6 +117,8 @@ async function sendContactMessage() {
         </div>
     `;
     contactForm.replaceWith(successMessage);
+    // The button that had focus is gone, so focus goes to the confirmation instead of falling to the page top.
+    successMessage.focus();
 }
 
 // The contact details already on this page, so the fallback never invents an address.
@@ -230,6 +141,7 @@ function showSendFailure(message) {
     const box = document.createElement('div');
     box.className = 'contact-send-failure';
     box.setAttribute('role', 'alert');
+    box.tabIndex = -1;
 
     const text = document.createElement('p');
     text.textContent = message + ' What you typed is still in the form.';
@@ -262,7 +174,8 @@ function showSendFailure(message) {
 
     const submit = contactForm.querySelector('button[type="submit"]');
     submit.parentNode.insertBefore(box, submit);
-    box.scrollIntoView({ block: 'nearest' });
+    // The failed send disabled the button, which drops focus, so put it on the message.
+    box.focus();
 }
 
 // FAQ Accordion Functionality

@@ -34,6 +34,37 @@
     return String(value == null ? '' : value).trim().slice(0, max);
   }
 
+  var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var FIELD_ORDER = ['name', 'email', 'message', 'consent'];
+
+  /**
+   * Checks the form fields and returns { fieldKey: message } for each problem, in page order.
+   * An empty object means the form can be sent. The text is only measured (trimmed), never changed.
+   */
+  function validate(fields) {
+    var f = fields || {};
+    var errors = {};
+    var name = String(f.name == null ? '' : f.name).trim();
+    var email = String(f.email == null ? '' : f.email).trim();
+    var message = String(f.message == null ? '' : f.message).trim();
+
+    if (name === '') errors.name = 'Please enter your name';
+    else if (name.length < 2) errors.name = 'Name must be at least 2 characters';
+    else if (name.length > LIMITS.name) errors.name = 'Name must be ' + LIMITS.name + ' characters or fewer';
+
+    if (email === '') errors.email = 'Please enter your email';
+    else if (email.length > LIMITS.email) errors.email = 'Email address must be ' + LIMITS.email + ' characters or fewer';
+    else if (!EMAIL_PATTERN.test(email)) errors.email = 'Please enter a valid email address';
+
+    if (message === '') errors.message = 'Please enter your message';
+    else if (message.length < 10) errors.message = 'Message must be at least 10 characters';
+    else if (message.length > LIMITS.message) errors.message = 'Message must be ' + LIMITS.message + ' characters or fewer (now ' + message.length + ')';
+
+    if (!f.consent) errors.consent = 'You must agree to the privacy policy';
+
+    return errors;
+  }
+
   /** The exact fields that go to the backend. Nothing else (no honeypot, no browser data). */
   function buildPayload(fields) {
     var f = fields || {};
@@ -94,7 +125,9 @@
 
   return {
     LIMITS: LIMITS,
+    FIELD_ORDER: FIELD_ORDER,
     MESSAGES: MESSAGES,
+    validate: validate,
     buildPayload: buildPayload,
     send: send,
     mailtoHref: mailtoHref

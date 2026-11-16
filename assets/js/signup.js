@@ -17,10 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
         minFillMs: 0
     });
     window.ReliefFormGuard?.attachHoneypot(signupForm);
-    // Editing a field clears its error mark and the message that described it.
+    // Editing a field clears its own error (form-errors.js) and any message the server answer left behind.
     signupForm.querySelectorAll('input').forEach(function(input) {
         input.addEventListener('input', clearFieldErrors);
     });
+    window.ReliefFormErrors.bindFieldClearing(document, SIGNUP_ERROR_OPTIONS);
+    window.ReliefFormErrors.bindSummaryLinks(document, SIGNUP_ERROR_OPTIONS.summaryId);
 
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -32,17 +34,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         clearFieldErrors();
 
-        if (password !== confirmPassword) {
-            showAlert('danger', 'Passwords do not match.');
-            markInvalid(document.getElementById('signup-confirm-password'), true);
+        // Every problem is shown next to its field. One problem sends focus to its field, several send it to
+        // the summary that links to each field. What was typed stays in the form.
+        const problems = window.ReliefAuth.validateSignup({
+            name,
+            email,
+            password,
+            confirmPassword,
+            terms: document.getElementById('terms').checked
+        });
+        if (Object.keys(problems).length > 0) {
+            window.ReliefFormErrors.applyErrors(document, problems, SIGNUP_ERROR_OPTIONS);
             return;
         }
-
-        if (password.length < 6) {
-            showAlert('danger', 'Password must be at least 6 characters.');
-            markInvalid(document.getElementById('signup-password'), true);
-            return;
-        }
+        window.ReliefFormErrors.clearErrors(document, SIGNUP_ERROR_OPTIONS);
 
         const submitBtn = signupForm.querySelector('button[type="submit"]');
         if (submitBtn) {
@@ -84,6 +89,19 @@ async function createUser(name, email, password) {
 
 const FORM_MESSAGE_ID = 'form-message';
 
+const SIGNUP_ERROR_OPTIONS = {
+    fields: {
+        name: { focusId: 'signup-name', errorId: 'signup-name-error' },
+        email: { focusId: 'signup-email', errorId: 'signup-email-error' },
+        password: { focusId: 'signup-password', errorId: 'signup-password-error' },
+        confirmPassword: { focusId: 'signup-confirm-password', errorId: 'signup-confirm-password-error' },
+        terms: { focusId: 'terms', errorId: 'terms-error' }
+    },
+    order: ['name', 'email', 'password', 'confirmPassword', 'terms'],
+    summaryId: 'signup-error-summary',
+    title: 'Please fix the following'
+};
+
 function markInvalid(field, focus) {
     if (!field) return;
     field.setAttribute('aria-invalid', 'true');
@@ -91,13 +109,15 @@ function markInvalid(field, focus) {
     if (focus) field.focus();
 }
 
+// Removes the message from a refused sign-up and the marks it put on the fields.
 function clearFieldErrors() {
-    document.querySelectorAll('#signup-form [aria-invalid]').forEach(function(field) {
+    const old = document.getElementById(FORM_MESSAGE_ID);
+    if (!old || !old.classList.contains('alert-danger')) return;
+    document.querySelectorAll('#signup-form [aria-describedby~="' + FORM_MESSAGE_ID + '"]').forEach(function(field) {
         field.removeAttribute('aria-invalid');
         field.removeAttribute('aria-describedby');
     });
-    const old = document.getElementById(FORM_MESSAGE_ID);
-    if (old && old.classList.contains('alert-danger')) old.remove();
+    old.remove();
 }
 
 // Errors use role="alert" so a screen reader reads them out when they appear, and they stay until

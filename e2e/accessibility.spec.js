@@ -164,9 +164,10 @@ test.describe('login and signup messages', () => {
     await page.locator('#terms').check();
     await page.getByRole('button', { name: 'Sign Up' }).click();
 
-    await expect(page.locator('#form-message')).toHaveAttribute('role', 'alert');
+    await expect(page.locator('#signup-confirm-password-error')).toHaveText('Passwords do not match.');
     await expect(page.locator('#signup-confirm-password')).toBeFocused();
     await expect(page.locator('#signup-confirm-password')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#signup-confirm-password')).toHaveAttribute('aria-describedby', 'signup-confirm-password-error');
   });
 
   test('the form fields tell the browser what they are for', async ({ page }) => {

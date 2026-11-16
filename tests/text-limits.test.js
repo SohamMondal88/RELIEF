@@ -3,7 +3,6 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 const R = require('../assets/js/reminders.js');
 const { evaluateSymptomSafety, detectEmergencySigns } = require('../assets/js/symptoms.js');
 
@@ -86,44 +85,30 @@ test('loadHistory drops junk rows, limits row count and text length, and keeps U
   assert.ok(out.every((h) => typeof h.date === 'string'));
 });
 
-// ---- contact form (contact.js run against a tiny fake page) ----
+// ---- contact form (the rules are in contact-send.js, so they run without a page) ----
 
-function contactPage(values) {
-  const make = (value) => ({ value, style: {}, nextElementSibling: { textContent: '', nextElementSibling: { textContent: '' } }, addEventListener() {}, checked: true });
-  const fields = { name: make(values.name), email: make(values.email), message: make(values.message), consent: make('') };
-  const context = {
-    document: { getElementById: (id) => fields[id] || null, querySelectorAll: () => [], addEventListener() {} },
-    window: {}
-  };
-  vm.createContext(context);
-  vm.runInContext(read('assets/js/contact.js'), context);
-  return { fields, run: (code) => vm.runInContext(code, context) };
-}
+const ContactSend = require('../assets/js/contact-send.js');
+const contactFields = (values) => Object.assign({ name: 'Asha Rao', email: 'asha@example.com', message: 'I can help on weekends.', consent: true }, values);
 
 test('contact form refuses oversized name, email and message with a message, and keeps the text', () => {
-  const page = contactPage({ name: 'N'.repeat(101), email: 'a'.repeat(250) + '@b.co', message: 'm'.repeat(2001) });
-  assert.strictEqual(page.run('validateName()'), false);
-  assert.match(page.fields.name.nextElementSibling.textContent, /100 characters or fewer/);
-  assert.strictEqual(page.run('validateEmail()'), false);
-  assert.match(page.fields.email.nextElementSibling.textContent, /254 characters or fewer/);
-  assert.strictEqual(page.run('validateMessage()'), false);
-  assert.match(page.fields.message.nextElementSibling.textContent, /2000 characters or fewer/);
-  assert.strictEqual(page.fields.message.value.length, 2001);
+  const values = contactFields({ name: 'N'.repeat(101), email: 'a'.repeat(250) + '@b.co', message: 'm'.repeat(2001) });
+  const errors = ContactSend.validate(values);
+  assert.match(errors.name, /100 characters or fewer/);
+  assert.match(errors.email, /254 characters or fewer/);
+  assert.match(errors.message, /2000 characters or fewer/);
+  assert.strictEqual(values.message.length, 2001);
 });
 
 test('contact form accepts text at the limit, markup and non-Latin scripts', () => {
-  const edge = contactPage({ name: 'N'.repeat(100), email: 'a'.repeat(240) + '@b.co', message: 'm'.repeat(2000) });
-  assert.strictEqual(edge.run('validateName()'), true);
-  assert.strictEqual(edge.run('validateEmail()'), true);
-  assert.strictEqual(edge.run('validateMessage()'), true);
-  const text = contactPage({ name: 'অভিষেক শর্মা', email: 'a@b.co', message: SCRIPTS.join(' ') + ' ' + MARKUP });
-  assert.strictEqual(text.run('validateName()'), true);
-  assert.strictEqual(text.run('validateMessage()'), true);
+  const edge = contactFields({ name: 'N'.repeat(100), email: 'a'.repeat(240) + '@b.co', message: 'm'.repeat(2000) });
+  assert.deepStrictEqual(ContactSend.validate(edge), {});
+  const text = contactFields({ name: 'অভিষেক শর্মা', email: 'a@b.co', message: SCRIPTS.join(' ') + ' ' + MARKUP });
+  assert.deepStrictEqual(ContactSend.validate(text), {});
 });
 
 test('contact.html and symptoms.html inputs carry matching maxlength attributes', () => {
   const contact = read('pages/contact.html');
-  const limits = contactPage({ name: '', email: '', message: '' }).run('CONTACT_LIMITS');
+  const limits = ContactSend.LIMITS;
   assert.match(contact, new RegExp('id="name"[^>]*maxlength="' + limits.name + '"'));
   assert.match(contact, new RegExp('id="email"[^>]*maxlength="' + limits.email + '"'));
   assert.match(contact, new RegExp('id="message"[^>]*maxlength="' + limits.message + '"'));

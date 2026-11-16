@@ -57,30 +57,32 @@
         <div class="auth-form">
             <h1 data-i18n="signup.h2">Create Your Account</h1>
             <p class="demo-notice" id="demo-notice" role="note" hidden></p>
-            <form id="signup-form" method="post">
+            <form id="signup-form" method="post" novalidate>
+                <div class="error-summary" id="signup-error-summary" role="alert" tabindex="-1" hidden></div>
                 <div class="form-group">
                     <label for="signup-name" data-i18n="signup.name">Full Name</label>
                     <input type="text" id="signup-name" autocomplete="name" placeholder="Enter your full name" data-i18n-attr="placeholder:signup.name.placeholder" required>
-                    <span class="error-message"></span>
+                    <span class="error-message" id="signup-name-error" hidden></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-email" data-i18n="auth.email">Email</label>
                     <input type="email" id="signup-email" autocomplete="email" placeholder="Enter your email" data-i18n-attr="placeholder:auth.email.placeholder" required>
-                    <span class="error-message"></span>
+                    <span class="error-message" id="signup-email-error" hidden></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-password" data-i18n="auth.password">Password</label>
                     <input type="password" id="signup-password" autocomplete="new-password" placeholder="Create a password" data-i18n-attr="placeholder:signup.password.placeholder" required>
-                    <span class="error-message"></span>
+                    <span class="error-message" id="signup-password-error" hidden></span>
                 </div>
                 <div class="form-group">
                     <label for="signup-confirm-password" data-i18n="signup.confirm">Confirm Password</label>
                     <input type="password" id="signup-confirm-password" autocomplete="new-password" placeholder="Confirm your password" data-i18n-attr="placeholder:signup.confirm.placeholder" required>
-                    <span class="error-message"></span>
+                    <span class="error-message" id="signup-confirm-password-error" hidden></span>
                 </div>
                 <div class="form-group checkbox">
                     <input type="checkbox" id="terms" required>
                     <label for="terms"><span data-i18n="signup.terms.start">I agree to the</span> <a href="terms-of-service.html" data-i18n="footer.terms">Terms of Service</a> <span data-i18n="signup.terms.and">and</span> <a href="privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a><span data-i18n="signup.terms.end"></span></label>
+                    <span class="error-message" id="terms-error" hidden></span>
                 </div>
                 <button type="submit" class="btn-primary" data-i18n="signup.submit">Sign Up</button>
             </form>
@@ -132,6 +134,7 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/form-guard.js"></script>
+    <script src="../assets/js/form-errors.js"></script>
     <script src="../assets/js/signup.js"></script>
 
     <script src="../assets/js/i18n.js"></script>

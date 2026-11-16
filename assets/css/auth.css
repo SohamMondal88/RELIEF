@@ -692,6 +692,60 @@ body {
     opacity: 1;
 }
 
+/* Field errors (Issue #112): form-errors.js unhides the message and marks the field aria-invalid. */
+.error-message[hidden],
+.error-summary[hidden] {
+    display: none;
+}
+
+.error-message:not([hidden]) {
+    opacity: 1;
+    min-height: 0;
+    font-weight: 500;
+}
+
+.checkbox {
+    flex-wrap: wrap;
+}
+
+.checkbox .error-message {
+    flex-basis: 100%;
+}
+
+.error-summary {
+    margin: 0 0 1.25rem;
+    padding: 10px 14px;
+    border: 2px solid #b42318;
+    border-radius: 8px;
+    background: #fef3f2;
+    color: #7a1a12;
+    font-size: 0.9rem;
+}
+
+.error-summary:focus {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.error-summary-title {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.error-summary ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.error-summary a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.form-group input[aria-invalid="true"] {
+    border-color: #b42318;
+}
+
 .checkbox {
     display: flex;
     align-items: center;

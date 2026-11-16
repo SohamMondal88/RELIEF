@@ -19,10 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
         countFailuresOnly: true
     });
     window.ReliefFormGuard?.attachHoneypot(loginForm);
-    // Editing a field clears its error mark and the message that described it.
+    // Editing a field clears its own error (form-errors.js) and any message the server answer left behind.
     loginForm.querySelectorAll('input').forEach(function(input) {
         input.addEventListener('input', clearFieldErrors);
     });
+    window.ReliefFormErrors.bindFieldClearing(document, LOGIN_ERROR_OPTIONS);
+    window.ReliefFormErrors.bindSummaryLinks(document, LOGIN_ERROR_OPTIONS.summaryId);
 
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -31,6 +33,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('login-password').value;
 
         clearFieldErrors();
+
+        // Empty or malformed fields are caught here, with a message next to each field. One problem sends
+        // focus to its field, several send it to the summary. What was typed stays in the form.
+        const problems = window.ReliefAuth.validateLogin({ email, password });
+        if (Object.keys(problems).length > 0) {
+            window.ReliefFormErrors.applyErrors(document, problems, LOGIN_ERROR_OPTIONS);
+            return;
+        }
+        window.ReliefFormErrors.clearErrors(document, LOGIN_ERROR_OPTIONS);
 
         const submitBtn = loginForm.querySelector('button[type="submit"]');
         if (submitBtn) {
@@ -73,6 +84,16 @@ async function authenticateUser(email, password) {
 
 const FORM_MESSAGE_ID = 'form-message';
 
+const LOGIN_ERROR_OPTIONS = {
+    fields: {
+        email: { focusId: 'login-email', errorId: 'login-email-error' },
+        password: { focusId: 'login-password', errorId: 'login-password-error' }
+    },
+    order: ['email', 'password'],
+    summaryId: 'login-error-summary',
+    title: 'Please fix the following'
+};
+
 function markInvalid(field, focus) {
     if (!field) return;
     field.setAttribute('aria-invalid', 'true');
@@ -80,13 +101,15 @@ function markInvalid(field, focus) {
     if (focus) field.focus();
 }
 
+// Removes the message from a refused sign-in and the marks it put on the fields.
 function clearFieldErrors() {
-    document.querySelectorAll('#login-form [aria-invalid]').forEach(function(field) {
+    const old = document.getElementById(FORM_MESSAGE_ID);
+    if (!old || !old.classList.contains('alert-danger')) return;
+    document.querySelectorAll('#login-form [aria-describedby~="' + FORM_MESSAGE_ID + '"]').forEach(function(field) {
         field.removeAttribute('aria-invalid');
         field.removeAttribute('aria-describedby');
     });
-    const old = document.getElementById(FORM_MESSAGE_ID);
-    if (old && old.classList.contains('alert-danger')) old.remove();
+    old.remove();
 }
 
 // Errors use role="alert" so a screen reader reads them out when they appear, and they stay until

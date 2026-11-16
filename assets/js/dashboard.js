@@ -86,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     FE.bindSummaryLinks(document, 'reminder-error-summary');
+    // A field's message goes away as soon as the person edits that field. What they typed stays.
+    FE.bindFieldClearing(document, { fields: ERROR_FIELDS, summaryId: 'reminder-error-summary' });
 
     function persist() {
         if (dataDeleted) return;

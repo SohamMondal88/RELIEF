@@ -890,6 +890,57 @@ a:hover {
     font-weight: 500;
 }
 
+/* Field errors (Issue #112): the same look as the appointment and reminder forms. */
+.error-message[hidden],
+.error-summary[hidden] {
+    display: none;
+}
+
+.checkbox-group {
+    flex-wrap: wrap;
+}
+
+.checkbox-group .error-message {
+    flex-basis: 100%;
+}
+
+.contact-form .error-summary {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 10px 14px;
+    border: 2px solid #b42318;
+    border-radius: 8px;
+    background: #fef3f2;
+    color: #7a1a12;
+    font-size: 0.9rem;
+}
+
+.error-summary:focus {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.error-summary-title {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.error-summary ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.error-summary a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.contact-form input[aria-invalid="true"],
+.contact-form textarea[aria-invalid="true"],
+.contact-form select[aria-invalid="true"] {
+    border-color: #b42318;
+}
+
 .contact-form button[type="submit"] {
     grid-column: 1 / -1;
     justify-self: center;
