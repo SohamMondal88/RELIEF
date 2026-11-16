@@ -29,7 +29,7 @@
   const KNOWN_TYPES = ['hospital', 'phc', 'clinic', 'pharmacy', 'diagnostic'];
 
   const REQUIRED_FIELDS = ['id', 'name', 'type', 'district'];
-  const OPTIONAL_FIELDS = ['address', 'phone', 'hours', 'services', 'lat', 'lng', 'verified', 'source', 'lastChecked'];
+  const OPTIONAL_FIELDS = ['address', 'phone', 'hours', 'services', 'accessibility', 'lat', 'lng', 'verified', 'source', 'lastChecked'];
 
   const LIMITS = {
     id: 64,
@@ -137,6 +137,19 @@
           if (!isText(service)) errors.push('services[' + i + '] must be non-empty text');
           else if (service.length > LIMITS.service) errors.push('services[' + i + '] is too long');
           else if (hasMarkup(service)) errors.push('services[' + i + '] must not contain < or >');
+        });
+      }
+    }
+
+    if (record.accessibility !== undefined && record.accessibility !== null) {
+      if (!Array.isArray(record.accessibility)) {
+        errors.push('accessibility must be a list');
+      } else {
+        if (record.accessibility.length > LIMITS.services) errors.push('accessibility has more than ' + LIMITS.services + ' items');
+        record.accessibility.forEach(function (item, i) {
+          if (!isText(item)) errors.push('accessibility[' + i + '] must be non-empty text');
+          else if (item.length > LIMITS.service) errors.push('accessibility[' + i + '] is too long');
+          else if (hasMarkup(item)) errors.push('accessibility[' + i + '] must not contain < or >');
         });
       }
     }

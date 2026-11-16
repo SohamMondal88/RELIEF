@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const districtFilter = document.getElementById('location');
     const servicesFilter = document.getElementById('services');
     const verifiedOnly = document.getElementById('verified-only');
+    const accessibilityFilter = document.getElementById('accessibility');
+    const accessibilityGroup = document.getElementById('accessibility-group');
+    const openNowBox = document.getElementById('open-now');
+    const openNowHint = document.getElementById('open-now-hint');
+    const activeBox = document.getElementById('active-filters');
+    const activeList = document.getElementById('active-filters-list');
+    const resetButton = document.getElementById('reset-filters');
+    let openNowUsable = false;
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
@@ -139,6 +147,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Text built here goes through the i18n layer (see docs/TRANSLATING.md). Without it, or without
+    // the key in the selected language, the English fallback is used.
+    function tr(key, fallback, vars) {
+        const text = window.ReliefI18n ? window.ReliefI18n.t(key, fallback) : fallback;
+        return U.formatMessage(text, vars);
+    }
+
     function setStatus(message) {
         if (statusEl) statusEl.textContent = message;
     }
@@ -213,9 +228,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateFilters() {
         const options = U.getFilterOptions(facilities);
-        fillSelect(facilityTypeFilter, 'All Facilities', options.types, t => U.FACILITY_TYPES[t] || t);
-        fillSelect(districtFilter, 'All Areas', options.districts);
-        fillSelect(servicesFilter, 'All Services', options.services);
+        fillSelect(facilityTypeFilter, tr('hospitals.type.all', 'All Facilities'), options.types, t => U.FACILITY_TYPES[t] || t);
+        fillSelect(districtFilter, tr('hospitals.area.all', 'All Areas'), options.districts);
+        fillSelect(servicesFilter, tr('hospitals.svc.all', 'All Services'), options.services);
+        // Only offered when some record has the data behind it.
+        if (accessibilityFilter && accessibilityGroup) {
+            fillSelect(accessibilityFilter, tr('hospitals.accessibility.any', 'Any'), options.accessibility);
+            accessibilityGroup.hidden = options.accessibility.length === 0;
+        }
+        if (openNowBox) {
+            const usable = U.hasOpenNowData(facilities, { policy: reviewPolicy });
+            openNowBox.disabled = !usable;
+            if (!usable) openNowBox.checked = false;
+            openNowUsable = usable;
+            setOpenNowHint();
+        }
+    }
+
+    function setOpenNowHint() {
+        if (!openNowHint) return;
+        openNowHint.textContent = openNowUsable
+            ? tr('hospitals.opennow.hint.on', 'Uses verified opening hours only. Facilities with unknown hours are not shown.')
+            : tr('hospitals.opennow.hint.off', 'Not available yet: no facility has verified opening hours.');
+    }
+
+    // Re-labels the generated first options (the selected value is kept) when the language changes.
+    function relabelSelects() {
+        [[facilityTypeFilter, 'hospitals.type.all', 'All Facilities'], [districtFilter, 'hospitals.area.all', 'All Areas'],
+            [servicesFilter, 'hospitals.svc.all', 'All Services'], [accessibilityFilter, 'hospitals.accessibility.any', 'Any']
+        ].forEach(([select, key, fallback]) => {
+            if (select && select.options.length > 0) select.options[0].textContent = tr(key, fallback);
+        });
+        setOpenNowHint();
     }
 
     function cardHtml(f) {
@@ -259,14 +303,54 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
     }
 
-    function render(list, note) {
+    function renderEmpty(criteria, note) {
+        const box = document.createElement('div');
+        box.className = 'no-results';
+        const p = document.createElement('p');
+        p.textContent = tr('hospitals.empty', 'No facilities found matching your criteria.');
+        box.appendChild(p);
+        const active = U.describeActiveFilters(criteria, null, tr);
+        if (active.length > 0) {
+            const help = document.createElement('p');
+            help.textContent = tr('hospitals.empty.help', 'Try removing a filter:');
+            box.appendChild(help);
+            const row = document.createElement('div');
+            row.className = 'no-results-help';
+            U.suggestRemovals(facilities, criteria, null, tr).forEach(s => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn-suggest';
+                b.textContent = s.count === 1
+                    ? tr('hospitals.empty.remove.one', 'Remove {label} ({count} facility)', { label: s.label, count: s.count })
+                    : tr('hospitals.empty.remove.other', 'Remove {label} ({count} facilities)', { label: s.label, count: s.count });
+                b.addEventListener('click', () => clearFilter(s.key));
+                row.appendChild(b);
+            });
+            const all = document.createElement('button');
+            all.type = 'button';
+            all.className = 'btn-suggest';
+            all.textContent = tr('hospitals.reset', 'Reset all filters');
+            all.addEventListener('click', resetFilters);
+            row.appendChild(all);
+            box.appendChild(row);
+        } else {
+            p.textContent += ' ' + tr('hospitals.empty.try', 'Try searching for something else.');
+        }
+        if (note) {
+            const n = document.createElement('p');
+            n.className = 'filter-hint';
+            n.textContent = note;
+            box.appendChild(n);
+        }
+        hospitalsList.appendChild(box);
+    }
+
+    function render(list, note, criteria) {
         hospitalsList.innerHTML = '';
         if (list.length === 0) {
-            const p = document.createElement('p');
-            p.className = 'no-results';
-            p.textContent = 'No facilities found matching your criteria. Try clearing a filter or searching for something else.';
-            hospitalsList.appendChild(p);
-            setStatus('No facilities found.');
+            renderEmpty(criteria || {}, note);
+            const none = tr('hospitals.status.none', 'No facilities found.');
+            setStatus(note ? none + ' ' + note : none);
             updateMapMarkers([]);
             return;
         }
@@ -282,22 +366,88 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMapMarkers(list);
     }
 
-    function applyFilters() {
-        const filtered = U.filterFacilities(facilities, {
+    function getCriteria() {
+        return {
             search: searchInput ? searchInput.value : '',
             type: facilityTypeFilter ? facilityTypeFilter.value : '',
             district: districtFilter ? districtFilter.value : '',
             service: servicesFilter ? servicesFilter.value : '',
+            accessibility: accessibilityFilter ? accessibilityFilter.value : '',
             verifiedOnly: verifiedOnly ? verifiedOnly.checked : false,
+            openNow: openNowBox ? openNowBox.checked && !openNowBox.disabled : false,
             policy: reviewPolicy
+        };
+    }
+
+    // The controls that belong to each filter key, so a chip can clear its filter and give focus back.
+    function controlFor(key) {
+        return {
+            search: searchInput, type: facilityTypeFilter, district: districtFilter, service: servicesFilter,
+            accessibility: accessibilityFilter, verifiedOnly: verifiedOnly, openNow: openNowBox
+        }[key] || null;
+    }
+
+    function clearFilter(key) {
+        const control = controlFor(key);
+        if (control) {
+            if (control.type === 'checkbox') control.checked = false;
+            else control.value = '';
+        }
+        applyFilters();
+        if (control && !control.disabled && !control.closest('[hidden]')) control.focus();
+    }
+
+    function resetFilters() {
+        U.describeActiveFilters(getCriteria(), null, tr).forEach(f => {
+            const control = controlFor(f.key);
+            if (!control) return;
+            if (control.type === 'checkbox') control.checked = false;
+            else control.value = '';
         });
+        applyFilters();
+        if (searchInput) searchInput.focus();
+    }
+
+    function renderActiveFilters(criteria) {
+        if (!activeBox || !activeList) return;
+        const active = U.describeActiveFilters(criteria, null, tr);
+        activeList.textContent = '';
+        active.forEach(f => {
+            const li = document.createElement('li');
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'filter-chip';
+            chip.setAttribute('aria-label', tr('hospitals.chip.remove', 'Remove filter {label}', { label: f.label }));
+            chip.textContent = f.label + ' \u00d7';
+            chip.addEventListener('click', () => clearFilter(f.key));
+            li.appendChild(chip);
+            activeList.appendChild(li);
+        });
+        activeBox.hidden = active.length === 0;
+    }
+
+    function applyFilters() {
+        const criteria = getCriteria();
+        const filtered = U.filterFacilities(facilities, criteria);
         const sortBy = sortSelect ? sortSelect.value : 'name';
         const location = readSavedLocation();
         const sorted = U.sortFacilities(filtered, sortBy, location);
-        const note = (sortBy === 'distance' && !location)
-            ? 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.'
-            : '';
-        render(sorted, note);
+        const notes = [];
+        if (sortBy === 'distance' && !location) {
+            notes.push(tr('hospitals.note.distance', 'Distance sorting needs your location, so the list is sorted A to Z. Use the "Use my location" button.'));
+        }
+        if (criteria.openNow) {
+            // Unknown hours are neither open nor closed, so say how many were left out instead of hiding them silently.
+            const others = U.filterFacilities(facilities, Object.assign({}, criteria, { openNow: false }));
+            const unknown = others.filter(f => U.openNowStatus(f, { policy: reviewPolicy }) === 'unknown').length;
+            if (unknown > 0) {
+                notes.push(unknown === 1
+                    ? tr('hospitals.note.unknown.one', '{count} facility has no verified opening hours and is not shown.', { count: unknown })
+                    : tr('hospitals.note.unknown.other', '{count} facilities have no verified opening hours and are not shown.', { count: unknown }));
+            }
+        }
+        renderActiveFilters(criteria);
+        render(sorted, notes.join(' '), criteria);
     }
 
     function locateUser() {
@@ -450,10 +600,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (facilities.length) applyFilters();
     });
 
+    // The language files load after the page, so generated text is built again when the language is set.
+    document.addEventListener('relief:languagechange', function() {
+        relabelSelects();
+        const ul = document.getElementById('active-filters-list');
+        if (ul) ul.setAttribute('aria-label', tr('hospitals.active.label', 'Active filters'));
+        if (facilities.length) applyFilters();
+    });
+
     if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); applyFilters(); });
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (filterButton) filterButton.addEventListener('click', applyFilters);
-    [facilityTypeFilter, districtFilter, servicesFilter, verifiedOnly, sortSelect].forEach(el => {
+    if (resetButton) resetButton.addEventListener('click', resetFilters);
+    [facilityTypeFilter, districtFilter, servicesFilter, accessibilityFilter, verifiedOnly, openNowBox, sortSelect].forEach(el => {
         if (el) el.addEventListener('change', applyFilters);
     });
     if (locateButton) locateButton.addEventListener('click', locateUser);

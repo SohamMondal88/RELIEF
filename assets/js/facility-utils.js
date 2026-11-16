@@ -121,6 +121,7 @@
       phone: raw.phone || null,
       hours: raw.hours || null,
       services: Array.isArray(raw.services) ? raw.services.map(String) : [],
+      accessibility: Array.isArray(raw.accessibility) ? raw.accessibility.filter(function (a) { return typeof a === 'string' && a.trim(); }) : [],
       lat: typeof raw.lat === 'number' ? raw.lat : null,
       lng: typeof raw.lng === 'number' ? raw.lng : null,
       reviewState: state,
@@ -247,12 +248,82 @@
   // Filter options are built from the data so they always match real records.
   function getFilterOptions(facilities) {
     var services = [];
-    facilities.forEach(function (f) { services = services.concat(f.services); });
+    var accessibility = [];
+    facilities.forEach(function (f) {
+      services = services.concat(f.services);
+      accessibility = accessibility.concat(f.accessibility || []);
+    });
     return {
       types: uniqueSorted(facilities.map(function (f) { return f.type; })),
       districts: uniqueSorted(facilities.map(function (f) { return f.district; })),
-      services: uniqueSorted(services)
+      services: uniqueSorted(services),
+      accessibility: uniqueSorted(accessibility)
     };
+  }
+
+  // Opening hours are free text, so only two plain shapes are understood: "Open 24 hours" and
+  // one daily range such as "09:00-17:00" (a range that crosses midnight is fine). Anything with
+  // days, several ranges, AM/PM or other words is left alone and counts as unknown.
+  // Returns { always: true }, { open, close } in minutes after midnight, or null.
+  function parseHours(text) {
+    if (typeof text !== 'string') return null;
+    var t = text.trim();
+    if (/^(open\s+)?24\s*(hours|hrs|h)$/i.test(t)) return { always: true };
+    var m = /^(?:daily\s+)?(\d{1,2}):(\d{2})\s*(?:-|to)\s*(\d{1,2}):(\d{2})$/i.exec(t);
+    if (!m) return null;
+    var oh = Number(m[1]), om = Number(m[2]), ch = Number(m[3]), cm = Number(m[4]);
+    if (oh > 23 || ch > 23 || om > 59 || cm > 59) return null;
+    var open = oh * 60 + om;
+    var close = ch * 60 + cm;
+    if (open === close) return null;
+    return { open: open, close: close };
+  }
+
+  // The directory covers West Bengal, so "now" is always read on the Indian clock, not the
+  // clock of the device. Returns minutes after midnight, or null if the time cannot be read.
+  var HOURS_ZONE = 'Asia/Kolkata';
+  function localMinutes(now) {
+    var ms = now == null ? Date.now() : (now instanceof Date ? now.getTime() : Number(now));
+    if (!isFinite(ms)) return null;
+    try {
+      var parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: HOURS_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+      }).formatToParts(new Date(ms));
+      var h = null;
+      var min = null;
+      parts.forEach(function (p) {
+        if (p.type === 'hour') h = Number(p.value);
+        if (p.type === 'minute') min = Number(p.value);
+      });
+      return h === null || min === null || isNaN(h) || isNaN(min) ? null : h * 60 + min;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * 'open', 'closed' or 'unknown'. Unknown is not a polite way of saying closed: it means the
+   * page cannot tell. It is returned when the hours are missing or not in a shape parseHours
+   * understands, when the record is not currently verified (hours on an unchecked record are not
+   * trustworthy), or when the local time cannot be read.
+   */
+  function openNowStatus(facility, opts) {
+    var o = opts || {};
+    var hours = parseHours(facility && facility.hours);
+    if (!hours) return 'unknown';
+    if (reviewStatus(facility, { now: o.now, policy: o.policy }).state !== 'verified') return 'unknown';
+    if (hours.always) return 'open';
+    var minutes = localMinutes(o.now);
+    if (minutes === null) return 'unknown';
+    var inside = hours.open < hours.close
+      ? (minutes >= hours.open && minutes < hours.close)
+      : (minutes >= hours.open || minutes < hours.close);
+    return inside ? 'open' : 'closed';
+  }
+
+  // True when at least one record has hours the "Open now" filter can use.
+  function hasOpenNowData(facilities, opts) {
+    return facilities.some(function (f) { return openNowStatus(f, opts) !== 'unknown'; });
   }
 
   function matchesSearch(facility, term) {
@@ -269,9 +340,58 @@
       if (c.type && f.type !== c.type) return false;
       if (c.district && f.district !== c.district) return false;
       if (c.service && f.services.indexOf(c.service) === -1) return false;
+      if (c.accessibility && (f.accessibility || []).indexOf(c.accessibility) === -1) return false;
+      if (c.openNow && openNowStatus(f, { now: c.now, policy: c.policy }) !== 'open') return false;
       if (c.verifiedOnly && reviewStatus(f, { now: c.now, policy: c.policy }).state !== 'verified') return false;
       return true;
     });
+  }
+
+  var FILTER_KEYS = ['search', 'type', 'district', 'service', 'accessibility', 'verifiedOnly', 'openNow'];
+
+  // Fills {name} placeholders. Used with the i18n layer, whose translations carry the placeholders.
+  function formatMessage(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, function (m, name) {
+      return vars && vars[name] != null ? String(vars[name]) : m;
+    });
+  }
+
+  // English fallback for the translator the page passes in: (key, fallback, vars) => text.
+  function defaultTranslate(key, fallback, vars) { return formatMessage(fallback, vars); }
+
+  // One entry per filter that is switched on: { key, label }, in the order the controls appear.
+  // `tr` is optional (the page passes its i18n translator), so the labels follow the selected language.
+  function describeActiveFilters(criteria, typeLabels, tr) {
+    var c = criteria || {};
+    var types = typeLabels || FACILITY_TYPES;
+    var say = typeof tr === 'function' ? tr : defaultTranslate;
+    var out = [];
+    var term = String(c.search || '').trim();
+    if (term) out.push({ key: 'search', label: say('hospitals.chip.search', 'Search: "{value}"', { value: term }) });
+    if (c.type) out.push({ key: 'type', label: say('hospitals.chip.type', 'Type: {value}', { value: types[c.type] || c.type }) });
+    if (c.district) out.push({ key: 'district', label: say('hospitals.chip.area', 'Area: {value}', { value: c.district }) });
+    if (c.service) out.push({ key: 'service', label: say('hospitals.chip.service', 'Service: {value}', { value: c.service }) });
+    if (c.accessibility) out.push({ key: 'accessibility', label: say('hospitals.chip.accessibility', 'Accessibility: {value}', { value: c.accessibility }) });
+    if (c.verifiedOnly) out.push({ key: 'verifiedOnly', label: say('hospitals.verified', 'Verified only') });
+    if (c.openNow) out.push({ key: 'openNow', label: say('hospitals.opennow', 'Open now') });
+    return out;
+  }
+
+  function withoutFilter(criteria, key) {
+    var copy = Object.assign({}, criteria);
+    copy[key] = (key === 'verifiedOnly' || key === 'openNow') ? false : '';
+    return copy;
+  }
+
+  /**
+   * For an empty result: which single filter, if removed, would bring results back.
+   * [{ key, label, count }] with the biggest gain first. Filters that would still leave nothing are left out.
+   */
+  function suggestRemovals(facilities, criteria, typeLabels, tr) {
+    return describeActiveFilters(criteria, typeLabels, tr).map(function (f) {
+      return { key: f.key, label: f.label, count: filterFacilities(facilities, withoutFilter(criteria, f.key)).length };
+    }).filter(function (s) { return s.count > 0; })
+      .sort(function (a, b) { return b.count - a.count; });
   }
 
   function withDistance(facilities, userLocation) {
@@ -332,6 +452,13 @@
     normalizeFacility: normalizeFacility,
     normalizeFacilities: normalizeFacilities,
     getFilterOptions: getFilterOptions,
+    parseHours: parseHours,
+    openNowStatus: openNowStatus,
+    hasOpenNowData: hasOpenNowData,
+    formatMessage: formatMessage,
+    describeActiveFilters: describeActiveFilters,
+    withoutFilter: withoutFilter,
+    suggestRemovals: suggestRemovals,
     matchesSearch: matchesSearch,
     filterFacilities: filterFacilities,
     sortFacilities: sortFacilities,
