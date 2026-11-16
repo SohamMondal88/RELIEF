@@ -90,6 +90,33 @@ The backend must answer `received` only after the message is stored or forwarded
 
 The rate limit, double-submit lock, honeypot and minimum fill time from `form-guard.js` still apply to every attempt, sent or not.
 
+## Moderated submission forms (one send per attempt)
+
+The health event form (`pages/health-events.html`) and the facility correction form (`pages/hospitals.html`) send a record to the review queue. They do not use the rate limit above. They use `assets/js/submit-lock.js` (`ReliefSubmitLock`), which does three things:
+
+| Behaviour | What the visitor sees |
+| --- | --- |
+| Only one send at a time. A second submit while one is pending (double click, Enter twice, another handler) is ignored. | The form has `aria-busy="true"`, the submit button is off, and the status line (`role="status"`) says "Sending your event, please wait" or "Sending your suggestion, please wait". |
+| The lock is always released, including when the work throws or rejects. | The status says it was not sent and to press the button again. What was typed is still in the form. |
+| One idempotency key per attempt. The key belongs to the content. After a failed send, pressing the button again with the same content sends the same `Idempotency-Key`. Edited content gets a new key, and the key is dropped after a success. | Nothing: this is for the server. |
+
+```js
+const lock = ReliefSubmitLock.createSubmitLock({
+  onChange: (busy) => ReliefSubmitLock.setBusy(form, button, busy)
+});
+const outcome = await lock.run(
+  (attempt) => store.submit(input, { idempotencyKey: attempt.idempotencyKey }),
+  { fingerprint: ReliefSubmitLock.fingerprintOf(input), keepKey: (result) => result.kind === 'unavailable' }
+);
+// outcome.status is 'busy' (ignored), 'done' (outcome.value) or 'error' (outcome.error). It never rejects.
+```
+
+`keepKey` says that a result that came back is still a failure worth retrying (the stores answer "service unavailable" with a result, not a rejection). A rejection always keeps the key.
+
+The stores pass the key on: `store.submit(input, { idempotencyKey })` calls `api.submitHealthEvent(event, { idempotencyKey })` or `api.submitFacilityCorrection(correction, { idempotencyKey })`. Without a key, `api.js` makes a new one for every call when `request-resilience.js` is on the page (see [ERROR_HANDLING.md](ERROR_HANDLING.md)). The health events page does not load that file, so it sent no key at all before this change.
+
+Like the rest of this page, this is a speed bump in the browser. The server has to treat a repeated `Idempotency-Key` as the same submission to make a repeat truly safe. Contact, login and signup use the guard above, and the appointment form has its own in-flight check.
+
 ## Tests
 
 ```bash
@@ -97,3 +124,12 @@ node --test tests/form-guard.test.js
 ```
 
 Covers invalid input, repeated and concurrent submissions, recovery after the window, failure-only counting, corrupt or blocked storage and configuration.
+
+For the submit lock:
+
+```bash
+node --test tests/submit-lock.test.js
+npx playwright test e2e/form-submit-lock.spec.js
+```
+
+`tests/submit-lock.test.js` covers rapid repeated submits, a rejected task, the key on retry, and the stores and API client with a fake backend. `e2e/form-submit-lock.spec.js` double-clicks Submit, fires several submit events at once and rejects a send in the browser, on both forms.
