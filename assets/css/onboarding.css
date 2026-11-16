@@ -25,8 +25,6 @@ body.relief-onboarding-open {
     inset: 0;
     z-index: 10001;
     display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 1rem;
     overflow-y: auto;
     box-sizing: border-box;
@@ -45,6 +43,9 @@ body.relief-onboarding-open {
     border: 1px solid #cbd5e1;
     outline: none;
     animation: reliefOnboardingSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    /* auto margins center it, and unlike align-items: center they keep the top (the emergency banner) reachable by
+       scrolling when the dialog is taller than the screen, for example a phone held sideways */
+    margin: auto;
     position: relative;
     font-family: 'Poppins', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #1e293b;

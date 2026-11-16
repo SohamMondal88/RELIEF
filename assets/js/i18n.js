@@ -123,7 +123,7 @@
             '.relief-lang-switch select { padding: 6px 8px; border: 1px solid #b8c4d6; border-radius: 6px;' +
             ' background: #fff; color: #1f2d3d; font-size: 0.9rem; max-width: 110px; cursor: pointer; }' +
             '@media (max-width: 992px) { .navbar-right .relief-lang-switch { position: absolute; right: -54px; top: calc(100% + 6px); margin: 0; z-index: 1001; } }' +
-            '.relief-lang-switch--floating { position: fixed; left: 16px; bottom: 16px; z-index: 9999;' +
+            '.relief-lang-switch--floating { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 9999;' +
             ' background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,.15); }';
         document.head.appendChild(style);
     }
