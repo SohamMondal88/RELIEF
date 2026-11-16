@@ -268,6 +268,20 @@ test.describe('symptom checker steps', () => {
     await page.getByRole('button', { name: 'View Guidance' }).click();
     await expect(page.getByRole('region', { name: 'Your guidance results' })).toBeFocused();
   });
+
+  test('text the checker cannot match shows an uncertain notice, and the page says screening is English only', async ({ page }) => {
+    await page.goto('/pages/symptoms.html');
+    await expect(page.locator('#symptoms-language-note')).toContainText('only understands English');
+    await expect(page.locator('#symptoms')).toHaveAccessibleDescription(/only understands English/);
+
+    await page.locator('#symptoms').fill('मुझे सिर दर्द है');
+    await page.locator('.form-step.active .btn-next').click();
+    await page.getByRole('button', { name: 'View Guidance' }).click();
+    const notice = page.locator('#safety-notice');
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText('does not mean you are safe');
+    await expect(page.locator('#urgent-emergency-container')).toBeHidden();
+  });
 });
 
 test.describe('keyboard focus is visible on form fields', () => {

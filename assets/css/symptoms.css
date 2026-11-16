@@ -1134,6 +1134,35 @@ a:hover {
     line-height: 1.5;
 }
 
+/* Result notice built by evaluateSymptomSafety (emergency, uncertain or general wording) */
+.safety-notice {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin: 0 0 1.5rem;
+    color: #343a40;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.safety-notice.is-uncertain {
+    background: #fff8e1;
+    border-color: #ffe082;
+    border-left-color: #b26a00;
+    color: #4e3b00;
+    font-weight: 600;
+}
+
+.safety-notice.is-emergency {
+    background: #fdecea;
+    border-color: #f5c2c0;
+    border-left-color: #c62828;
+    color: #7f1d1d;
+    font-weight: 700;
+}
+
 /* Missing Info Notice */
 .missing-info-notice {
     display: flex;

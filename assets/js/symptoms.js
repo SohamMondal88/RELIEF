@@ -267,6 +267,7 @@ function evaluateSymptomSafety({
             isEmergency: true,
             emergencyReasons: emergencyEval.reasons,
             isAmbiguous: false,
+            uncertainReason: null,
             missingInformation,
             safetyNotice: 'POTENTIAL MEDICAL EMERGENCY: Immediate professional emergency care is indicated.',
             disclaimer,
@@ -288,23 +289,50 @@ function evaluateSymptomSafety({
         };
     }
 
-    // Check for ambiguous or empty input
-    const isGibberishOrEmpty = !text || text.length < 3 || /^(asdf|test|none|nothing|\?+|!+|hello|hi|ok)$/i.test(text);
-
-    if (isGibberishOrEmpty) {
+    // Uncertain outcome: nothing the tool can act on. This is never worded as "no problem found".
+    //   insufficient: empty, very short or a known filler word
+    //   unmatched:    text that does not contain any symptom term this tool recognises
+    //   non-english:  unmatched, and written in a script other than Latin (the keyword lists are English only)
+    function buildUncertainResult(reason) {
+        const unmatched = reason !== 'insufficient';
+        const notices = {
+            insufficient: 'Limited or ambiguous symptom details provided. The absence of identified symptoms does not confirm you are healthy or safe. If you feel unwell or concerned, seek an in-person assessment by a healthcare professional.',
+            unmatched: 'RELIEF could not match the text you entered to any symptom term it recognises. This does not mean you are safe or that nothing is wrong: the absence of identified symptoms does not confirm you are healthy or safe. Free-text screening only understands English. If you feel unwell or concerned, seek an in-person assessment by a healthcare professional.',
+            'non-english': 'RELIEF could not read the text you entered, because free-text screening only understands English. This does not mean you are safe or that nothing is wrong: the absence of identified symptoms does not confirm you are healthy or safe, and warning signs written in other languages are not checked. Use the warning-sign checklist, and if you feel unwell or concerned, seek an in-person assessment by a healthcare professional.'
+        };
+        const uncertainMissing = missingInformation.slice();
+        if (reason === 'unmatched') {
+            uncertainMissing.push('The symptom description did not match any term this tool recognises.');
+        } else if (reason === 'non-english') {
+            uncertainMissing.push('The symptom description is not in English, so it could not be screened.');
+        }
+        const actions = [
+            'If you feel sick, in pain, or concerned, consult a qualified healthcare professional.',
+            'Seek immediate emergency care if any severe warning signs (such as chest pain or breathing difficulty) develop.',
+            'Do not start or change prescription medications without medical consultation.'
+        ];
+        if (duration === 'more-than-week') {
+            actions.push('Since your symptoms have persisted for more than a week, an in-person clinical assessment is strongly recommended.');
+        }
+        if (severity === 'severe') {
+            actions.push('Because you rated your symptoms as severe, seek prompt same-day medical attention or urgent care rather than waiting.');
+        }
         return {
             isEmergency: false,
             emergencyReasons: [],
             isAmbiguous: true,
-            missingInformation,
-            safetyNotice: 'Limited or ambiguous symptom details provided. The absence of identified symptoms does not confirm you are healthy or safe. If you feel unwell or concerned, seek an in-person assessment by a healthcare professional.',
+            uncertainReason: reason,
+            missingInformation: uncertainMissing,
+            safetyNotice: notices[reason],
             disclaimer,
             prescriptionDisclaimer,
             emergencyScreeningDisclaimer,
             generalTopics: [
                 {
                     title: 'General Health Assessment Consideration',
-                    description: 'Because limited or ambiguous symptom details were entered, the system cannot identify specific educational topics. Many health issues do not present with obvious single symptoms.',
+                    description: unmatched
+                        ? 'The text you entered did not match any symptom term this tool recognises, so it cannot identify specific educational topics. Many health issues do not present with obvious single symptoms.'
+                        : 'Because limited or ambiguous symptom details were entered, the system cannot identify specific educational topics. Many health issues do not present with obvious single symptoms.',
                     discussionPoints: [
                         'Consult a qualified healthcare professional for a complete in-person evaluation.',
                         'Monitor for any emerging or worsening sensations.',
@@ -312,12 +340,13 @@ function evaluateSymptomSafety({
                     ]
                 }
             ],
-            recommendedActions: [
-                'If you feel sick, in pain, or concerned, consult a qualified healthcare professional.',
-                'Seek immediate emergency care if any severe warning signs (such as chest pain or breathing difficulty) develop.',
-                'Do not start or change prescription medications without medical consultation.'
-            ]
+            recommendedActions: actions
         };
+    }
+
+    const isGibberishOrEmpty = !text || text.length < 3 || /^(asdf|test|none|nothing|\?+|!+|hello|hi|ok)$/i.test(text);
+    if (isGibberishOrEmpty) {
+        return buildUncertainResult('insufficient');
     }
 
     // Standard, non-emergency symptom information flow (strictly non-diagnostic)
@@ -394,16 +423,9 @@ function evaluateSymptomSafety({
         });
     }
 
-    // Default fallback topic if specific terms did not match recognized patterns
+    // No recognised symptom term: report an uncertain outcome instead of a normal result
     if (generalTopics.length === 0) {
-        generalTopics.push({
-            title: 'General Symptom Information (Multi-Cause Consideration)',
-            description: 'The symptoms you described can be associated with a broad range of potential health conditions. Because many conditions share overlapping symptoms, only a qualified physician can determine the cause through a clinical evaluation.',
-            discussionPoints: [
-                'Prepare a summary of when your symptoms started, how they feel, and what improves or worsens them.',
-                'Share your personal medical history, allergies, and current health status with your doctor.'
-            ]
-        });
+        return buildUncertainResult(/(?![\p{Script=Latin}])\p{L}/u.test(text) ? 'non-english' : 'unmatched');
     }
 
     // Construct supportive, non-prescriptive recommendations
@@ -428,6 +450,7 @@ function evaluateSymptomSafety({
         isEmergency: false,
         emergencyReasons: [],
         isAmbiguous: false,
+        uncertainReason: null,
         missingInformation,
         safetyNotice: 'The information provided here is general and educational. It is not a medical diagnosis.',
         disclaimer,
@@ -619,8 +642,18 @@ if (typeof document !== 'undefined') {
                 const conditionsList = document.getElementById('conditions-list');
                 const recommendationsSection = document.getElementById('recommendations-section');
                 const recommendationsEl = document.getElementById('recommendations');
+                const safetyNoticeEl = document.getElementById('safety-notice');
+                const topicsDesc = document.getElementById('topics-desc');
                 const missingNotice = document.getElementById('missing-info-notice');
                 const missingText = document.getElementById('missing-info-text');
+
+                // Render the plain-language result notice (emergency, uncertain or general)
+                if (safetyNoticeEl) {
+                    safetyNoticeEl.textContent = evaluation.safetyNotice;
+                    safetyNoticeEl.classList.toggle('is-uncertain', evaluation.isAmbiguous);
+                    safetyNoticeEl.classList.toggle('is-emergency', evaluation.isEmergency);
+                    safetyNoticeEl.style.display = 'block';
+                }
 
                 // Render Urgent Emergency Guidance
                 if (evaluation.isEmergency) {
@@ -640,6 +673,13 @@ if (typeof document !== 'undefined') {
                     if (urgentContainer) urgentContainer.style.display = 'none';
                     if (topicsSection) topicsSection.style.display = 'block';
                     if (recommendationsSection) recommendationsSection.style.display = 'block';
+
+                    if (topicsDesc) {
+                        if (!topicsDesc.dataset.defaultText) topicsDesc.dataset.defaultText = topicsDesc.textContent;
+                        topicsDesc.textContent = evaluation.isAmbiguous
+                            ? 'RELIEF could not match your description to a symptom it recognises, so there are no specific topics to show. This is not a sign that nothing is wrong.'
+                            : topicsDesc.dataset.defaultText;
+                    }
 
                     // Render General Educational Topics (strictly non-diagnostic)
                     if (conditionsList) {

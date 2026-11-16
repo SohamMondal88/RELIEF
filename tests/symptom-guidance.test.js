@@ -330,6 +330,93 @@ describe('GitHub Issue #20: Medically Cautious Symptom-Information Guidance', ()
         });
     });
 
+    // Issue #199: text with no recognised symptom term is an uncertain outcome, not a normal result
+    describe('Test 9: Unmatched and non-English text is uncertain, never reassuring', () => {
+        const unmatchedInputs = ['qwertyuiop lkjhg', 'xylophone zebra', 'my knee feels strange'];
+        const nonEnglishInputs = [
+            'মাথা ব্যথা এবং জ্বর',
+            'मुझे सिर दर्द और बुखार है',
+            'எனக்கு காய்ச்சல்',
+            '我头痛发烧'
+        ];
+
+        it('marks text that matches no symptom term as uncertain and says it could not be matched', () => {
+            unmatchedInputs.forEach(val => {
+                const result = evaluateSymptomSafety({ symptomsText: val, duration: '1-3-days', severity: 'mild' });
+                assert.strictEqual(result.isEmergency, false);
+                assert.strictEqual(result.isAmbiguous, true, `"${val}" should be uncertain`);
+                assert.strictEqual(result.uncertainReason, 'unmatched');
+                assert.ok(/could not match/i.test(result.safetyNotice), 'Notice must say the text could not be matched');
+                assert.ok(/does not mean you are safe/i.test(result.safetyNotice), 'Notice must say this is not a sign of safety');
+                assert.ok(/only understands English/i.test(result.safetyNotice), 'Notice must mention the English-only limit');
+                assert.ok(result.missingInformation.some(m => /did not match/i.test(m)), 'Must list the unmatched description as missing information');
+                assert.ok(result.recommendedActions.some(a => /consult.*healthcare/i.test(a)), 'Must recommend professional consultation');
+                assert.ok(!result.generalTopics.some(t => /Multi-Cause/i.test(t.title)), 'Must not use the old generic topic');
+            });
+        });
+
+        it('marks non-English text as uncertain and points to the checklist', () => {
+            nonEnglishInputs.forEach(val => {
+                const result = evaluateSymptomSafety({ symptomsText: val });
+                assert.strictEqual(result.isEmergency, false);
+                assert.strictEqual(result.isAmbiguous, true, `"${val}" should be uncertain`);
+                assert.strictEqual(result.uncertainReason, 'non-english');
+                assert.ok(/only understands English/i.test(result.safetyNotice));
+                assert.ok(/checklist/i.test(result.safetyNotice), 'Must point to the warning-sign checklist');
+                assert.ok(/does not mean you are safe/i.test(result.safetyNotice));
+                assert.ok(result.missingInformation.some(m => /not in English/i.test(m)));
+            });
+        });
+
+        it('keeps the same-day and one-week advice for uncertain results', () => {
+            const result = evaluateSymptomSafety({ symptomsText: 'मुझे चक्कर आ रहे हैं', duration: 'more-than-week', severity: 'severe' });
+            assert.strictEqual(result.isAmbiguous, true);
+            assert.ok(result.recommendedActions.some(a => /more than a week/i.test(a)));
+            assert.ok(result.recommendedActions.some(a => /same-day/i.test(a)));
+        });
+
+        it('does not treat text with a recognised term as uncertain, including mixed scripts', () => {
+            ['mild headache', 'मुझे headache है', 'fever and cough since yesterday'].forEach(val => {
+                const result = evaluateSymptomSafety({ symptomsText: val });
+                assert.strictEqual(result.isAmbiguous, false, `"${val}" has a recognised term`);
+                assert.strictEqual(result.uncertainReason, null);
+            });
+        });
+
+        it('lets an English emergency phrase win over everything else, with or without other scripts', () => {
+            ['chest pain', 'मुझे बहुत chest pain है', 'বুকে ব্যথা but cannot breathe'].forEach(val => {
+                const result = evaluateSymptomSafety({ symptomsText: val });
+                assert.strictEqual(result.isEmergency, true, `"${val}" must be an emergency`);
+                assert.strictEqual(result.isAmbiguous, false);
+                assert.strictEqual(result.uncertainReason, null);
+            });
+        });
+
+        it('still treats a ticked warning sign as an emergency when the text is non-English', () => {
+            const result = evaluateSymptomSafety({ symptomsText: 'मुझे सीने में दर्द है', emergencySigns: ['chest_pain'] });
+            assert.strictEqual(result.isEmergency, true);
+            assert.ok(result.emergencyReasons.some(r => /chest/i.test(r)));
+        });
+
+        it('gives every branch a safetyNotice that mentions what kind of result it is', () => {
+            const emergency = evaluateSymptomSafety({ symptomsText: 'chest pain' });
+            const uncertain = evaluateSymptomSafety({ symptomsText: 'zzzz qqqq' });
+            const general = evaluateSymptomSafety({ symptomsText: 'mild cough' });
+            assert.ok(/POTENTIAL MEDICAL EMERGENCY/.test(emergency.safetyNotice));
+            assert.ok(/does not mean you are safe/.test(uncertain.safetyNotice));
+            assert.ok(/not a medical diagnosis/i.test(general.safetyNotice));
+        });
+
+        it('renders safetyNotice and the English-only note on the page', () => {
+            const html = fs.readFileSync(path.join(__dirname, '..', 'pages', 'symptoms.html'), 'utf8');
+            const js = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'symptoms.js'), 'utf8');
+            assert.ok(/id="safety-notice"[^>]*role="note"/.test(html), 'Page needs a notice element');
+            assert.ok(js.includes('evaluation.safetyNotice'), 'The script must render evaluation.safetyNotice');
+            assert.ok(/id="symptoms-language-note"[^>]*>[^<]*only understands English/i.test(html), 'Note about English-only screening near the text box');
+            assert.ok(/id="symptoms"[^>]*aria-describedby="[^"]*symptoms-language-note/.test(html), 'Text box must be described by the note');
+        });
+    });
+
     // Test 8: Regression
     describe('Test 8: Regression & Navigation Integrity', () => {
         it('verifies tracked medical sources catalog contains required metadata and official sources', () => {
