@@ -56,30 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Smooth scrolling for anchor links
-    function initSmoothScrolling() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth'
-                    });
-                }
-            });
-        });
-    }
-
     // Initialize functions
     animateStats();
     initTeamMemberHover();
-    initSmoothScrolling();
 
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');

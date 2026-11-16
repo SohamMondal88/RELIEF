@@ -78,7 +78,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - `style.css`: Primary global design system, typography, color scheme, navbar, buttons, layout grids, and core media queries.
   - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `onboarding.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
 - **Client-Side Scripts (`assets/js/`)**:
-  - `main.js`: Global site behaviors (mobile navigation toggle, smooth scrolling, and alerts).
+  - `main.js`: Global site behaviors (mobile navigation toggle, in-page link and deep link handling, and alerts).
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
   - `firebase-config.js`: Initializes the Firebase web client using configured project parameters.
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.
