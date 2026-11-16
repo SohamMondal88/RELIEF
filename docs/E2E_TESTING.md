@@ -35,6 +35,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+| `e2e/page-weight.spec.js` | Page weight (Issue #95): far-down pictures on the home page wait for the scroll, the first visit's local pictures stay under 600 KB, late pictures do not shift the layout, the analytics script does not hold up the first paint, and SOS, the direct call link, search and the home links work with every picture blocked. See [PAGE_WEIGHT.md](PAGE_WEIGHT.md) |
 
 ## Network helpers
 
