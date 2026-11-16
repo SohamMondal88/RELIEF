@@ -12,7 +12,7 @@ RELIEF can be installed to a phone or desktop home screen, and the first aid gui
 | `pages/offline.html` | What people see when a page cannot be reached |
 | The css, scripts and locale files those pages load, the logo and favicon | So the saved pages work and can switch language |
 
-Files are fetched from the network first and the saved copy is used only when the network fails, so an online visit always gets the newest files.
+Files are fetched from the network first and the saved copy is used only when the network fails, so an online visit always gets the newest files. A copy made on a visit is written inside the worker's `waitUntil`, so the browser does not stop the worker before it is saved, and a failed write (storage full) never breaks the page.
 
 ## What is never saved
 
@@ -54,6 +54,7 @@ The saved copies are the same public files anyone can download. Nothing about an
 1. Change files as usual. Saved files refresh themselves on the next online visit.
 2. If you **add, remove or rename** a path in `PAGE_PATHS` or `ASSET_PATHS`, bump `CACHE_VERSION` in `sw.js` (`'v5'` to `'v6'`). The new worker saves the new list, then on activate deletes every `relief-static-*` cache with another version. Caches with other names are left alone.
 3. The new worker takes over straight away (`skipWaiting` and `clients.claim`), so the next load uses the new files.
+   Install is all or nothing. Every listed file is fetched with `cache: 'reload'` (so the browser's HTTP cache cannot hand back an old copy) and checked first. Only if all of them arrived are they saved and the worker activated. If any one fails (a 404, a server error, a dropped connection), the install fails: the new worker is thrown away, the old worker and its old cache keep running, and nothing is deleted. The browser tries again on a later visit. On a first visit that fails there is simply no worker yet and the site works online as usual. So every path in the lists is required: do not list a file that may not exist on the deployed site.
 4. A new page can only be added to the list if it holds no account data and is public guidance. Add its local scripts and styles too. `tests/pwa.test.js` fails when a listed page loads a local script or stylesheet that is not saved, and when a private-looking path is listed.
 
 ## Check it yourself
