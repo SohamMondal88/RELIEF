@@ -29,13 +29,20 @@ module.exports = defineConfig({
     contextOptions: { reducedMotion: 'reduce' },
     // Failures keep a trace (open with: npx playwright show-trace <trace.zip>) and a screenshot.
     trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    launchOptions: process.env.RELIEF_CHROMIUM_PATH
-      ? { executablePath: process.env.RELIEF_CHROMIUM_PATH }
-      : {}
+    screenshot: 'only-on-failure'
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Only Chromium: the path would break Firefox and WebKit.
+        launchOptions: process.env.RELIEF_CHROMIUM_PATH ? { executablePath: process.env.RELIEF_CHROMIUM_PATH } : {}
+      }
+    },
+    // Firefox and WebKit only run the smoke subset tagged @compat (e2e/browser-compat.spec.js). See docs/E2E_TESTING.md.
+    { name: 'firefox', grep: /@compat/, use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', grep: /@compat/, use: { ...devices['Desktop Safari'] } }
   ],
   webServer: externalBase
     ? undefined

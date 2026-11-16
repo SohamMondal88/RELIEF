@@ -5,8 +5,10 @@
   "description": "RELIEF static site. This file only holds test scripts, there is no build step.",
   "scripts": {
     "test": "node --test",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
     "test:e2e:install": "playwright install --with-deps chromium",
+    "test:e2e:compat": "playwright test --project=firefox --project=webkit",
+    "test:e2e:compat:install": "playwright install --with-deps firefox webkit",
     "smoke:deploy": "node .github/scripts/deploy-smoke-check.js"
   },
   "devDependencies": {
