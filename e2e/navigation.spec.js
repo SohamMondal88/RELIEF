@@ -36,9 +36,9 @@ test.describe('landing page and primary navigation', () => {
       await openServices(page);
     });
 
-    // Real bug found while writing these tests: at 1280px the logo image sits on top of the Services link
-    // (logo spans x 555 to 725, the link x 548 to 669), so the mouse cannot reach the menu.
-    test.fixme('leads to the hospitals page at 1280px', async ({ page }) => {
+    // At 1280px the logo image used to sit on top of the Services link, so the mouse could not reach the menu.
+    // The shared header (Issue #104) gives the menu more room, so this runs now.
+    test('leads to the hospitals page at 1280px', async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 720 });
       await openServices(page);
     });

@@ -1,0 +1,277 @@
+/*
+ * Shared header and footer (Issue #104).
+ * Loaded last by every page that uses the layout/*.tpl partials (see docs/SHARED_LAYOUT.md), so it can
+ * settle what the per-page stylesheets disagree about: the Emergency link, the current-page mark and
+ * the menu that collapses into the hamburger button. That menu is styled only at 1279px and below,
+ * the same width as RELIEF_MOBILE_NAV_MAX in assets/js/main.js. Keep the two numbers equal.
+ */
+
+/* Emergency link: the first item of the account side of the header, a red pill on every page. */
+.navbar .nav-links a.nav-emergency,
+.topbar nav a.nav-emergency {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #b91c1c;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.navbar .nav-links a.nav-emergency:hover,
+.topbar nav a.nav-emergency:hover {
+    background: #991b1b;
+    color: #fff;
+    text-decoration: underline;
+}
+
+.navbar .nav-links a.nav-emergency:focus-visible,
+.topbar nav a.nav-emergency:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+/* The page you are on. Underline as well as colour, so it does not rely on colour alone. */
+.navbar .nav-links a[aria-current="page"]:not(.btn-login):not(.btn-signup):not(.nav-emergency),
+.navbar .dropdown:has([aria-current="page"]) > .dropdown-toggle,
+.topbar nav a[aria-current="page"]:not(.nav-emergency) {
+    color: #0b4fc4;
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+}
+
+/* Filled buttons keep their own colours, so the current one gets a ring instead. */
+.navbar .nav-links a.btn-login[aria-current="page"],
+.navbar .nav-links a.btn-signup[aria-current="page"],
+.navbar .nav-links a.nav-emergency[aria-current="page"],
+.topbar nav a.nav-emergency[aria-current="page"] {
+    outline: 3px solid #0b4fc4;
+    outline-offset: 2px;
+    text-decoration: none;
+}
+
+.navbar a:focus-visible,
+.navbar button:focus-visible,
+.topbar a:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+/* One more item on the right side needs the room that the logo's overlap would otherwise take. */
+@media (min-width: 1280px) {
+    .navbar .container {
+        max-width: 100%;
+    }
+
+    .navbar .navbar-right .nav-links li {
+        margin: 0 3px;
+    }
+
+    .navbar .navbar-right .btn-login,
+    .navbar .navbar-right .btn-signup {
+        margin-right: 0;
+    }
+
+    .navbar .nav-links a.nav-emergency {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .navbar .nav-links li:has(> a.nav-emergency) {
+        margin: 0 4px;
+    }
+
+    .navbar .nav-links a {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 1279px) {
+    /* The phone menu: one panel from the right edge. Closed, it is invisible and out of the tab order. */
+    .navbar .nav-links {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: auto;
+        left: auto;
+        width: min(320px, 86vw);
+        height: auto;
+        max-height: 100vh;
+        overflow-y: auto;
+        margin: 0;
+        padding: 96px 20px 16px;
+        background: #fff;
+        box-shadow: -6px 0 18px rgba(0, 0, 0, 0.2);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        transform: translateX(110%);
+        visibility: hidden;
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+        z-index: 1100;
+    }
+
+    .navbar .nav-links.active {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease;
+    }
+
+    /* Two lists share the panel: the page links from the top, the account links pinned to the bottom,
+       clear of the floating Emergency SOS button. */
+    .navbar .navbar-left .nav-links {
+        bottom: 0;
+        padding-bottom: 340px;
+    }
+
+    .navbar .navbar-right .nav-links {
+        top: auto;
+        bottom: 0;
+        padding: 16px 20px 84px;
+        box-shadow: none;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .navbar .nav-links li {
+        margin: 0;
+        display: block;
+    }
+
+    .navbar .nav-links a,
+    .navbar .nav-links button {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .navbar .dropdown-menu {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        box-shadow: none;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding: 0 0 0 16px;
+        min-width: 0;
+        display: none;
+    }
+
+    .navbar .dropdown.active .dropdown-menu {
+        display: block;
+    }
+
+    /* The three bars, 44px to tap. */
+    .navbar .hamburger {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 44px;
+        height: 44px;
+        padding: 0 9px;
+        margin: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 1200;
+    }
+
+    .navbar .hamburger span {
+        display: block;
+        height: 3px;
+        border-radius: 3px;
+        background: #1f2937;
+    }
+
+    /* Open, the button is the panel's close button, always in the same corner. */
+    .navbar .hamburger.active {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+    }
+
+    .navbar .hamburger.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .navbar .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .navbar .hamburger.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+}
+
+/* A phone held sideways has no room for one tall panel: two columns instead. */
+@media (max-width: 1279px) and (max-height: 560px) {
+    .navbar .nav-links {
+        width: min(260px, 45vw);
+        padding-top: 20px;
+    }
+
+    .navbar .navbar-left .nav-links {
+        right: 0;
+        bottom: 0;
+        padding-bottom: 20px;
+    }
+
+    .navbar .navbar-right .nav-links {
+        top: 0;
+        bottom: 0;
+        right: min(260px, 45vw);
+        padding-bottom: 84px;
+        border-top: 0;
+        box-shadow: -6px 0 18px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar .nav-links,
+    .navbar .nav-links.active {
+        transition: none;
+    }
+}
+
+/* The small footer of the pages built on professional-pages.css. */
+.footer .footer-disclaimer {
+    margin: 0 0 8px;
+}
+
+.footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-bottom: 8px;
+}
+
+.footer nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+.page-note {
+    margin: 24px 0 0;
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+/* professional-pages.css sets `padding: 14px 0` and `18px 0` after `.wrap`, which removes the side padding on a phone. */
+.topbar .wrap.nav {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.footer.wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+}

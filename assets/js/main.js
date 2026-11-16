@@ -234,6 +234,9 @@ if (typeof document !== 'undefined') {
 });
 }
 
+// The menu collapses into the hamburger button at this width and below (assets/css/shared-layout.css uses the same number).
+const RELIEF_MOBILE_NAV_MAX = 1279;
+
 function initMobileNavigation(doc = (typeof document !== 'undefined' ? document : null)) {
     if (!doc) return false;
     const hamburger = doc.querySelector ? doc.querySelector('.hamburger') : null;
@@ -269,6 +272,25 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         hamburger.classList.toggle('active', willExpand);
         hamburger.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
         navLinksList.forEach(nav => nav.classList && nav.classList.toggle('active', willExpand));
+
+        // The menu comes before the button in the page, so without this a keyboard user who opens it would
+        // Tab away from it. Focus goes to its first link, and Escape brings it back to the button.
+        if (willExpand && targetNav && typeof targetNav.querySelector === 'function') {
+            const firstLink = targetNav.querySelector('a, button');
+            if (firstLink && typeof firstLink.focus === 'function') {
+                firstLink.focus();
+                // A browser can refuse focus for a few milliseconds while the menu becomes visible, so try once more.
+                // Only if the person has not moved on by then (focus still on the button or nowhere), so a quick Tab
+                // or a click into the menu is never pulled back to the first link.
+                if (doc.activeElement !== undefined && doc.activeElement !== firstLink && typeof setTimeout === 'function') {
+                    setTimeout(function() {
+                        const active = doc.activeElement;
+                        const stillWaiting = !active || active === hamburger || active === doc.body;
+                        if (hamburger.getAttribute('aria-expanded') === 'true' && stillWaiting) firstLink.focus();
+                    }, 80);
+                }
+            }
+        }
     };
 
     hamburger.addEventListener('click', function(e) {
@@ -303,7 +325,7 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
     if (doc.querySelectorAll) {
         doc.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', function() {
-                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                if (typeof window !== 'undefined' && window.innerWidth <= RELIEF_MOBILE_NAV_MAX) {
                     closeMobileMenu();
                 }
             });
@@ -313,7 +335,7 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         const dropdownToggles = doc.querySelectorAll('.dropdown-toggle');
         dropdownToggles.forEach(toggle => {
             toggle.addEventListener('click', function(e) {
-                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                if (typeof window !== 'undefined' && window.innerWidth <= RELIEF_MOBILE_NAV_MAX) {
                     if (e && e.preventDefault) e.preventDefault();
                     const dropdown = this.closest ? this.closest('.dropdown') : null;
                     if (dropdown) {

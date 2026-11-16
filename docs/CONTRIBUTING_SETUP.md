@@ -142,6 +142,8 @@ Remove-Item Env:E2E_BASE_URL
 
 For one spec, use `npm run test:e2e -- e2e/firstaid-offline.spec.js`. Use `npm run test:e2e -- --list` to check discovery without launching Chromium. The fixtures mock permissions and external services; do not grant real geolocation or notification access to make tests pass.
 
+If you change the header or footer of a page, edit the template in `layout/` and run `node scripts/shared-layout.js` instead of editing the page (see `docs/SHARED_LAYOUT.md`); `node scripts/shared-layout.js --check` shows what is out of date.
+
 Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that is your Python 3 command), the README's JavaScript syntax checks, and `git diff --check`. These complement browser tests; passing a link checker does not establish that a user flow works.
 
 ### Setup troubleshooting

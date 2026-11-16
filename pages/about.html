@@ -16,6 +16,9 @@
     
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
+<!-- shared-layout:head begin site | generated from layout/head.tpl, edit that file and run: node scripts/shared-layout.js -->
+<link rel="stylesheet" href="../assets/css/shared-layout.css">
+<!-- shared-layout:head end -->
 </head>
 <body>
     <!-- Main Content -->
@@ -26,12 +29,13 @@
             <p data-i18n="nav.quote">"When hospitals are hours away, Relief brings the doctor to you."</p>
         </div>
 
+    <!-- shared-layout:header begin site | generated from layout/site-header.tpl, edit that file and run: node scripts/shared-layout.js -->
     <nav class="navbar" aria-label="Main navigation">
         <div class="container">
             <div class="navbar-left">
                 <ul class="nav-links" id="main-nav-links">
                     <li><a href="../index.html" data-i18n="nav.home">Home</a></li>
-                    <li><a href="../pages/about.html" data-i18n="nav.about">About Us</a></li>
+                    <li><a aria-current="page" href="../pages/about.html" data-i18n="nav.about">About Us</a></li>
                     <li><a href="../pages/contact.html" data-i18n="nav.contact">Contact</a></li>
                     <li class="dropdown"><a href="#" class="dropdown-toggle" aria-expanded="false"><span data-i18n="nav.services">Services</span> <i class="fas fa-chevron-down" aria-hidden="true"></i></a>
                         <ul class="dropdown-menu">
@@ -39,7 +43,9 @@
                             <li><a href="../pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a></li>
                             <li><a href="../pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a></li>
                             <li><a href="../pages/pharmacies.html" data-i18n="nav.pharmacies">Pharmacies</a></li>
-                            <li><a href="../pages/ambulances.html" data-i18n="nav.ambulances">Ambulances</a></li></ul>
+                            <li><a href="../pages/health-events.html">Health camps &amp; events</a></li>
+                            <li><a href="../pages/ambulances.html" data-i18n="nav.ambulances">Ambulances</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -52,11 +58,12 @@
 
             <div class="navbar-right">
                 <ul class="nav-links">
+                    <li><a href="../pages/ambulances.html" class="nav-emergency" data-i18n="nav.emergency">Emergency</a></li>
                     <li><a href="../pages/login.html" class="btn-login" data-i18n="nav.login">Login</a></li>
                     <li><a href="../pages/signup.html" class="btn-signup" data-i18n="nav.signup">Sign Up</a></li>
                 </ul>
 
-                <button class="hamburger" aria-label="Mobile menu" data-i18n-attr="aria-label:nav.menu" aria-expanded="false" aria-controls="main-nav-links">
+                <button type="button" class="hamburger" aria-label="Mobile menu" data-i18n-attr="aria-label:nav.menu" aria-expanded="false" aria-controls="main-nav-links">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -64,6 +71,7 @@
             </div>
         </div>
     </nav>
+    <!-- shared-layout:header end -->
     </div>
 
     <main id="main-content" tabindex="-1">
@@ -325,6 +333,7 @@
     </main>
 
     <!-- Footer -->
+    <!-- shared-layout:footer begin site | generated from layout/site-footer.tpl, edit that file and run: node scripts/shared-layout.js -->
     <footer class="footer" aria-label="Footer">
         <div class="container">
             <div class="footer-grid">
@@ -343,11 +352,12 @@
                 <div class="footer-section links">
                     <h3 data-i18n="footer.links.title">Quick Links</h3>
                     <ul>
-                        <li><a href="../pages/home.html" data-i18n="footer.home">Home</a></li>
+                        <li><a href="../index.html" data-i18n="footer.home">Home</a></li>
                         <li><a href="../pages/symptoms.html" data-i18n="footer.symptoms">Symptom Checker</a></li>
                         <li><a href="../pages/doctors.html" data-i18n="footer.doctors">Find Doctors</a></li>
                         <li><a href="../pages/hospitals.html" data-i18n="footer.hospitals">Find Hospitals</a></li>
                         <li><a href="../pages/pharmacies.html" data-i18n="footer.pharmacies">Find Pharmacies</a></li>
+                        <li><a href="../pages/health-events.html">Health Camps &amp; Events</a></li>
                         <li><a href="../pages/ambulances.html" data-i18n="footer.emergency">Emergency Services</a></li>
                     </ul>
                 </div>
@@ -355,7 +365,7 @@
                 <div class="footer-section links">
                     <h3 data-i18n="footer.company.title">Company</h3>
                     <ul>
-                        <li><a href="../pages/about.html" data-i18n="footer.about">About Us</a></li>
+                        <li><a aria-current="page" href="../pages/about.html" data-i18n="footer.about">About Us</a></li>
                         <li><a href="../pages/team.html" data-i18n="footer.team">Our Team</a></li>
                         <li><a href="../pages/careers.html" data-i18n="footer.careers">Careers</a></li>
                         <li><a href="../pages/blog.html" data-i18n="footer.blog">Blog</a></li>
@@ -377,10 +387,10 @@
 
             <div class="footer-bottom">
                 <div class="footer-legal">
-                    <p>&copy; 2025 Relief. <span data-i18n="footer.rights">All rights reserved.</span></p>
+                    <p>&copy; 2026 Relief. <span data-i18n="footer.rights">All rights reserved.</span></p>
                     <div class="legal-links">
                         <a href="../pages/privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
-                        <a href="accessibility.html">Accessibility</a>
+                        <a href="../pages/accessibility.html">Accessibility</a>
                         <a href="../pages/terms-of-service.html" data-i18n="footer.terms">Terms of Service</a>
                         <a href="../pages/cookie-policy.html" data-i18n="footer.cookies">Cookie Policy</a>
                     </div>
@@ -393,6 +403,7 @@
             </div>
         </div>
     </footer>
+    <!-- shared-layout:footer end -->
 
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
