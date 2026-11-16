@@ -148,6 +148,35 @@ test('preserveUnreadable keeps damaged text, leaves healthy and missing values a
   assert.strictEqual(S.preserveUnreadable(full, 'bad', Array.isArray).kept, false);
 });
 
+test('a timeline list with one unusable row: the good rows load, the dropped one is counted and the original is kept', () => {
+  const rows = [
+    { date: '2026-02-01', event: 'Symptom check completed', status: 'Advised rest' },
+    null,
+    { date: '2026-02-03', event: 'Appointment booked', status: 'Dr. B. Rao' }
+  ];
+  const raw = JSON.stringify(rows);
+  const storage = memoryStorage({ relief_history_v1: raw });
+  // the same steps dashboard.js takes before its first save
+  const read = S.preserveUnreadable(storage, 'relief_history_v1', Array.isArray);
+  assert.strictEqual(read.status, 'ok', 'the outer value is a list, so it is not "unreadable"');
+  const history = R.loadHistory(storage, 'relief_history_v1', []);
+  assert.strictEqual(history.length, 2);
+  assert.strictEqual(read.value.length - history.length, 1, 'one dropped row is detected');
+  assert.strictEqual(S.keepUnreadable(storage, 'relief_history_v1', read.raw), true);
+  assert.strictEqual(storage.data.get('relief_history_v1' + S.BACKUP_SUFFIX), raw);
+  // a fully usable list drops nothing
+  const clean = memoryStorage({ relief_history_v1: JSON.stringify([rows[0], rows[2]]) });
+  const cleanRead = S.preserveUnreadable(clean, 'relief_history_v1', Array.isArray);
+  assert.strictEqual(cleanRead.value.length, R.loadHistory(clean, 'relief_history_v1', []).length);
+});
+
+test('dashboard.js compares the loaded timeline with what was saved and keeps the original before saving', () => {
+  const dashboard = code('assets/js/dashboard.js');
+  assert.match(dashboard, /historyRead\.status === 'ok' && history\.length < historyRead\.value\.length/);
+  assert.match(dashboard, /S\.keepUnreadable\(store, historyKey, historyRead\.raw\)/);
+  assert.match(dashboard, /storageProblems\.partialHistory/);
+});
+
 test('"Delete my data" removes the kept copies too', () => {
   const P = require('../assets/js/privacy-data.js');
   const storage = memoryStorage({ relief_reminders_v1: '[]' });

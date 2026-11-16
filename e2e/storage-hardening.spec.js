@@ -145,6 +145,24 @@ test.describe('damaged saved data', () => {
     expect(await stored(page, REMINDERS + BACKUP)).toBe(raw);
   });
 
+  test('a timeline with one unusable entry keeps the good ones, says so and keeps the original', async ({ page }) => {
+    const raw = JSON.stringify([
+      { date: '2026-02-01', event: 'Symptom check completed', status: 'Advised rest' },
+      null,
+      { date: '2026-02-03', event: 'Appointment booked', status: 'Dr. B. Rao' }
+    ]);
+    await seed(page, { [HISTORY]: raw });
+    await page.goto('/pages/dashboard.html');
+
+    await expect(page.locator('#timeline')).toContainText('Symptom check completed');
+    await expect(page.locator('#timeline')).toContainText('Appointment booked');
+    await expect(notice(page)).toContainText('1 saved timeline entry could not be read');
+    await expect(notice(page)).toContainText('not deleted');
+    expect(await stored(page, HISTORY + BACKUP)).toBe(raw);
+    // The good rows are what gets saved over the main key.
+    expect(JSON.parse(await stored(page, HISTORY))).toHaveLength(2);
+  });
+
   test('healthy saved data shows no notice and no copy is made', async ({ page }) => {
     const good = { id: 'r1', medicine: 'Metformin', time: '21:30', scheduleMode: 'local', status: 'active', createdAt: 1 };
     await seed(page, { [REMINDERS]: JSON.stringify([good]) });

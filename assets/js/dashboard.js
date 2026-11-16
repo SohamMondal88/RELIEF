@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const S = window.ReliefSafeStorage;
     const store = S.getStorage(window);
     const storageNotice = document.getElementById('storage-notice');
-    const storageProblems = { blocked: !store, unreadable: [], partial: 0, notKept: false, saveFailed: false };
+    const storageProblems = { blocked: !store, unreadable: [], partial: 0, partialHistory: 0, notKept: false, saveFailed: false };
 
     // A damaged saved value is copied aside before anything is saved over it, so it is not lost.
     const remindersRead = S.preserveUnreadable(store, remindersKey, Array.isArray);
@@ -59,6 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sampleHistory = [{ date: '2026-01-02', event: 'Symptom check completed', status: 'Advised doctor consult' }, { date: '2026-01-04', event: 'Appointment booked', status: 'Dr. A. Sen - 10:30 AM' }];
     // Broken or oversized stored data must not stop the rest of the page from loading.
     const history = R ? R.loadHistory(store, historyKey, sampleHistory) : sampleHistory;
+    // Same for timeline rows that were dropped (a null, a string, a row beyond the size limit): the
+    // good rows stay, the original text is copied aside before the first save replaces it.
+    if (R && historyRead.status === 'ok' && history.length < historyRead.value.length) {
+        storageProblems.partialHistory = historyRead.value.length - history.length;
+        if (!S.keepUnreadable(store, historyKey, historyRead.raw)) storageProblems.notKept = true;
+    }
 
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
 
@@ -125,6 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
             lines.push(storageProblems.partial + ' saved reminder' + (storageProblems.partial === 1 ? '' : 's') + ' could not be read and ' +
                 (storageProblems.partial === 1 ? 'is' : 'are') + ' not shown. ' +
                 (storageProblems.notKept ? 'A copy could not be kept.' : 'The original list was kept in this browser and is not deleted.'));
+        }
+        if (storageProblems.partialHistory) {
+            lines.push(storageProblems.partialHistory + ' saved timeline entr' + (storageProblems.partialHistory === 1 ? 'y' : 'ies') + ' could not be read and ' +
+                (storageProblems.partialHistory === 1 ? 'is' : 'are') + ' not shown. ' +
+                (storageProblems.notKept ? 'A copy could not be kept.' : 'The original timeline was kept in this browser and is not deleted.'));
         }
         storageNotice.textContent = '';
         lines.forEach((line) => {
