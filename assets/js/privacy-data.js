@@ -158,6 +158,14 @@
       retention: 'Until you delete your data. The tour shows again afterwards.'
     },
     {
+      key: 'relief_low_bandwidth',
+      label: 'Low-data mode',
+      category: 'preferences',
+      personal: false,
+      holds: 'Whether you turned low-data mode on or off (on or off).',
+      retention: 'Until you delete your data.'
+    },
+    {
       key: 'relief_lang',
       label: 'Language choice',
       category: 'preferences',

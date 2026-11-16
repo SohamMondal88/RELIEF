@@ -34,6 +34,7 @@ All of it is `localStorage` for the site's origin. It stays on this device and b
 | `relief_health_event_submissions` | Times and a fingerprint (title, start time, district) of events you submitted | Stops duplicate and repeated event submissions | Entries older than 7 days dropped, newest 50 kept | No |
 | `relief_notification_prefs_v1` | Two yes/no choices: browser notifications on or off, and whether they may show medicine names | Respects your notification choices on the dashboard | Until you delete your data | No |
 | `relief_onboarding_status` | Whether you finished or skipped the first-visit tour, and when | Does not show the tour again | Until you delete your data | No |
+| `relief_low_bandwidth` | Whether you turned low-data mode on or off | Remembers your low-data choice on the next visit (see `LOW_BANDWIDTH.md`) | Until you delete your data | No |
 | `relief_lang` | Language code (`en` or `bn`) | Remembers your language | Until you delete your data | No |
 | `relief_last_online_sync` | A timestamp | Offline banner says when the saved copy was refreshed | Overwritten on every online page load | No |
 | `relief_formguard_contact` | Timestamps of recent contact attempts, no form content | Slows down repeated submissions (see `FORM_PROTECTION.md`) | Entries older than the limit window (1 to 10 minutes) are ignored and removed | No |

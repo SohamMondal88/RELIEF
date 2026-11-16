@@ -1,0 +1,85 @@
+/* Low-data mode (Issue #50). Everything outside the bar is scoped to html.relief-lite, so with the mode off
+   this file changes nothing except the small bar. See docs/LOW_BANDWIDTH.md. */
+
+.relief-lite-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 16px;
+    background: #eef2f8;
+    border-bottom: 1px solid #cfd7e4;
+    color: #1f2937;
+    font: 0.9rem/1.4 Arial, sans-serif;
+}
+
+.relief-lite-text {
+    margin: 0;
+    flex: 1 1 260px;
+}
+
+.relief-lite-note {
+    margin: 0;
+    flex-basis: 100%;
+}
+
+.relief-lite-note:empty {
+    display: none;
+}
+
+.relief-lite-btn {
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid #0b57d0;
+    border-radius: 8px;
+    background: #0b57d0;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.relief-lite-btn--quiet {
+    background: #fff;
+    color: #0b57d0;
+}
+
+/* No animation or transition, and no smooth scrolling. */
+html.relief-lite *,
+html.relief-lite *::before,
+html.relief-lite *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+
+/* Skip the landing splash (about 3 seconds, and the heaviest picture on the site). */
+html.relief-lite .splash-screen {
+    display: none !important;
+}
+
+html.relief-lite .main-content {
+    display: block !important;
+}
+
+html.relief-lite .loader-ambulance {
+    display: none !important;
+    background-image: none !important;
+}
+
+/* Decorative pictures: the hero and video photos, partner logos, app screenshots, store badges, footer badges
+   and testimonial photos. The brand logo stays, and so does every map picture (class contains "leaflet"),
+   including the ones inside .main-content. Text, buttons and links are never hidden. */
+html.relief-lite main img:not([class*="leaflet"]),
+html.relief-lite .main-content img:not([class*="leaflet"]),
+html.relief-lite footer img:not([class*="leaflet"]),
+html.relief-lite .splash-screen img:not([class*="leaflet"]) {
+    display: none !important;
+}
+
+/* The brand logo stays, and so do the map tiles and markers (a map is a feature, not decoration).
+   The :not() matches the hiding rules above in weight, and this rule comes later, so it wins. */
+html.relief-lite .logo img:not([class*="leaflet"]),
+html.relief-lite .brand img:not([class*="leaflet"]) {
+    display: inline-block !important;
+}
