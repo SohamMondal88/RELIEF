@@ -61,6 +61,26 @@ test('a list that already holds the same facility twice shows it once, keeping t
   assert.strictEqual(result.dropped, 2);
 });
 
+test('ids that match built-in object names (constructor, toString, __proto__) are kept, saved and removed like any other', () => {
+  const store = makeStore();
+  for (const id of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    const saved = S.toggle(store, { id, name: 'Facility ' + id }, NOW);
+    assert.deepStrictEqual([saved.ok, saved.saved], [true, true], id);
+    const listed = S.read(store);
+    assert.ok(listed.items.some((i) => i.id === id), id + ' should be listed after saving');
+    assert.strictEqual(listed.dropped, 0, id);
+  }
+  assert.strictEqual(S.read(store).items.length, 4);
+  const removed = S.toggle(store, { id: 'constructor', name: 'Facility constructor' }, NOW);
+  assert.deepStrictEqual([removed.ok, removed.saved], [true, false]);
+  assert.deepStrictEqual(S.read(store).items.map((i) => i.id), ['toString', '__proto__', 'hasOwnProperty']);
+});
+
+test('reconcile: a saved id like "constructor" that the directory does not have is missing, not listed', () => {
+  const rows = S.reconcile([{ id: 'constructor', name: 'Gone' }, { id: 'toString', name: 'Here' }], [{ id: 'toString', name: 'Here' }]);
+  assert.deepStrictEqual(rows.map((r) => r.status), ['missing', 'listed']);
+});
+
 test('toggle on a list with a repeat removes every copy of that facility', () => {
   const store = makeStore({ [S.KEY]: JSON.stringify([{ id: 'x1', name: 'One' }, { id: 'x1', name: 'One again' }, { id: 'x2', name: 'Two' }]) });
   assert.strictEqual(S.toggle(store, { id: 'x1', name: 'One' }).saved, false);

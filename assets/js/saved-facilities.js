@@ -91,7 +91,8 @@
       return { items: [], dropped: 0, unreadable: true, unavailable: false };
     }
     if (!Array.isArray(parsed)) return { items: [], dropped: 0, unreadable: true, unavailable: false };
-    var seen = {};
+    // no prototype, so ids like "constructor" or "toString" are not mistaken for repeats
+    var seen = Object.create(null);
     var items = [];
     var dropped = 0;
     parsed.forEach(function (raw) {
@@ -155,7 +156,7 @@
   function reconcile(items, directory) {
     var byId = null;
     if (Array.isArray(directory)) {
-      byId = {};
+      byId = Object.create(null);
       directory.forEach(function (f) { if (f && f.id != null) byId[String(f.id)] = f; });
     }
     return items.map(function (item) {
