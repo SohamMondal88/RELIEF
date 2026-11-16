@@ -90,6 +90,31 @@ test.describe('clear data stored in this browser', () => {
     expect(await keys(page)).toEqual(expect.arrayContaining(['userLocation', 'theme']));
   });
 
+  test('a second dashboard tab drops its reminders when this tab clears, and does not save them back', async ({ page }) => {
+    const other = await page.context().newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(other.locator('.reminder-item')).toContainText('Vitamin D');
+
+    await page.getByRole('button', { name: 'Clear data stored in this browser' }).click();
+    await page.getByRole('button', { name: 'Yes, clear this data' }).click();
+    await expect(page.locator('#privacy-status')).toContainText('Data stored in this browser was cleared');
+
+    // The other tab learns about it without a reload and says so.
+    await expect(other.locator('#reminder-list')).toContainText('No reminders yet.');
+    await expect(other.locator('#kpi-reminders')).toHaveText('0');
+    await expect(other.locator('#privacy-status')).toContainText('cleared in another tab');
+
+    // A save from the other tab (adding a reminder) starts from empty, not from the old list.
+    await other.getByLabel('Medicine or label').fill('Iron');
+    await other.getByLabel('Time (every day)').fill('09:30');
+    await other.getByRole('button', { name: 'Save Reminder' }).click();
+    await expect(other.locator('.reminder-item')).toHaveCount(1);
+    const saved = await page.evaluate(() => localStorage.getItem('relief_reminders_v1') || '');
+    expect(saved).toContain('Iron');
+    expect(saved).not.toContain('Vitamin D');
+    await other.close();
+  });
+
   test('the full account deletion is still its own control with its own confirmation', async ({ page }) => {
     await page.getByRole('button', { name: 'Delete my account and data' }).click();
     await expect(page.locator('#privacy-confirm')).toBeVisible();

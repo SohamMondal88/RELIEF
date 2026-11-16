@@ -241,6 +241,22 @@
     return null;
   }
 
+  /**
+   * False when the browser will not let the page read storage at all (blocked or disabled), as opposed
+   * to storage that works and is simply empty. The key lookups below swallow read errors, so without
+   * this check a blocked storage looks like "nothing stored" and the page would say there is nothing to clear.
+   */
+  function isStorageReadable(storage) {
+    var store = storage === undefined ? getDefaultStorage() : storage;
+    if (!store) return false;
+    try {
+      store.getItem(INVENTORY[0].key);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function readItem(storage, key) {
     try {
       return storage.getItem(key);
@@ -284,7 +300,7 @@
    */
   function deleteLocalData(storage) {
     var store = storage === undefined ? getDefaultStorage() : storage;
-    if (!store) {
+    if (!store || !isStorageReadable(store)) {
       return { state: 'unavailable', found: [], removed: [], failed: [], remaining: [] };
     }
 
@@ -302,6 +318,22 @@
 
     var state = failed.length ? 'partial' : (found.length ? 'deleted' : 'nothing');
     return { state: state, found: found, removed: removed, failed: failed, remaining: findStoredKeys(store) };
+  }
+
+  // The two keys the dashboard keeps a copy of in memory. A removal of either in another tab means the
+  // data was cleared there (a logout removes the session key, which must not count).
+  var DASHBOARD_KEYS = ['relief_reminders_v1', 'relief_history_v1'];
+
+  /**
+   * True for a `storage` event that says the dashboard's saved data was removed by another tab:
+   * a removal of the reminders or timeline key, or storage.clear() (key is null). The browser only
+   * sends this event to the other tabs, never to the one that made the change.
+   */
+  function isDashboardDataRemoval(event, storage) {
+    if (!event || event.newValue !== null) return false;
+    var store = storage === undefined ? getDefaultStorage() : storage;
+    if (event.storageArea && store && event.storageArea !== store) return false;
+    return event.key === null || DASHBOARD_KEYS.indexOf(event.key) !== -1;
   }
 
   function withTimeout(promise, ms) {
@@ -455,6 +487,9 @@
     return { status: status, local: local, server: { state: 'not-contacted', message: SERVER_MESSAGES['not-contacted'] } };
   }
 
+  // Shown when storage cannot be read, so the page cannot list or remove anything itself.
+  var MANUAL_CLEAR_NOTE = 'RELIEF cannot see what is stored because this browser is blocking storage for this site. If anything was saved earlier, remove it yourself: open your browser settings, find this site under cookies and site data, and clear its data.';
+
   /** Text for the page after clearLocalData(): { tone, headline, lines }. */
   function describeClearResult(result) {
     var local = result.local;
@@ -466,6 +501,7 @@
       headline = 'Nothing was cleared.';
       tone = 'error';
       lines.push('Browser storage is not available or is blocked, so RELIEF could not remove its data from this browser.');
+      lines.push(MANUAL_CLEAR_NOTE);
     } else if (result.status === 'partial') {
       headline = 'Some data could not be cleared.';
       tone = 'error';
@@ -496,6 +532,9 @@
     isReliefKey: isReliefKey,
     listStorageKeys: listStorageKeys,
     findStoredKeys: findStoredKeys,
+    isStorageReadable: isStorageReadable,
+    isDashboardDataRemoval: isDashboardDataRemoval,
+    MANUAL_CLEAR_NOTE: MANUAL_CLEAR_NOTE,
     describeStored: describeStored,
     deleteLocalData: deleteLocalData,
     countOtherKeys: countOtherKeys,
