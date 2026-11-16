@@ -41,7 +41,8 @@ test.describe('offline', () => {
     await waitForWorker(page, '/pages/firstaid.html');
     await context.setOffline(true);
     await page.goto('/pages/symptoms.html');
-    await expect(page).toHaveURL(/\/pages\/offline\.html$/);
+    // The offline page is shown at the address that was asked for, there is no redirect to pages/offline.html.
+    await expect(page).toHaveURL(/\/pages\/symptoms\.html$/);
     await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
     await expect(page.getByRole('link', { name: '112' })).toHaveAttribute('href', 'tel:112');
     await page.getByRole('link', { name: 'First aid guides' }).click();
@@ -66,7 +67,8 @@ test.describe('offline', () => {
       await context.setOffline(false);
       await context.setOffline(true);
       await page.goto(target);
-      await expect(page).toHaveURL(/\/pages\/offline\.html$/);
+      await expect(page).toHaveURL(new RegExp(target.replace('.', '\\.') + '$'));
+      await expect(page.getByRole('heading', { name: 'You are offline' })).toBeVisible();
     }
   });
 });

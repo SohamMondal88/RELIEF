@@ -10,6 +10,11 @@
  * Accounts, dashboard, login, firebase and api calls are never stored.
  * Any other page that cannot be reached shows pages/offline.html instead of the
  * browser error. That page is not a copy of the missing page, nothing is saved.
+ *
+ * Vercel runs with cleanUrls, so /pages/firstaid.html answers 308 to /pages/firstaid.
+ * Both addresses are the same saved page. The saved copies are always keyed by the
+ * .html path, and a copy that was stored after a redirect is handed out as a plain
+ * response, because the browser refuses to show a redirected response for a navigation.
  */
 const CACHE_VERSION = 'v6';
 const CACHE_PREFIX = 'relief-static-';
@@ -59,9 +64,42 @@ const PAGE_URLS = new Set(PAGE_PATHS.map(toUrl));
 const ASSET_URLS = new Set(ASSET_PATHS.map(toUrl));
 const OFFLINE_URL = toUrl(OFFLINE_PATH);
 
-// Sends a page that cannot be loaded to the offline page (a redirect, so its links resolve correctly).
-function offlinePage() {
-  return Response.redirect(OFFLINE_URL, 302);
+// The key a request is saved under: the .html address, whether the page was asked for as
+// /pages/firstaid.html or as /pages/firstaid. Anything that is not a saved page gives null.
+function savedPageKey(key) {
+  if (PAGE_URLS.has(key)) return key;
+  return PAGE_URLS.has(key + '.html') ? key + '.html' : null;
+}
+
+// A page the server redirected (the .html address to the clean one) is stored with redirected = true, and
+// Chrome and Safari fail a navigation that is answered with such a response. Same status, headers and body, flag cleared.
+function plain(response) {
+  if (!response.redirected) return response;
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers: response.headers });
+}
+
+function offlineText() {
+  return new Response('You are offline.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+}
+
+// A page that cannot be loaded shows the saved offline page straight away, with no redirect in between.
+// The address bar keeps the page that was asked for, so reloading it once back online loads the real page.
+// The offline page uses relative links, so a base tag makes them resolve from pages/ whatever the address is.
+async function offlinePage() {
+  const cache = await caches.open(CACHE_NAME);
+  const saved = await cache.match(OFFLINE_URL);
+  if (!saved) return offlineText();
+  const html = await plain(saved).text();
+  if (!/<head[^>]*>/i.test(html)) return offlineText();
+  const headers = new Headers(saved.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+  headers.set('Cache-Control', 'no-store');
+  return new Response(
+    html.replace(/<head[^>]*>/i, (tag) => tag + '<base href="' + OFFLINE_URL + '">'),
+    { status: 200, headers }
+  );
 }
 
 self.addEventListener('install', (event) => {
@@ -97,7 +135,7 @@ async function networkFirst(request, cacheKey) {
     return response;
   } catch (error) {
     const cached = await cache.match(cacheKey);
-    if (cached) return cached;
+    if (cached) return plain(cached);
     throw error;
   }
 }
@@ -111,13 +149,14 @@ self.addEventListener('fetch', (event) => {
 
   // Ignore the query string and hash so "firstaid.html?x=1" still matches.
   const key = url.origin + url.pathname;
+  const pageKey = savedPageKey(key);
 
-  if (PAGE_URLS.has(key)) {
-    event.respondWith(networkFirst(request, key).catch(() =>
-      key === OFFLINE_URL
-        ? new Response('You are offline.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
-        : offlinePage()
-    ));
+  if (pageKey) {
+    event.respondWith(networkFirst(request, pageKey).catch((error) => {
+      // The offline page only ever answers a navigation, a script's fetch() gets the plain network error.
+      if (request.mode !== 'navigate') throw error;
+      return pageKey === OFFLINE_URL ? offlineText() : offlinePage();
+    }));
   } else if (ASSET_URLS.has(key)) {
     event.respondWith(networkFirst(request, key));
   } else if (request.mode === 'navigate') {

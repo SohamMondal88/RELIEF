@@ -14,6 +14,8 @@ RELIEF can be installed to a phone or desktop home screen, and the first aid gui
 
 Files are fetched from the network first and the saved copy is used only when the network fails, so an online visit always gets the newest files.
 
+The live site uses clean URLs (`cleanUrls` in `vercel.json`): `/pages/firstaid.html` answers 308 to `/pages/firstaid`. The worker treats both addresses as the same saved page and keeps the copy under the `.html` path. A copy that was stored after a redirect carries a "redirected" flag, and browsers refuse to show such a response for a page navigation, so the worker hands it out as a plain response with the same status, headers and body.
+
 ## What is never saved
 
 - Dashboard, login, signup, appointments, subscription, doctor, patient, pharmacy and admin pages, and every other page not in the list above. They go to the network only.
@@ -45,7 +47,7 @@ The saved copies are the same public files anyone can download. Nothing about an
 
 - `sw.js` must stay at the site root so its scope is the whole site. Do not move it into `assets/`.
 - Do not give `sw.js` a long `Cache-Control`. Vercel's default for static files (`max-age=0, must-revalidate`) is right, because browsers need to see a new `sw.js` quickly to update. If a `vercel.json` with a header rule for `/(.*)` is added, leave `sw.js` out of any long-lived cache rule.
-- The worker matches paths like `/pages/firstaid.html`. If `cleanUrls` is switched on later (`/pages/firstaid`), update the lists in `sw.js`.
+- The lists in `sw.js` hold the `.html` paths (`/pages/firstaid.html`). The worker also answers the clean address (`/pages/firstaid`) from the same entry, so it works with `cleanUrls` on (as now) or off. Keep new entries in the `.html` form.
 - Service workers need `https://` (or `localhost`). They do not run from `file://`.
 - If a Content Security Policy is added, it needs `worker-src 'self'` and `manifest-src 'self'`.
 
@@ -66,7 +68,7 @@ Run the site locally (`python3 -m http.server 8000`) and open `http://localhost:
 1. Visit `pages/firstaid.html` and `pages/hospitals.html` once online. Application, Cache Storage, `relief-static-v5` lists them.
 2. Application, Service Workers, tick **Offline**.
 3. Reload `pages/firstaid.html`: the guides open with the "You are offline. This is a saved copy" banner.
-4. Open `pages/dashboard.html` or `index.html`: you land on `pages/offline.html`, not on the browser's error page and not on any account content.
+4. Open `pages/dashboard.html` or `index.html`: the address stays the same and the page shows the offline page (its heading, the emergency numbers and the two links to the saved pages), not the browser's error page and not any account content. There is no redirect: the worker answers with the saved `pages/offline.html` and a `<base>` tag so its relative links and styles resolve from `pages/`. Once you are back online, reloading loads the real page.
 5. Cache Storage must not contain dashboard, login, signup, `facilities.json` or any API address.
 
 **Update.**
@@ -74,4 +76,4 @@ Run the site locally (`python3 -m http.server 8000`) and open `http://localhost:
 2. Reload twice (or Application, Service Workers, Update). The new worker installs and activates.
 3. Cache Storage now shows `relief-static-v6` and the old `relief-static-v5` is gone.
 
-Automated: `node --test tests/pwa.test.js` runs `sw.js` with a fake cache and network (install, cleanup on activate, what is and is not saved, the offline fallback). `npx playwright test e2e/pwa.spec.js e2e/firstaid-offline.spec.js` checks the manifest in a real browser and the offline behaviour.
+Automated: `node --test tests/pwa.test.js` runs `sw.js` with a fake cache and network (install, cleanup on activate, what is and is not saved, the offline fallback, clean addresses, API paths, POST and unknown routes). `npx playwright test e2e/pwa.spec.js e2e/firstaid-offline.spec.js` checks the manifest in a real browser and the offline behaviour, and `e2e/pwa-clean-urls.spec.js` repeats the offline checks against a server that serves clean URLs like Vercel (see `E2E_TESTING.md`).

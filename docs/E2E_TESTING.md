@@ -20,6 +20,8 @@ The config (`playwright.config.js`) starts `e2e/static-server.js`, a small Node 
 E2E_BASE_URL=http://localhost:8000 npm run test:e2e
 ```
 
+The live site uses clean URLs (`/pages/firstaid` instead of `/pages/firstaid.html`, see `cleanUrls` in `vercel.json`). `node e2e/static-server.js 4174 --clean-urls` serves the repository the same way: the `.html` address answers 308 to the clean one. `e2e/pwa-clean-urls.spec.js` runs in its own Playwright project (`chromium-clean-urls`) against a second copy of the server on `E2E_PORT` + 1 (set `E2E_CLEAN_PORT` to change it, or `E2E_CLEAN_BASE_URL` to use your own clean-URL server). Pick two ports that are not next to each other if you run several copies at once.
+
 If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIUM_PATH` at an installed Chromium or Chrome. `npm test` runs the unit tests in `tests/` with `node --test`.
 
 ## What is covered
@@ -34,6 +36,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
+| `e2e/pwa-clean-urls.spec.js` | The service worker on a clean-URL host like Vercel (see above): saved pages open offline from their clean and `.html` addresses, a saved copy stored after a redirect still opens, the offline page appears at the address that was asked for with no redirect and working styles, links and logo, and an unknown route still shows the server's 404 |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
 
 ## Network helpers
