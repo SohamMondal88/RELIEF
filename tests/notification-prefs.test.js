@@ -466,7 +466,7 @@ test('[docs] the rules are written down', () => {
 const STATUS_CASES = [
   // [browser API, permission it reports, label shown, RELIEF notifications on?]
   [undefined, 'unsupported', 'Not supported by this browser', 'off'],
-  [fakeNotification('default'), 'default', 'Not asked yet', 'off'],
+  [fakeNotification('default'), 'default', 'Not granted', 'off'],
   [fakeNotification('denied'), 'denied', 'Denied', 'off'],
   [fakeNotification('granted'), 'granted', 'Allowed', 'on']
 ];
@@ -500,7 +500,7 @@ test('[status] only an allowed permission with RELIEF notifications on talks abo
 });
 
 test('[status] an unknown permission value is shown as not asked yet, bad prefs as off', () => {
-  assert.strictEqual(NP.describeStatus({ browser: true }, 'maybe').permissionLabel, 'Not asked yet');
+  assert.strictEqual(NP.describeStatus({ browser: true }, 'maybe').permissionLabel, 'Not granted');
   assert.strictEqual(NP.describeStatus(null, 'granted').notifications, 'off');
   assert.strictEqual(NP.describeStatus(undefined, undefined).permission, 'default');
 });
@@ -514,7 +514,7 @@ test('[status] reading the status never asks the browser', () => {
 test('[status] the status follows a permission that changes while the page is open', async () => {
   const api = fakeNotification('default', { answer: 'granted' });
   const storage = memoryStorage();
-  assert.strictEqual(NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api)).permissionLabel, 'Not asked yet');
+  assert.strictEqual(NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api)).permissionLabel, 'Not granted');
   await NP.enableBrowserNotifications(api, storage);
   assert.strictEqual(NP.describeStatus(NP.loadPrefs(storage), NP.getPermission(api)).notifications, 'on');
   api.permission = 'denied'; // changed in the browser's site settings

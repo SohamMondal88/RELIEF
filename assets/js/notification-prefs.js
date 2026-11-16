@@ -51,7 +51,7 @@
 
   const PERMISSION_LABELS = Object.freeze({
     unsupported: 'Not supported by this browser',
-    default: 'Not asked yet',
+    default: 'Not granted',
     denied: 'Denied',
     granted: 'Allowed'
   });

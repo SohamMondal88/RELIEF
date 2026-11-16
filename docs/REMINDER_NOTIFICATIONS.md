@@ -40,7 +40,7 @@ Under the explanation, the Notifications panel always shows two things. They com
 | Browser says | Label shown | Can RELIEF notify? |
 | --- | --- | --- |
 | No notification support | Not supported by this browser | No |
-| Not asked yet (`default`) | Not asked yet | No, until the user presses the button and allows it |
+| Not granted (`default`) | Not granted | No, until the user presses the button and allows it |
 | `denied` | Denied | No |
 | `granted` | Allowed | Only if the user has also turned them on in RELIEF |
 

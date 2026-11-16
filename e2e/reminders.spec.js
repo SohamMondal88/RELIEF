@@ -148,7 +148,7 @@ async function stubNotification(page, { permission, answer = 'granted', construc
 test.describe('notification permission status', () => {
   const STATES = [
     { permission: 'unsupported', label: 'Not supported by this browser', relief: 'off', button: null },
-    { permission: 'default', label: 'Not asked yet', relief: 'off', button: 'Turn on browser notifications' },
+    { permission: 'default', label: 'Not granted', relief: 'off', button: 'Turn on browser notifications' },
     { permission: 'denied', label: 'Denied', relief: 'off', button: null },
     { permission: 'granted', prefs: { browser: true }, label: 'Allowed', relief: 'on', button: null }
   ];
