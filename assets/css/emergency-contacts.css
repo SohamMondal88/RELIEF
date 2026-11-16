@@ -1,0 +1,120 @@
+/* Emergency contact directory. Builds on professional-pages.css. */
+
+[hidden] {
+    display: none !important;
+}
+
+.contact-warning {
+    border-left: 4px solid var(--danger);
+    background: #fff5f5;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.contact-picker,
+.contact-fallback,
+.contact-unavailable {
+    margin-top: 16px;
+}
+
+.contact-unavailable {
+    border-left: 4px solid var(--danger);
+}
+
+.contact-status-line {
+    margin: 12px 0 0;
+    font-weight: 600;
+}
+
+.contact-results {
+    margin-top: 16px;
+}
+
+.contact-group {
+    margin-bottom: 20px;
+}
+
+.contact-group h3 {
+    margin: 0 0 10px;
+}
+
+.contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.contact-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.contact-service {
+    margin: 0 0 10px;
+    font-size: 1rem;
+}
+
+.contact-call {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.contact-source {
+    margin: 10px 0 6px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.contact-status {
+    display: inline-block;
+    margin: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.contact-status[data-state="verified"] {
+    background: #e6f6ec;
+    color: #14532d;
+}
+
+.contact-status[data-state="stale"],
+.contact-status[data-state="unverified"] {
+    background: #fff4d6;
+    color: #7a4b00;
+}
+
+.contact-empty {
+    margin: 0;
+}
+
+.contact-fallback ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.contact-fallback li {
+    margin: 6px 0;
+}
+
+.footer {
+    padding-left: 16px;
+    padding-right: 16px;
+}

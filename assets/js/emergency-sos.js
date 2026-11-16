@@ -41,6 +41,13 @@
   // - EU/GSM: European Commission Universal Emergency Number 112 (https://digital-strategy.ec.europa.eu)
   // - US/CA: National 911 Program / FCC (https://www.911.gov)
   // - UK: UK Home Office / British Telecom Emergency 999/112 (https://www.gov.uk)
+  //
+  // Every service also carries the fields the emergency contact directory (pages/emergency-contacts.html,
+  // assets/js/emergency-contacts.js) shows and checks:
+  //   sourceUrl     link to the source, or null when none is recorded yet
+  //   scope         'national' or 'local' (every entry below is a national number)
+  //   lastVerified  YYYY-MM-DD of the last time a person checked the number against the source, or null
+  // Set lastVerified only after checking the number at its source. null is shown as "Not verified yet".
   const REGIONAL_EMERGENCY_DATA = {
     IN: {
       code: 'IN',
@@ -53,18 +60,27 @@
           name: 'National Emergency Helpline (Police / Fire / Health / Disaster)',
           number: '112',
           source: 'Govt. of India ERSS (112.gov.in)',
+          sourceUrl: 'https://112.gov.in',
+          scope: 'national',
+          lastVerified: null,
           recommended: true
         },
         {
           name: 'Emergency Medical & Ambulance Services',
           number: '108',
           source: 'MoHFW / State Emergency Medical Services',
+          sourceUrl: null,
+          scope: 'national',
+          lastVerified: null,
           recommended: true
         },
         {
           name: 'Janani Shishu Suraksha Karyakram (Maternal & Child Ambulance)',
           number: '102',
           source: 'National Health Mission, Govt. of India',
+          sourceUrl: 'https://nhm.gov.in',
+          scope: 'national',
+          lastVerified: null,
           recommended: false
         }
       ]
@@ -80,6 +96,9 @@
           name: 'Universal Emergency Services (Police, Ambulance, Fire)',
           number: '112',
           source: 'European Commission Universal 112',
+          sourceUrl: 'https://digital-strategy.ec.europa.eu',
+          scope: 'national',
+          lastVerified: null,
           recommended: true
         }
       ]
@@ -95,6 +114,9 @@
           name: 'Emergency Police, Fire & Medical Dispatch',
           number: '911',
           source: 'National 911 Program (911.gov)',
+          sourceUrl: 'https://www.911.gov',
+          scope: 'national',
+          lastVerified: null,
           recommended: true
         }
       ]
@@ -110,12 +132,18 @@
           name: 'Emergency Ambulance, Police, Fire, Coastguard',
           number: '999',
           source: 'UK Emergency Services (999)',
+          sourceUrl: 'https://www.gov.uk',
+          scope: 'national',
+          lastVerified: null,
           recommended: true
         },
         {
           name: 'Secondary Universal Emergency Number',
           number: '112',
           source: 'UK / EU Emergency 112',
+          sourceUrl: 'https://www.gov.uk',
+          scope: 'national',
+          lastVerified: null,
           recommended: false
         }
       ]

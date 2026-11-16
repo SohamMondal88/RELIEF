@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emergency Numbers by Region | RELIEF</title>
+  <meta name="description"
+    content="Official emergency numbers by region, each with its source and the date it was last checked. Tap a number to open your phone dialer." />
+  <link rel="stylesheet" href="../assets/css/professional-pages.css" />
+  <link rel="stylesheet" href="../assets/css/emergency-contacts.css" />
+
+  <!-- Vercel Web Analytics -->
+  <script src="../assets/js/vercel-analytics.js"></script>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap nav">
+      <div class="brand">
+        <img src="../assets/images/logo.jpg" alt="Relief" width="36" height="36" />
+        <strong>RELIEF</strong>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="../index.html">Home</a>
+        <a href="./hospitals.html">Hospitals</a>
+        <a href="./ambulances.html">Ambulances</a>
+        <a href="./emergency-contacts.html" aria-current="page">Emergency numbers</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap" tabindex="-1">
+    <section class="hero">
+      <h1>Emergency numbers by region</h1>
+      <p class="contact-warning" role="note">
+        <strong>In a life-threatening emergency, call your local emergency number now.</strong>
+        RELIEF does not dispatch help and does not call for you. Tapping a number opens your phone's
+        dialer, and nothing is dialled until you press call there.
+      </p>
+      <p class="muted">
+        Each number below shows where it comes from and when a person last checked it. A number that has
+        not been checked, or was checked a long time ago, is marked so you know to confirm it. This page
+        works without signing in and without sharing your location.
+      </p>
+    </section>
+
+    <section class="card contact-picker" aria-labelledby="picker-heading">
+      <h2 id="picker-heading">Your region</h2>
+      <form id="region-form" method="post" novalidate>
+        <label for="region-select">Region</label>
+        <select id="region-select" name="region" aria-describedby="region-hint">
+          <option value="">Choose your region</option>
+        </select>
+        <p class="muted" id="region-hint"></p>
+      </form>
+      <p id="contacts-status" class="contact-status-line" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="contacts-unavailable" class="card contact-unavailable" role="alert" hidden>
+      <h2>The list could not be loaded</h2>
+      <p>
+        Do not wait for this page. Dial the emergency number for the country you are in from your phone's keypad.
+        You can also open the <a href="./ambulances.html">Ambulances page</a> or check the official emergency
+        services website of your government.
+      </p>
+    </div>
+
+    <noscript>
+      <div class="card contact-unavailable">
+        <h2>This list needs JavaScript</h2>
+        <p>
+          Dial the emergency number for the country you are in from your phone's keypad, or open the
+          <a href="./ambulances.html">Ambulances page</a>.
+        </p>
+      </div>
+    </noscript>
+
+    <section id="contacts-results" class="contact-results" aria-label="Emergency numbers"></section>
+
+    <section class="card contact-fallback" aria-labelledby="fallback-heading">
+      <h2 id="fallback-heading">Region not listed, or something looks wrong?</h2>
+      <ul>
+        <li>Find the official emergency number for your country on your government's website, or ask someone nearby.</li>
+        <li>A number marked "Not verified yet" has a recorded source but nobody has re-checked it recently. Confirm it before you rely on it.</li>
+        <li>Think a number here is wrong? Tell us on the <a href="./contact.html">contact page</a> with a link to the official source.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    RELIEF lists emergency numbers for information only. It is not an emergency service.
+  </footer>
+
+  <script src="../assets/js/emergency-sos.js"></script>
+  <script src="../assets/js/emergency-contacts.js"></script>
+  <script src="../assets/js/emergency-contacts-ui.js"></script>
+</body>
+
+</html>
