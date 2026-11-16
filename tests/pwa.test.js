@@ -3,6 +3,8 @@
  * The manifest and its icons, the pages that link it, that the service worker saves only
  * the allow-listed public files, cleans old caches and never stores anything else, and
  * that a page that cannot be reached falls back to pages/offline.html.
+ * Issue #185: install is all or nothing (a failed update keeps the old worker and cache),
+ * saved files are fetched past the HTTP cache, and cache writes finish inside waitUntil.
  * The service worker is run for real in a vm with a fake cache and fetch.
  */
 const { describe, it } = require('node:test');
@@ -19,10 +21,11 @@ const swSource = read('sw.js');
 
 // ---- run sw.js with fakes -------------------------------------------------
 
-function makeWorker({ network } = {}) {
+function makeWorker({ network, putDelay = 0, putFails = false } = {}) {
   const store = new Map(); // cache name -> Map(url -> Response)
   const listeners = {};
   const fetched = [];
+  const requests = [];
   const state = { online: true, skipWaiting: 0, claimed: 0 };
   const cacheApi = (name) => ({
     async add(url) {
@@ -30,7 +33,11 @@ function makeWorker({ network } = {}) {
       if (!res.ok) throw new Error('bad status');
       store.get(name).set(String(url), res);
     },
-    async put(key, res) { store.get(name).set(String(key), res); },
+    async put(key, res) {
+      if (putDelay) await new Promise((resolve) => setTimeout(resolve, putDelay));
+      if (putFails) throw new Error('QuotaExceededError');
+      store.get(name).set(String(key), res);
+    },
     async match(key) { const hit = store.get(name).get(String(key)); return hit ? hit.clone() : undefined; },
     async keys() { return [...store.get(name).keys()].map((url) => ({ url })); }
   });
@@ -41,6 +48,7 @@ function makeWorker({ network } = {}) {
   };
   const net = async (request) => {
     fetched.push(request.url);
+    requests.push(request);
     if (!state.online) throw new TypeError('Failed to fetch');
     if (network) return network(request);
     return new Response('body of ' + request.url, { status: 200 });
@@ -51,7 +59,7 @@ function makeWorker({ network } = {}) {
     skipWaiting: () => { state.skipWaiting += 1; return Promise.resolve(); },
     clients: { claim: () => { state.claimed += 1; return Promise.resolve(); } }
   };
-  vm.runInNewContext(swSource, { self, caches, fetch: net, URL, Response, Promise, Set, Map, Array, Object, String }, { filename: 'sw.js' });
+  vm.runInNewContext(swSource, { self, caches, fetch: net, URL, Request, Response, Promise, Set, Map, Array, Object, String }, { filename: 'sw.js' });
 
   async function fire(type, init) {
     let waiting = [];
@@ -61,12 +69,15 @@ function makeWorker({ network } = {}) {
     }, init);
     listeners[type](event);
     await Promise.all(waiting);
+    // A fetch handler may call waitUntil later, once the network answered (a cache write), so wait for those too.
+    if (event.response) await event.response.catch(() => undefined);
+    await Promise.all(waiting);
     return event;
   }
   const navigate = (url) => fire('fetch', { request: { method: 'GET', url: ORIGIN + url, mode: 'navigate' } });
   const request = (url, extra) => fire('fetch', { request: Object.assign({ method: 'GET', url, mode: 'cors' }, extra) });
   const cachedUrls = () => [...store.values()].flatMap((c) => [...c.keys()]).map((u) => new URL(u).pathname).sort();
-  return { store, state, fire, navigate, request, cachedUrls, fetched, listeners };
+  return { store, state, fire, navigate, request, cachedUrls, fetched, requests, listeners };
 }
 
 const readList = (name) => {
@@ -181,13 +192,6 @@ describe('service worker behaviour', () => {
     assert.match([...w.store.keys()][0], /^relief-static-v\d+$/);
   });
 
-  it('install does not fail when one file is missing', async () => {
-    const w = makeWorker({ network: async (req) => (req.url.endsWith('api.js') ? new Response('', { status: 404 }) : new Response('ok')) });
-    await w.fire('install');
-    assert.ok(!w.cachedUrls().includes('/assets/js/api.js'));
-    assert.ok(w.cachedUrls().includes('/pages/firstaid.html'));
-  });
-
   it('activate deletes older relief caches and leaves other caches alone', async () => {
     const w = makeWorker();
     await w.fire('install');
@@ -264,5 +268,115 @@ describe('service worker behaviour', () => {
   it('a new version number gives a new cache name, so the old one is cleaned', () => {
     assert.match(swSource, /const CACHE_VERSION = 'v\d+';/);
     assert.match(swSource, /name\.startsWith\(CACHE_PREFIX\) && name !== CACHE_NAME/);
+  });
+});
+
+describe('install is all or nothing (issue #185)', () => {
+  const CURRENT = swSource.match(/const CACHE_VERSION = '(v\d+)';/)[1];
+  const CURRENT_CACHE = 'relief-static-' + CURRENT;
+  const OLD_CACHE = 'relief-static-v0';
+  const failing = (suffix, answer) => async (req) => (req.url.endsWith(suffix) ? answer(req) : new Response('new ' + req.url));
+  const seedOld = (w, name) => w.store.set(name, new Map([[ORIGIN + '/pages/firstaid.html', new Response('old firstaid')]]));
+
+  it('fetches every file past the browser HTTP cache', async () => {
+    const w = makeWorker();
+    await w.fire('install');
+    assert.strictEqual(w.requests.length, PAGES.length + ASSETS.length);
+    w.requests.forEach((req) => assert.strictEqual(req.cache, 'reload', req.url));
+    assert.deepStrictEqual(w.fetched.map((u) => new URL(u).pathname).sort(), [...PAGES, ...ASSETS].map((p) => '/' + p).sort());
+  });
+
+  it('saves each file with the status, headers and body it came with', async () => {
+    const w = makeWorker({ network: async (req) => new Response('body ' + new URL(req.url).pathname, { status: 200, headers: { 'Content-Type': 'text/css', 'X-Test': '1' } }) });
+    await w.fire('install');
+    const saved = w.store.get(CURRENT_CACHE).get(ORIGIN + '/assets/css/offline.css');
+    assert.strictEqual(saved.status, 200);
+    assert.strictEqual(saved.headers.get('content-type'), 'text/css');
+    assert.strictEqual(saved.headers.get('x-test'), '1');
+    assert.strictEqual(await saved.text(), 'body /assets/css/offline.css');
+  });
+
+  it('does not install, and does not take over, when one asset answers 404', async () => {
+    const w = makeWorker({ network: failing('api.js', () => new Response('', { status: 404 })) });
+    seedOld(w, OLD_CACHE);
+    await assert.rejects(w.fire('install'), /api\.js/);
+    assert.strictEqual(w.state.skipWaiting, 0);
+    assert.deepStrictEqual([...w.store.keys()], [OLD_CACHE], 'no half filled cache is left behind');
+  });
+
+  it('does not install when one page is missing or the network drops mid-way', async () => {
+    for (const network of [
+      failing('pages/hospitals.html', () => new Response('', { status: 500 })),
+      failing('assets/locales/bn.json', () => { throw new TypeError('Failed to fetch'); }),
+      failing('pages/offline.html', () => new Response('', { status: 404 }))
+    ]) {
+      const w = makeWorker({ network });
+      await assert.rejects(w.fire('install'));
+      assert.strictEqual(w.state.skipWaiting, 0);
+      assert.deepStrictEqual([...w.store.keys()], []);
+    }
+  });
+
+  it('a failed update leaves the cache of the running version exactly as it was', async () => {
+    const w = makeWorker({ network: failing('main.js', () => new Response('', { status: 503 })) });
+    seedOld(w, CURRENT_CACHE);
+    const before = w.store.get(CURRENT_CACHE);
+    await assert.rejects(w.fire('install'));
+    assert.strictEqual(w.store.get(CURRENT_CACHE), before);
+    assert.deepStrictEqual([...before.keys()], [ORIGIN + '/pages/firstaid.html']);
+    assert.strictEqual(await (await before.get(ORIGIN + '/pages/firstaid.html')).text(), 'old firstaid');
+  });
+
+  it('a failed update never reaches activate, so the last good cache is not deleted', async () => {
+    const w = makeWorker({ network: failing('api.js', () => new Response('', { status: 404 })) });
+    seedOld(w, OLD_CACHE);
+    await assert.rejects(w.fire('install'));
+    // The browser drops a worker whose install failed, activate only runs for a worker that installed.
+    assert.deepStrictEqual([...w.store.keys()], [OLD_CACHE]);
+    assert.strictEqual(w.state.claimed, 0);
+  });
+
+  it('a successful update fills the new cache with the new files, takes over and removes the old cache', async () => {
+    const w = makeWorker({ network: async (req) => new Response('new ' + new URL(req.url).pathname) });
+    seedOld(w, OLD_CACHE);
+    w.store.set('someone-elses-cache', new Map());
+    await w.fire('install');
+    assert.strictEqual(w.state.skipWaiting, 1);
+    assert.deepStrictEqual([...w.store.keys()].sort(), [CURRENT_CACHE, OLD_CACHE, 'someone-elses-cache'].sort(), 'old cache is still there until activate');
+    await w.fire('activate');
+    assert.deepStrictEqual([...w.store.keys()].sort(), [CURRENT_CACHE, 'someone-elses-cache'].sort());
+    assert.strictEqual(w.state.claimed, 1);
+    const saved = w.store.get(CURRENT_CACHE);
+    assert.strictEqual(saved.size, PAGES.length + ASSETS.length);
+    assert.strictEqual(await saved.get(ORIGIN + '/pages/firstaid.html').clone().text(), 'new /pages/firstaid.html');
+    // Offline now, the new copy is what the page gets.
+    w.state.online = false;
+    const res = await (await w.navigate('/pages/firstaid.html')).response;
+    assert.strictEqual(await res.text(), 'new /pages/firstaid.html');
+  });
+
+  it('install works again after a failed attempt once the network is back', async () => {
+    let broken = true;
+    const w = makeWorker({ network: async (req) => (broken && req.url.endsWith('api.js') ? new Response('', { status: 404 }) : new Response('ok')) });
+    await assert.rejects(w.fire('install'));
+    broken = false;
+    await w.fire('install');
+    assert.strictEqual(w.state.skipWaiting, 1);
+    assert.ok(w.cachedUrls().includes('/assets/js/api.js'));
+  });
+
+  it('a copy saved on a visit is written inside waitUntil, so the worker is not stopped half way', async () => {
+    const w = makeWorker({ putDelay: 15 });
+    const e = await w.navigate('/pages/firstaid.html');
+    assert.strictEqual(await (await e.response).text(), 'body of ' + ORIGIN + '/pages/firstaid.html');
+    // fire() resolves once everything the handler passed to waitUntil has finished, so the copy must be there.
+    assert.deepStrictEqual(w.cachedUrls(), ['/pages/firstaid.html']);
+  });
+
+  it('a failed cache write (storage full) does not break the page', async () => {
+    const w = makeWorker({ putFails: true });
+    const e = await w.navigate('/pages/firstaid.html');
+    assert.strictEqual(await (await e.response).text(), 'body of ' + ORIGIN + '/pages/firstaid.html');
+    assert.deepStrictEqual(w.cachedUrls(), []);
   });
 });

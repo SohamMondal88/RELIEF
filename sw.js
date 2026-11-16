@@ -6,6 +6,11 @@
  * Bump CACHE_VERSION whenever you add, remove or rename a path below. Old
  * "relief-static-*" caches are deleted on activate.
  *
+ * Install is all or nothing: every listed file is fetched past the browser's HTTP
+ * cache and checked first, and only if all of them arrived are they saved and the
+ * worker activated. If one fails, the new worker is discarded and the old worker
+ * with its old cache keeps running until the browser tries the update again.
+ *
  * Only same-origin GET requests for the exact paths below are ever cached.
  * Accounts, dashboard, login, firebase and api calls are never stored.
  * Any other page that cannot be reached shows pages/offline.html instead of the
@@ -64,15 +69,23 @@ function offlinePage() {
   return Response.redirect(OFFLINE_URL, 302);
 }
 
+// Fetches every listed file and saves them together. Throws, before anything is written, if any of them could not be loaded.
+async function saveRequiredFiles() {
+  const urls = [...PAGE_URLS, ...ASSET_URLS];
+  const copies = await Promise.all(urls.map(async (url) => {
+    // "reload" skips the browser's HTTP cache, so an old copy of a file cannot be saved as the new version.
+    const response = await fetch(new Request(url, { cache: 'reload' }));
+    if (!response.ok) throw new Error('Could not save ' + url + ' (status ' + response.status + ')');
+    // The body is read right away: with ~30 responses left unread while the rest are still coming in, the install stalls.
+    return new Response(await response.arrayBuffer(), { status: response.status, statusText: response.statusText, headers: response.headers });
+  }));
+  const cache = await caches.open(CACHE_NAME);
+  await Promise.all(urls.map((url, index) => cache.put(url, copies[index])));
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      // One missing file should not block the whole install.
-      Promise.all([...PAGE_URLS, ...ASSET_URLS].map((url) =>
-        cache.add(url).catch(() => undefined)
-      ))
-    ).then(() => self.skipWaiting())
-  );
+  // A rejected install means this worker never activates, so the old worker and its cache stay in use.
+  event.waitUntil(saveRequiredFiles().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -87,12 +100,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-async function networkFirst(request, cacheKey) {
+async function networkFirst(event, request, cacheKey) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const response = await fetch(request);
     if (response && response.ok) {
-      cache.put(cacheKey, response.clone());
+      // Inside waitUntil, so the worker is not stopped before the copy is written. A failed write (full storage) must not break the page.
+      event.waitUntil(cache.put(cacheKey, response.clone()).catch(() => undefined));
     }
     return response;
   } catch (error) {
@@ -113,13 +127,13 @@ self.addEventListener('fetch', (event) => {
   const key = url.origin + url.pathname;
 
   if (PAGE_URLS.has(key)) {
-    event.respondWith(networkFirst(request, key).catch(() =>
+    event.respondWith(networkFirst(event, request, key).catch(() =>
       key === OFFLINE_URL
         ? new Response('You are offline.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
         : offlinePage()
     ));
   } else if (ASSET_URLS.has(key)) {
-    event.respondWith(networkFirst(request, key));
+    event.respondWith(networkFirst(event, request, key));
   } else if (request.mode === 'navigate') {
     // Dashboard, login and every other page: network only, never stored. If it fails, show the offline page.
     event.respondWith(fetch(request).catch(offlinePage));
