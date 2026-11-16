@@ -245,6 +245,17 @@
     }
   }
 
+  /**
+   * True for a `storage` event that says another tab saved the reminders or the timeline (a restored
+   * backup, or an edit). The browser sends it only to the other tabs, never to the one that wrote.
+   * A removal (newValue null) is not a save and is left to the delete and clear controls.
+   */
+  function isOtherTabSave(event, storage) {
+    if (!event || typeof event.newValue !== 'string') return false;
+    if (event.storageArea && storage && event.storageArea !== storage) return false;
+    return event.key === REMINDERS_KEY || event.key === HISTORY_KEY;
+  }
+
   // A storage that throws is an error here, not "nothing stored".
   function readListStrict(storage, key) {
     var raw = storage.getItem(key);
@@ -266,6 +277,7 @@
     backupFileName: backupFileName,
     parseBackup: parseBackup,
     describeImport: describeImport,
-    applyBackup: applyBackup
+    applyBackup: applyBackup,
+    isOtherTabSave: isOtherTabSave
   };
 }));

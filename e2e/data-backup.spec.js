@@ -147,6 +147,34 @@ test.describe('dashboard backup and restore', () => {
     await expect(page.locator('.reminder-item')).toContainText('Vitamin D');
   });
 
+  test('restore: a second dashboard tab reloads the restored data and its next save does not undo it', async ({ page }) => {
+    await addReminder(page, 'Vitamin D', '08:00');
+    const other = await page.context().newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(other.locator('.reminder-item')).toContainText('Vitamin D');
+
+    await page.locator('#backup-file').setInputFiles(backupFile());
+    await page.getByRole('button', { name: 'Replace with this backup' }).click();
+    await expect(page.locator('#backup-status')).toContainText('Backup restored');
+
+    // The other tab shows the restored data without a reload.
+    await expect(other.locator('.reminder-item')).toHaveCount(1);
+    await expect(other.locator('.reminder-item')).toContainText('Imported Iron');
+    await expect(other.locator('#timeline')).toContainText('Imported entry');
+    await expect(other.locator('#backup-status')).toContainText('updated from another tab');
+
+    // Its next save builds on the restored list, it does not bring the old one back.
+    await other.getByLabel('Medicine or label').fill('Zinc');
+    await other.getByLabel('Time (every day)').fill('10:00');
+    await other.getByRole('button', { name: 'Save Reminder' }).click();
+    await expect(other.locator('.reminder-item')).toHaveCount(2);
+    const names = (await storedJson(page, REMINDERS)).map((r) => r.medicine).sort();
+    expect(names).toEqual(['Imported Iron', 'Zinc']);
+    // ...and the first tab picks that up too instead of overwriting it later.
+    await expect(page.locator('.reminder-item')).toHaveCount(2);
+    await other.close();
+  });
+
   test('restore leaves unrelated storage alone', async ({ page }) => {
     await page.evaluate(() => localStorage.setItem('someone_elses_key', 'keep me'));
     await page.locator('#backup-file').setInputFiles(backupFile());

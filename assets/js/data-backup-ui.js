@@ -134,6 +134,21 @@ document.addEventListener('DOMContentLoaded', () => {
         status.focus();
     });
 
+    // Another dashboard tab restored a backup (or saved a change). This tab still holds the old reminders
+    // and timeline in memory and its next save would silently undo that, so it reloads them first.
+    // The browser sends this event only to the other tabs, so it never fires for our own restore.
+    window.addEventListener('storage', (e) => {
+        let saved = false;
+        try {
+            saved = B.isOtherTabSave(e, window.localStorage);
+        } catch (err) {
+            saved = false;
+        }
+        if (!saved) return;
+        document.dispatchEvent(new CustomEvent('relief:data-imported', { detail: { otherTab: true } }));
+        say('', 'Reminders and timeline updated from another tab.', ['This page loaded what is saved now, so it does not save the older list over it.']);
+    });
+
     preview.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') cancelBtn.click();
     });

@@ -334,3 +334,96 @@ test('[docs] the privacy document describes the export and the limits of it', ()
   assert.ok(!/Move it elsewhere:\*\* not supported yet/.test(doc));
   assert.match(doc, /not a medical record/);
 });
+
+// ---------- other open tabs (review follow-up) ----------
+
+test('[tabs] isOtherTabSave: true when another tab saved the reminders or the timeline', () => {
+  const store = memoryStorage({});
+  const ev = (over) => Object.assign({ key: 'relief_reminders_v1', oldValue: '[]', newValue: '[{"id":"x"}]', storageArea: store }, over);
+  assert.strictEqual(B.isOtherTabSave(ev(), store), true);
+  assert.strictEqual(B.isOtherTabSave(ev({ key: 'relief_history_v1' }), store), true);
+  // an empty list is still a save
+  assert.strictEqual(B.isOtherTabSave(ev({ newValue: '[]' }), store), true);
+});
+
+test('[tabs] isOtherTabSave: false for removals, other keys, another storage area and junk', () => {
+  const store = memoryStorage({});
+  const ev = (over) => Object.assign({ key: 'relief_reminders_v1', oldValue: '[]', newValue: '[]', storageArea: store }, over);
+  assert.strictEqual(B.isOtherTabSave(ev({ newValue: null }), store), false, 'a removal is left to the delete and clear controls');
+  assert.strictEqual(B.isOtherTabSave(ev({ key: null, newValue: null }), store), false);
+  assert.strictEqual(B.isOtherTabSave(ev({ key: 'relief_lang' }), store), false);
+  assert.strictEqual(B.isOtherTabSave(ev({ key: 'theme' }), store), false);
+  assert.strictEqual(B.isOtherTabSave(ev({ storageArea: memoryStorage({}) }), store), false);
+  assert.strictEqual(B.isOtherTabSave(null, store), false);
+  assert.strictEqual(B.isOtherTabSave({}, store), false);
+});
+
+// Runs the real data-backup-ui.js against a tiny fake page.
+function mountBackupUi(storage) {
+  const vm = require('node:vm');
+  const make = (id) => ({
+    id, hidden: false, className: '', textContent: '', children: [], files: [], value: '',
+    appendChild(c) { this.children.push(c); return c; },
+    addEventListener(type, fn) { (this.l = this.l || {})[type] = fn; },
+    focus() {},
+    allText() { return [this.textContent].concat(this.children.map((c) => c.allText())).join(' '); }
+  });
+  const ids = ['backup-export', 'backup-file', 'backup-preview', 'backup-preview-title', 'backup-preview-list',
+    'backup-preview-names', 'backup-apply', 'backup-cancel', 'backup-status'];
+  const els = {};
+  ids.forEach((id) => { els[id] = make(id); });
+  const listeners = {};
+  const dispatched = [];
+  const document = {
+    getElementById: (id) => els[id] || null,
+    createElement: () => make('x'),
+    addEventListener: (type, fn) => { listeners[type] = fn; },
+    dispatchEvent: (e) => { dispatched.push(e); return true; },
+    body: make('body')
+  };
+  const window = { ReliefDataBackup: B, localStorage: storage, addEventListener: (type, fn) => { listeners['window:' + type] = fn; } };
+  const ctx = vm.createContext({ window, document, CustomEvent: function (type, init) { this.type = type; this.detail = init && init.detail; } });
+  new vm.Script(read('assets', 'js', 'data-backup-ui.js')).runInContext(ctx);
+  listeners.DOMContentLoaded();
+  return { els, listeners, dispatched };
+}
+
+test('[tabs] a restore or save in another tab makes this page reload its state (and says so)', () => {
+  const store = memoryStorage({});
+  const page = mountBackupUi(store);
+  const fire = page.listeners['window:storage'];
+  assert.strictEqual(typeof fire, 'function');
+
+  fire({ key: 'relief_reminders_v1', newValue: JSON.stringify([reminder()]), storageArea: store });
+  assert.strictEqual(page.dispatched.length, 1);
+  assert.strictEqual(page.dispatched[0].type, 'relief:data-imported');
+  assert.strictEqual(page.dispatched[0].detail.otherTab, true);
+  assert.match(page.els['backup-status'].allText(), /updated from another tab/);
+});
+
+test('[tabs] writes it does not care about leave the page alone', () => {
+  const store = memoryStorage({});
+  const page = mountBackupUi(store);
+  const fire = page.listeners['window:storage'];
+  fire({ key: 'relief_lang', newValue: 'bn', storageArea: store });
+  fire({ key: 'relief_reminders_v1', newValue: null, storageArea: store });
+  fire({ key: 'relief_reminders_v1', newValue: '[]', storageArea: memoryStorage({}) });
+  assert.strictEqual(page.dispatched.length, 0);
+});
+
+test('[tabs] the dashboard reloads on that event but does not save back, and keeps a half-typed form', () => {
+  const dash = read('assets', 'js', 'dashboard.js');
+  const at = dash.indexOf("addEventListener('relief:data-imported'");
+  assert.ok(at > -1);
+  const body = dash.slice(at, dash.indexOf('notifyBtn?.addEventListener', at));
+  assert.match(body, /detail\.otherTab/);
+  assert.match(body, /R\.loadReminders\(localStorage\)/);
+  const other = body.slice(body.indexOf('if (otherTab)'), body.indexOf('bannerMessages.innerHTML'));
+  assert.match(other, /draw\(\)/);
+  assert.ok(!/render\(\)|persist\(\)/.test(other), 'the other-tab branch must not write storage');
+  assert.match(other, /resetForm\(\)/, 'only when the reminder being edited is gone');
+  // draw() has no persist call, render() = draw() + persist()
+  const draw = dash.slice(dash.indexOf('function draw()'), dash.indexOf('function render()'));
+  assert.ok(!/persist\(/.test(draw));
+  assert.match(dash.slice(dash.indexOf('function render()'), dash.indexOf('function render()') + 80), /draw\(\);\s*persist\(\);/);
+});
