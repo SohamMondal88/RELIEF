@@ -162,13 +162,24 @@
 
   renderHelpNumbers();
 
+  // The timer runs whether or not AbortController exists, so a hung request still reaches the fallback.
   var controller = typeof AbortController === 'function' ? new AbortController() : null;
-  var timer = controller ? window.setTimeout(function () { controller.abort(); }, TIMEOUT_MS) : null;
+  var settled = false;
+  var timer = null;
+  function settle(data) {
+    if (settled) return;
+    settled = true;
+    if (timer) window.clearTimeout(timer);
+    start(data);
+  }
+  timer = window.setTimeout(function () {
+    if (controller) controller.abort();
+    settle(null);
+  }, TIMEOUT_MS);
   fetch(DATA_URL, controller ? { signal: controller.signal } : undefined)
     .then(function (response) {
       if (!response.ok) throw new Error('HTTP ' + response.status);
       return response.json();
     })
-    .then(start, function () { start(null); })
-    .then(function () { if (timer) window.clearTimeout(timer); });
+    .then(settle, function () { settle(null); });
 })();
