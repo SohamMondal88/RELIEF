@@ -159,3 +159,32 @@ test('every select value on the doctor and pharmacy pages can match a record', (
   const typeOptions = /<select id="pharmacy-type">([\s\S]*?)<\/select>/.exec(read('pages/pharmacies.html'))[1];
   [...typeOptions.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]).forEach((v) => assert.ok(types.includes(v), 'type option ' + v + ' matches no sample pharmacy'));
 });
+
+// ---- pharmacy distance: the sample coordinates are placeholders, so distance stays off ----
+
+test('pharmacy distance sorting stays disabled while the sample coordinates are not in West Bengal', () => {
+  const src = read('assets/js/pharmacies.js');
+  const lats = [...src.matchAll(/\blat:\s*(-?\d+(?:\.\d+)?)/g)].map((m) => Number(m[1]));
+  const lngs = [...src.matchAll(/\blng:\s*(-?\d+(?:\.\d+)?)/g)].map((m) => Number(m[1]));
+  assert.ok(lats.length > 0 && lats.length === lngs.length);
+  // a loose box around West Bengal
+  const inBengal = lats.every((lat, i) => lat > 21.5 && lat < 27.3 && lngs[i] > 85.8 && lngs[i] < 89.9);
+  const flag = /const PHARMACY_COORDINATES_ARE_REAL = (true|false);/.exec(src);
+  assert.ok(flag, 'the placeholder-coordinates switch is missing');
+  if (!inBengal) {
+    assert.strictEqual(flag[1], 'false', 'coordinates outside West Bengal must not be used for distance');
+    assert.match(read('pages/pharmacies.html'), /<option value="distance" disabled>/, 'the Distance option must be disabled');
+  }
+});
+
+test('the pharmacy script only builds an origin for distance when the coordinates are real', () => {
+  const src = read('assets/js/pharmacies.js');
+  assert.match(src, /saved && PHARMACY_COORDINATES_ARE_REAL \?/);
+  assert.match(src, /sortBy === 'distance' && PHARMACY_COORDINATES_ARE_REAL \? 'distance' : 'name'/);
+  assert.match(src, /Distance sorting is not available for pharmacies yet/);
+});
+
+test('the doctor page has no coordinates, and the hospital list gets its coordinates from facilities.json', () => {
+  assert.doesNotMatch(read('assets/js/doctors.js'), /\b(lat|lng)\s*:/);
+  assert.doesNotMatch(read('assets/js/hospitals.js'), /\b(lat|lng):\s*-?\d/);
+});

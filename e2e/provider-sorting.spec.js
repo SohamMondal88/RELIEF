@@ -71,8 +71,8 @@ test.describe('pharmacies', () => {
     await expect(page.locator('.pharmacy-card')).toHaveCount(6);
   });
 
-  test('name, distance and home delivery are offered, and no card shows a rating or a made up distance', async ({ page }) => {
-    await expect(page.getByLabel('Sort pharmacies by').locator('option')).toHaveText(['Name (A to Z)', 'Distance', 'Home delivery first']);
+  test('name and home delivery are offered (distance is disabled), and no card shows a rating or a made up distance', async ({ page }) => {
+    await expect(page.getByLabel('Sort pharmacies by').locator('option')).toHaveText(['Name (A to Z)', 'Distance (not available yet)', 'Home delivery first']);
     const text = await page.locator('.pharmacies-list').innerText();
     expect(text).not.toMatch(/rating|miles away/i);
     await expect(page.locator('.pharmacy-distance')).toHaveCount(0);
@@ -89,26 +89,25 @@ test.describe('pharmacies', () => {
     await expect(page.locator('.pharmacy-card')).toHaveCount(2);
   });
 
-  test('distance sorting without a location says so and keeps A to Z, with no distances shown', async ({ page }) => {
-    await page.getByLabel('Sort pharmacies by').selectOption('distance');
-    await expect(status(page)).toHaveText('6 pharmacies found. Distance sorting needs your location, so the list is sorted A to Z.');
+  test('distance is not offered for pharmacies, because the sample coordinates are placeholders', async ({ page }) => {
+    const sort = page.getByLabel('Sort pharmacies by');
+    await expect(sort.locator('option[value="distance"]')).toBeDisabled();
+    await expect(sort.locator('option[value="distance"]')).toHaveText('Distance (not available yet)');
+    await expect(sort).toHaveValue('name');
+    await expect(status(page)).toHaveText('6 pharmacies found. Sorted A to Z. Distance sorting is not available for pharmacies yet, because these sample listings have no real locations.');
     const names = await texts(page.locator('.pharmacy-name'));
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })));
     await expect(page.locator('.pharmacy-distance')).toHaveCount(0);
   });
 
-  test('with a saved location the distances are shown and the list is in distance order', async ({ page }) => {
+  test('a saved location (Kolkata) does not produce distances from the sample coordinates', async ({ page }) => {
+    const before = await texts(page.locator('.pharmacy-name'));
     await setPlace(page, 'Kolkata');
-    await page.getByLabel('Sort pharmacies by').selectOption('distance');
-    await expect(status(page)).toContainText('Sorted by distance from your saved location.');
-    await expect(page.locator('.pharmacy-distance')).toHaveCount(6);
-    const km = (await texts(page.locator('.pharmacy-distance'))).map((t) => parseFloat(t.replace(/,/g, '')));
-    expect(km.every(Number.isFinite)).toBe(true);
-    expect(km).toEqual([...km].sort((a, b) => a - b));
-    const first = await texts(page.locator('.pharmacy-name'));
-    await page.getByLabel('Sort pharmacies by').selectOption('name');
-    await page.getByLabel('Sort pharmacies by').selectOption('distance');
-    expect(await texts(page.locator('.pharmacy-name'))).toEqual(first);
+    await expect(page.locator('.pharmacy-distance')).toHaveCount(0);
+    await expect(page.getByLabel('Sort pharmacies by').locator('option[value="distance"]')).toBeDisabled();
+    await expect(status(page)).toContainText('Distance sorting is not available for pharmacies yet');
+    expect(await texts(page.locator('.pharmacy-name'))).toEqual(before);
+    await expect(page.locator('.pharmacies-list')).not.toContainText(/\d\s*km/i);
   });
 
   test('home delivery first puts the pharmacies that list it on top, then A to Z', async ({ page }) => {

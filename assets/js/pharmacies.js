@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // The lat and lng below are placeholders around New York City, not the places of any real pharmacy.
+    // Until the pharmacies come with real coordinates this stays false, so no distance is worked out or
+    // sorted on and the Distance option stays disabled. Set it to true only together with real coordinates.
+    const PHARMACY_COORDINATES_ARE_REAL = false;
+
     // Sample pharmacy data (not real pharmacies). It has no ratings or distances on purpose: none of that is known.
     const pharmacies = [
         {
@@ -114,6 +119,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (statusEl) statusEl.textContent = message;
     }
 
+    const DISTANCE_UNAVAILABLE = 'Distance sorting is not available for pharmacies yet, because these sample listings have no real locations.';
+
+    // Keeps the Distance option off while the coordinates are placeholders (also if a browser restored it as selected).
+    function lockDistanceSort() {
+        if (PHARMACY_COORDINATES_ARE_REAL || !sortSelect) return;
+        const option = sortSelect.querySelector('option[value="distance"]');
+        if (option) {
+            option.disabled = true;
+            option.textContent = 'Distance (not available yet)';
+        }
+        if (sortSelect.value === 'distance') sortSelect.value = 'name';
+    }
+    lockDistanceSort();
+
     // Initialize map
     let map;
     let markers = [];
@@ -206,13 +225,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Sort pharmacies. Only fields that are really in the data are used and the order is the same every time:
-    // distance (only from a valid saved location, entries without a valid position last), home delivery
-    // (listed in services), or name. Ties fall back to name and then id.
+    // distance (only when the coordinates are real and there is a valid saved location, entries without a valid
+    // position last), home delivery (listed in services), or name. Ties fall back to name and then id.
     function sortPharmacies(list, sortBy) {
         const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
-        const origin = saved ? { lat: saved.lat, lng: saved.lng } : null;
+        // Without real coordinates there is no origin, so no distanceKm is added and nothing is sorted by distance.
+        const origin = saved && PHARMACY_COORDINATES_ARE_REAL ? { lat: saved.lat, lng: saved.lng } : null;
         // This pass also adds distanceKm (null when the position is missing or invalid).
-        const sorted = U.sortFacilities(list, sortBy === 'distance' ? 'distance' : 'name', origin);
+        const sorted = U.sortFacilities(list, sortBy === 'distance' && PHARMACY_COORDINATES_ARE_REAL ? 'distance' : 'name', origin);
         if (sortBy === 'delivery') {
             const offers = p => p.services.includes('Home Delivery');
             sorted.sort((a, b) => (offers(a) === offers(b) ? 0 : offers(a) ? -1 : 1) || U.compareNames(a, b));
@@ -221,6 +241,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function sortNote(sortBy) {
+        if (!PHARMACY_COORDINATES_ARE_REAL) {
+            return (sortBy === 'delivery' ? 'Pharmacies that list home delivery come first, then A to Z.' : 'Sorted A to Z.') + ' ' + DISTANCE_UNAVAILABLE;
+        }
         if (sortBy === 'delivery') return 'Pharmacies that list home delivery come first, then A to Z.';
         const saved = window.ReliefLocation ? window.ReliefLocation.loadLocation() : null;
         return U.describeSort(sortBy, saved ? { lat: saved.lat, lng: saved.lng } : null).note;
