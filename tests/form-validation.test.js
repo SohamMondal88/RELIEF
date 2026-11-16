@@ -1,5 +1,6 @@
 /**
- * Accessible validation for the appointment and reminder forms (Issue #65).
+ * Accessible validation for the appointment and reminder forms (Issue #65), extended to the contact,
+ * sign-in and location forms (Issue #112).
  *
  * Covers the validation rules, the way errors are announced (inline message, aria-invalid,
  * aria-describedby, error summary, focus), that typed values are kept, and the page markup.
@@ -484,4 +485,257 @@ test('[wiring] invalid submissions go through the shared helper, never a silent 
   const appt = read('assets', 'js', 'appointments.js');
   assert.match(appt, /FormErrors\.applyErrors/);
   assert.match(appt, /focusErrors\(/);
+});
+
+// ---------------------------------------------------------------------------
+// Issue #112: one field at a time, errors that go away on edit, contact and sign-in forms
+// ---------------------------------------------------------------------------
+
+test('[field] showFieldError marks one field and shows its message without moving focus or touching others', () => {
+  const doc = reminderDom();
+  FE.showFieldError(doc, FIELDS.time, 'Pick a time.');
+  assert.strictEqual(doc.byId['time-error'].textContent, 'Pick a time.');
+  assert.strictEqual(doc.byId['time-error'].hidden, false);
+  assert.strictEqual(doc.byId.time.getAttribute('aria-invalid'), 'true');
+  assert.ok(doc.byId.time.getAttribute('aria-describedby').split(' ').includes('time-error'));
+  assert.strictEqual(doc.byId.medicine.getAttribute('aria-invalid'), null);
+  assert.strictEqual(doc.getFocused(), null);
+  assert.strictEqual(doc.byId.summary.hidden, true, 'a blur check does not open the summary');
+});
+
+test('[field] clearFieldError clears one field and drops its row from the summary, the others stay', () => {
+  const doc = reminderDom();
+  FE.applyErrors(doc, { medicine: 'Enter a medicine name.', time: 'Pick a time.', endDate: 'Check the end date.' }, OPTS);
+  FE.clearFieldError(doc, 'time', OPTS);
+
+  assert.strictEqual(doc.byId.time.getAttribute('aria-invalid'), null);
+  assert.strictEqual(doc.byId['time-error'].hidden, true);
+  assert.strictEqual(doc.byId['time-error'].textContent, '');
+  assert.strictEqual(doc.byId.medicine.getAttribute('aria-invalid'), 'true');
+  const text = textOf(doc.byId.summary);
+  assert.match(text, /2 problems/);
+  assert.ok(text.includes('Enter a medicine name.') && text.includes('Check the end date.'));
+  assert.ok(!text.includes('Pick a time.'));
+});
+
+test('[field] clearing the last problem hides the summary, and a hint in aria-describedby survives', () => {
+  const doc = reminderDom();
+  doc.byId.time.setAttribute('aria-describedby', 'time-hint');
+  FE.applyErrors(doc, { time: 'Pick a time.' }, OPTS);
+  FE.clearFieldError(doc, 'time', OPTS);
+  assert.strictEqual(doc.byId.summary.hidden, true);
+  assert.strictEqual(doc.byId.summary.children.length, 0);
+  assert.strictEqual(doc.byId.time.getAttribute('aria-describedby'), 'time-hint');
+});
+
+test('[field] an error with no field stays in the summary when a field is fixed', () => {
+  const doc = reminderDom();
+  FE.applyErrors(doc, { time: 'Pick a time.', form: 'Could not save.' }, OPTS);
+  FE.clearFieldError(doc, 'time', OPTS);
+  assert.strictEqual(doc.byId.summary.hidden, false);
+  assert.match(textOf(doc.byId.summary), /1 problem\b/);
+  assert.match(textOf(doc.byId.summary), /Could not save/);
+});
+
+test('[field] bindFieldClearing clears a field when it is edited, only if it shows an error, and keeps the typed value', () => {
+  const doc = reminderDom();
+  FE.bindFieldClearing(doc, OPTS);
+  FE.applyErrors(doc, { medicine: 'Enter a medicine name.', time: 'Pick a time.' }, OPTS);
+
+  doc.byId.medicine.value = 'Metformin 500';
+  doc.byId.medicine.fire('input', {});
+  assert.strictEqual(doc.byId.medicine.getAttribute('aria-invalid'), null);
+  assert.strictEqual(doc.byId['medicine-error'].hidden, true);
+  assert.strictEqual(doc.byId.medicine.value, 'Metformin 500', 'the typed value stays');
+  assert.strictEqual(doc.byId.time.getAttribute('aria-invalid'), 'true', 'the other field still shows its error');
+
+  // A field without an error is left alone.
+  doc.byId['end-date'].fire('change', {});
+  assert.strictEqual(doc.byId['end-date'].getAttribute('aria-invalid'), null);
+
+  doc.byId.time.fire('change', {});
+  assert.strictEqual(doc.byId.summary.hidden, true, 'no problems left, no summary');
+});
+
+test('[field] values the person typed survive an invalid submit and the correction that follows', () => {
+  const doc = reminderDom();
+  doc.byId.medicine.value = '';
+  doc.byId.time.value = '25:99';
+  doc.byId['end-date'].value = '2026-01-01';
+  FE.applyErrors(doc, { medicine: 'a', time: 'b' }, OPTS);
+  assert.strictEqual(doc.byId.time.value, '25:99');
+  assert.strictEqual(doc.byId['end-date'].value, '2026-01-01', 'a valid field keeps its value');
+  doc.byId.time.value = '07:30';
+  FE.clearErrors(doc, OPTS);
+  assert.strictEqual(doc.byId.time.value, '07:30');
+  assert.strictEqual(doc.byId['end-date'].value, '2026-01-01');
+});
+
+// ---- contact rules ----
+
+const ContactSend = require('../assets/js/contact-send.js');
+const Auth = require('../assets/js/auth-mode.js');
+const goodContact = (extra) => Object.assign({ name: 'Asha Rao', email: 'asha@example.com', message: 'I can help on weekends.', consent: true }, extra);
+
+test('[contact] a complete form has no errors, and the subject is optional', () => {
+  assert.deepStrictEqual(ContactSend.validate(goodContact()), {});
+  assert.deepStrictEqual(ContactSend.validate(goodContact({ subject: '' })), {});
+});
+
+test('[contact] every required field reports its own message, listed in page order', () => {
+  const errors = ContactSend.validate({ name: '', email: '', message: '', consent: false });
+  assert.deepStrictEqual(Object.keys(errors), ContactSend.FIELD_ORDER);
+  assert.strictEqual(errors.name, 'Please enter your name');
+  assert.strictEqual(errors.consent, 'You must agree to the privacy policy');
+});
+
+test('[contact] short, malformed and whitespace-only values are refused with a way to fix them', () => {
+  assert.match(ContactSend.validate(goodContact({ name: 'A' })).name, /at least 2/);
+  assert.match(ContactSend.validate(goodContact({ name: '   ' })).name, /Please enter your name/);
+  assert.match(ContactSend.validate(goodContact({ email: 'asha@example' })).email, /valid email/);
+  assert.match(ContactSend.validate(goodContact({ email: 'asha example@x.org' })).email, /valid email/);
+  assert.match(ContactSend.validate(goodContact({ message: 'too short' })).message, /at least 10/);
+  assert.deepStrictEqual(Object.keys(ContactSend.validate(goodContact({ name: 'A', message: 'x' }))), ['name', 'message']);
+});
+
+test('[contact] validate does not change the values it is given', () => {
+  const values = goodContact({ name: '  Asha  ', email: ' asha@example.com ' });
+  const copy = Object.assign({}, values);
+  ContactSend.validate(values);
+  assert.deepStrictEqual(values, copy);
+  assert.deepStrictEqual(ContactSend.validate(values), {}, 'surrounding spaces are not an error');
+});
+
+const BAD_DOMAINS = ['asha@example..com', 'asha@.example.com', 'asha@example.com.', 'asha@-example.com', 'asha@example-.com', 'asha@example.-com', 'asha@example.com-', 'asha@..'];
+const GOOD_DOMAINS = ['asha@example.com', 'a.b+c@sub.example.co.in', 'asha@my-site.example.org', 'asha@xn--mnchen-3ya.de'];
+
+test('[contact] an email with an empty or hyphen-edged domain label is refused, normal ones pass', () => {
+  BAD_DOMAINS.forEach((email) => {
+    assert.match(ContactSend.validate(goodContact({ email })).email || '', /valid email/, 'should reject "' + email + '"');
+  });
+  GOOD_DOMAINS.forEach((email) => {
+    assert.strictEqual(ContactSend.validate(goodContact({ email })).email, undefined, 'should accept "' + email + '"');
+  });
+});
+
+test('[auth] sign-in and sign-up refuse the same malformed domains', () => {
+  BAD_DOMAINS.forEach((email) => {
+    assert.match(Auth.validateLogin({ email, password: 'x' }).email || '', /valid email/, 'login should reject "' + email + '"');
+    assert.match(Auth.validateSignup({ name: 'Asha', email, password: 'secret1', confirmPassword: 'secret1', terms: true }).email || '', /valid email/, 'signup should reject "' + email + '"');
+  });
+  GOOD_DOMAINS.forEach((email) => {
+    assert.strictEqual(Auth.validateLogin({ email, password: 'x' }).email, undefined, 'login should accept "' + email + '"');
+  });
+});
+
+// ---- sign-in rules ----
+
+test('[auth] login needs a valid email and a password, and says which one is missing', () => {
+  assert.deepStrictEqual(Auth.validateLogin({ email: 'a@b.co', password: 'x' }), {});
+  assert.deepStrictEqual(Object.keys(Auth.validateLogin({ email: '', password: '' })), ['email', 'password']);
+  assert.match(Auth.validateLogin({ email: 'nope', password: 'x' }).email, /valid email/);
+  assert.deepStrictEqual(Object.keys(Auth.validateLogin({ email: 'a@b.co', password: '' })), ['password']);
+  assert.deepStrictEqual(Object.keys(Auth.validateLogin()), ['email', 'password'], 'no argument is the same as empty');
+});
+
+test('[auth] a password made of spaces is a password: it is never trimmed', () => {
+  assert.deepStrictEqual(Auth.validateLogin({ email: 'a@b.co', password: '      ' }), {});
+  assert.deepStrictEqual(Auth.validateSignup({ name: 'A', email: 'a@b.co', password: '      ', confirmPassword: '      ', terms: true }), {});
+});
+
+test('[auth] signup reports every problem at once, in page order', () => {
+  const none = Auth.validateSignup({});
+  assert.deepStrictEqual(Object.keys(none), ['name', 'email', 'password', 'confirmPassword', 'terms']);
+  const ok = Auth.validateSignup({ name: 'Asha', email: 'asha@example.com', password: 'abcdef', confirmPassword: 'abcdef', terms: true });
+  assert.deepStrictEqual(ok, {});
+});
+
+test('[auth] signup keeps the existing messages for a short password and a mismatch', () => {
+  const short = Auth.validateSignup({ name: 'A', email: 'a@b.co', password: 'abc', confirmPassword: 'abc', terms: true });
+  assert.deepStrictEqual(short, { password: 'Password must be at least 6 characters.' });
+  const mismatch = Auth.validateSignup({ name: 'A', email: 'a@b.co', password: 'abcdef', confirmPassword: 'abcdeg', terms: true });
+  assert.deepStrictEqual(mismatch, { confirmPassword: 'Passwords do not match.' });
+  const terms = Auth.validateSignup({ name: 'A', email: 'a@b.co', password: 'abcdef', confirmPassword: 'abcdef', terms: false });
+  assert.deepStrictEqual(Object.keys(terms), ['terms']);
+});
+
+// ---- page markup for the contact, login and signup forms ----
+
+const FORM_PAGES = [
+  { page: 'contact.html', form: 'contactForm', summary: 'contact-error-summary', script: 'contact.js', keys: ['name', 'email', 'message', 'consent'] },
+  { page: 'login.html', form: 'login-form', summary: 'login-error-summary', script: 'login.js', keys: ['login-email', 'login-password'] },
+  { page: 'signup.html', form: 'signup-form', summary: 'signup-error-summary', script: 'signup.js', keys: ['signup-name', 'signup-email', 'signup-password', 'signup-confirm-password', 'terms'] }
+];
+
+test('[markup] contact, login and signup use novalidate so the shared messages replace the browser bubbles', () => {
+  FORM_PAGES.forEach(({ page, form }) => {
+    const tag = (read('pages', page).match(new RegExp('<form[^>]*id="' + form + '"[^>]*>')) || [])[0];
+    assert.ok(tag, page);
+    assert.ok(/\snovalidate[\s>]/.test(tag), page + ' needs novalidate');
+  });
+});
+
+test('[markup] contact, login and signup have a focusable alert summary that starts hidden', () => {
+  FORM_PAGES.forEach(({ page, summary }) => {
+    const tag = (read('pages', page).match(new RegExp('<div[^>]*id="' + summary + '"[^>]*>')) || [])[0];
+    assert.ok(tag, page + ' needs #' + summary);
+    assert.strictEqual(attr(tag, 'role'), 'alert');
+    assert.strictEqual(attr(tag, 'tabindex'), '-1');
+    assert.ok(/\shidden[\s>]/.test(tag), 'starts hidden');
+  });
+});
+
+test('[markup] every checked field on those pages has a hidden message element next to its own id', () => {
+  FORM_PAGES.forEach(({ page, keys }) => {
+    const html = read('pages', page);
+    keys.forEach((id) => {
+      assert.match(html, new RegExp('id="' + id + '"'), page + ' ' + id);
+      assert.match(html, new RegExp('<span class="error-message" id="' + id + '-error" hidden></span>'), page + ' ' + id + '-error');
+    });
+  });
+});
+
+test('[markup] contact fields point at their messages from the start', () => {
+  const { inputs } = inputsIn(read('pages', 'contact.html'), 'contactForm');
+  ['name', 'email', 'message', 'consent'].forEach((id) => {
+    const tag = inputs.find((t) => attr(t, 'id') === id);
+    assert.strictEqual(attr(tag, 'aria-describedby'), id + '-error', id);
+  });
+});
+
+test('[markup] contact name and email say what they are for (autocomplete)', () => {
+  const { inputs } = inputsIn(read('pages', 'contact.html'), 'contactForm');
+  assert.strictEqual(attr(inputs.find((t) => attr(t, 'id') === 'name'), 'autocomplete'), 'name');
+  assert.strictEqual(attr(inputs.find((t) => attr(t, 'id') === 'email'), 'autocomplete'), 'email');
+});
+
+test('[markup] the helper loads before the script that uses it, and the styles unhide messages', () => {
+  FORM_PAGES.forEach(({ page, script }) => {
+    const html = read('pages', page);
+    const helper = html.indexOf('assets/js/form-errors.js');
+    assert.ok(helper !== -1 && helper < html.indexOf('assets/js/' + script), page);
+  });
+  ['contact.css', 'auth.css'].forEach((file) => {
+    const css = read('assets', 'css', file);
+    assert.match(css, /\.error-message\[hidden\]/, file);
+    assert.match(css, /\.error-summary:focus/, file);
+    assert.match(css, /\[aria-invalid="true"\]/, file);
+  });
+});
+
+test('[wiring] contact, login and signup send invalid submits through the shared helper', () => {
+  ['contact', 'login', 'signup'].forEach((name) => {
+    const js = read('assets', 'js', name + '.js');
+    assert.match(js, /ReliefFormErrors\.applyErrors/, name);
+    assert.match(js, /ReliefFormErrors\.bindFieldClearing/, name);
+    assert.match(js, /ReliefFormErrors\.bindSummaryLinks/, name);
+  });
+});
+
+test('[wiring] the location box is marked invalid when its text is refused and cleared when edited', () => {
+  const js = read('assets', 'js', 'location-panel.js');
+  assert.match(js, /setAttribute\('aria-invalid', 'true'\)/);
+  assert.match(js, /removeAttribute\('aria-invalid'\)/);
+  assert.match(js, /aria-describedby="location-error"/);
+  assert.match(js, /id="location-error" class="location-error" role="alert"/);
 });

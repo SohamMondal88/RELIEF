@@ -149,9 +149,9 @@ test.describe('contact form', () => {
     await page.clock.install();
     await page.goto('/pages/contact.html');
     await page.clock.fastForward(2500);
-    await page.locator('#contactForm').evaluate((form) => { form.noValidate = true; });
+    // The form has novalidate, so it is our own check that runs, not the browser's bubble.
     await send(page);
-    await expect(page.getByText('Please enter your name')).toBeVisible();
+    await expect(page.locator('#name-error')).toHaveText('Please enter your name');
     expect(requests).toEqual([]);
   });
 });

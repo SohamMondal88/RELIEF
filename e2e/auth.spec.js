@@ -34,12 +34,12 @@ test.describe('sign up, login and logout (demo mode)', () => {
     await page.locator('#signup-confirm-password').fill('abcdeg');
     await page.locator('#terms').check();
     await page.getByRole('button', { name: 'Sign Up' }).click();
-    await expect(page.locator('.alert-danger')).toHaveText('Passwords do not match.');
+    await expect(page.locator('#signup-confirm-password-error')).toHaveText('Passwords do not match.');
 
     await page.locator('#signup-password').fill('abc');
     await page.locator('#signup-confirm-password').fill('abc');
     await page.getByRole('button', { name: 'Sign Up' }).click();
-    await expect(page.locator('.alert-danger')).toContainText('at least 6 characters');
+    await expect(page.locator('#signup-password-error')).toContainText('at least 6 characters');
     expect(await storedJson(page, 'relief_demo_users')).toBeNull();
 
     // Create the account, sign out, then try the same email again.

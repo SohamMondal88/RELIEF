@@ -245,6 +245,61 @@
     return demoSignup(name, email, password, d);
   }
 
+  var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // The pattern alone lets "asha@example..com", "asha@.example.com" and "asha@-example.com" through. Every part of the
+  // domain between the dots has to be there and may not start or end with a hyphen.
+  function isEmail(value) {
+    if (!EMAIL_PATTERN.test(value)) return false;
+    return value.slice(value.indexOf('@') + 1).split('.').every(function (label) {
+      return label !== '' && label.charAt(0) !== '-' && label.charAt(label.length - 1) !== '-';
+    });
+  }
+  var MIN_PASSWORD_LENGTH = 6;
+
+  function text(value) {
+    return String(value == null ? '' : value).trim();
+  }
+
+  function problem(errors, key, message) {
+    errors[key] = message;
+  }
+
+  function emailProblem(value) {
+    var email = text(value);
+    if (email === '') return 'Please enter your email address.';
+    if (!isEmail(email)) return 'Please enter a valid email address, like name@example.com.';
+    return null;
+  }
+
+  /**
+   * Checks the login form before anything is sent. Returns { fieldKey: message } for each problem
+   * (an empty object means go ahead). Passwords are never trimmed or changed.
+   */
+  function validateLogin(values) {
+    var v = values || {};
+    var errors = {};
+    var email = emailProblem(v.email);
+    if (email) problem(errors, 'email', email);
+    if (!v.password) problem(errors, 'password', 'Please enter your password.');
+    return errors;
+  }
+
+  /** Same idea for the signup form. Keys: name, email, password, confirmPassword, terms. */
+  function validateSignup(values) {
+    var v = values || {};
+    var errors = {};
+    if (text(v.name) === '') problem(errors, 'name', 'Please enter your full name.');
+    var email = emailProblem(v.email);
+    if (email) problem(errors, 'email', email);
+    if (!v.password) problem(errors, 'password', 'Please create a password.');
+    else if (String(v.password).length < MIN_PASSWORD_LENGTH) problem(errors, 'password', 'Password must be at least ' + MIN_PASSWORD_LENGTH + ' characters.');
+    if (!v.confirmPassword) problem(errors, 'confirmPassword', 'Please type your password again.');
+    else if (v.confirmPassword !== v.password) problem(errors, 'confirmPassword', 'Passwords do not match.');
+    if (!v.terms) problem(errors, 'terms', 'Please agree to the Terms of Service and Privacy Policy to continue.');
+    return errors;
+  }
+
   // Shows the demo notice element when the page is in demo mode.
   function showDemoNotice(element, deps) {
     if (!element) return false;
@@ -262,6 +317,9 @@
     isDemoMode: isDemoMode,
     classifyError: classifyError,
     purgeLegacyUsers: purgeLegacyUsers,
+    MIN_PASSWORD_LENGTH: MIN_PASSWORD_LENGTH,
+    validateLogin: validateLogin,
+    validateSignup: validateSignup,
     login: login,
     signup: signup,
     showDemoNotice: showDemoNotice

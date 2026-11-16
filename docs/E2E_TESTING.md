@@ -35,6 +35,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+| `e2e/form-errors.spec.js` | Form errors from the keyboard (Issue #112): contact, login, signup, appointment request, medicine reminder and the location box. Submit empty, submit with one wrong value, correct it, submit again; checks focus, `aria-invalid`, the message a screen reader would read and that typed values stay. axe-core with the errors showing, contact form at 375px. See `docs/FORM_ERRORS.md` |
 
 ## Network helpers
 

@@ -7,6 +7,8 @@
  *  - an error summary (role="alert") with a link to each field; focus goes to the
  *    summary when several things need fixing, or straight to the field when only one does
  *  - nothing is cleared: what the user typed stays where it is
+ *  - one field can be checked on its own (showFieldError / clearFieldError), and a field's error
+ *    goes away as soon as the person edits it (bindFieldClearing)
  *
  * The functions take the document as a parameter so they can be tested without a browser.
  *
@@ -168,12 +170,93 @@
     return { count: items.length, first: first, focused: focused };
   }
 
+  /** Marks one field invalid and shows its inline message. Does not touch the summary or focus (use it on blur). */
+  function showFieldError(doc, config, message) {
+    if (!config) return;
+    const target = fieldElement(doc, config);
+    const holder = config.errorId ? doc.getElementById(config.errorId) : null;
+    if (holder) {
+      holder.textContent = message;
+      holder.hidden = false;
+    }
+    if (target) {
+      target.setAttribute('aria-invalid', 'true');
+      if (config.errorId) addToken(target, 'aria-describedby', config.errorId);
+    }
+  }
+
+  function tagOf(node) {
+    return String(node.tagName || node.tag || '').toLowerCase();
+  }
+
+  /**
+   * Clears the error of one field and takes it out of the summary. When it was the last problem the
+   * summary is hidden. Nothing the user typed is touched and focus stays where it is.
+   *
+   * options: { fields, summaryId }
+   */
+  function clearFieldError(doc, key, options) {
+    const opts = options || {};
+    const config = opts.fields && opts.fields[key];
+    if (!config) return;
+    const target = fieldElement(doc, config);
+    const holder = config.errorId ? doc.getElementById(config.errorId) : null;
+    if (target) {
+      target.removeAttribute('aria-invalid');
+      if (config.errorId) removeAddedToken(target, 'aria-describedby', config.errorId);
+    }
+    if (holder) {
+      holder.textContent = '';
+      holder.hidden = true;
+    }
+
+    const summary = opts.summaryId ? doc.getElementById(opts.summaryId) : null;
+    if (!summary || summary.hidden) return;
+    const parts = Array.prototype.slice.call(summary.children || []);
+    const title = parts.filter(function (n) { return n.className === 'error-summary-title'; })[0];
+    const list = parts.filter(function (n) { return tagOf(n) === 'ul'; })[0];
+    if (!list) return;
+    Array.prototype.slice.call(list.children || []).forEach(function (li) {
+      const link = Array.prototype.slice.call(li.children || []).filter(function (n) {
+        return typeof n.getAttribute === 'function' && n.getAttribute('data-focus-id') === config.focusId;
+      })[0];
+      if (link) list.removeChild(li);
+    });
+    const left = (list.children || []).length;
+    if (left === 0) {
+      while (summary.firstChild) summary.removeChild(summary.firstChild);
+      summary.hidden = true;
+    } else if (title) {
+      const base = title.getAttribute('data-title') || 'Please fix the following';
+      title.textContent = left === 1 ? base + ' (1 problem)' : base + ' (' + left + ' problems)';
+    }
+  }
+
+  /**
+   * Clears a field's error as soon as the person edits that field (typing, choosing, ticking).
+   * Only fields that currently show an error react. The typed value is never changed.
+   */
+  function bindFieldClearing(doc, options) {
+    const opts = options || {};
+    const fields = opts.fields || {};
+    Object.keys(fields).forEach(function (key) {
+      const target = fieldElement(doc, fields[key]);
+      if (!target || typeof target.addEventListener !== 'function') return;
+      const handler = function () {
+        if (target.getAttribute('aria-invalid') === 'true') clearFieldError(doc, key, opts);
+      };
+      target.addEventListener('input', handler);
+      target.addEventListener('change', handler);
+    });
+  }
+
   function renderSummary(doc, summary, items, titleText) {
     while (summary.firstChild) summary.removeChild(summary.firstChild);
     summary.hidden = false;
 
     const title = doc.createElement('p');
     title.className = 'error-summary-title';
+    title.setAttribute('data-title', titleText);
     title.textContent = items.length === 1 ? titleText + ' (1 problem)' : titleText + ' (' + items.length + ' problems)';
     summary.appendChild(title);
 
@@ -218,6 +301,9 @@
     buildSummary: buildSummary,
     applyErrors: applyErrors,
     clearErrors: clearErrors,
+    showFieldError: showFieldError,
+    clearFieldError: clearFieldError,
+    bindFieldClearing: bindFieldClearing,
     bindSummaryLinks: bindSummaryLinks
   };
 });

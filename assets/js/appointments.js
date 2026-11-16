@@ -186,6 +186,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // A field's message goes away as soon as the person edits that field. What they typed stays.
+    FormErrors.bindFieldClearing(document, { fields: ERROR_FIELDS, summaryId: SUMMARY_ID });
+
     function setStatus(message, isError) {
         statusRegion.textContent = message;
         statusRegion.classList.toggle('is-error', !!isError);

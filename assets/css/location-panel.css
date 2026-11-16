@@ -52,6 +52,10 @@
     outline-offset: 2px;
 }
 
+.location-form input[aria-invalid="true"] {
+    border-color: #a61b1b;
+}
+
 .location-error {
     margin: 0;
     color: #a61b1b;

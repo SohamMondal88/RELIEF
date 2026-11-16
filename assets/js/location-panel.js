@@ -65,7 +65,21 @@
       gpsBtn.setAttribute('aria-busy', busy ? 'true' : 'false');
     }
 
+    // The typed text is only flagged when it is the text that was refused (not for a failed GPS lookup).
+    function flagInput(on) {
+      if (on) input.setAttribute('aria-invalid', 'true');
+      else input.removeAttribute('aria-invalid');
+    }
+
+    input.addEventListener('input', function () {
+      if (input.getAttribute('aria-invalid') === 'true') {
+        flagInput(false);
+        errorEl.textContent = '';
+      }
+    });
+
     gpsBtn.addEventListener('click', function () {
+      flagInput(false);
       errorEl.textContent = '';
       current.textContent = 'Finding your location...';
       setBusy(true);
@@ -84,6 +98,7 @@
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      flagInput(false);
       errorEl.textContent = '';
       current.textContent = 'Looking up that place...';
       RL.resolveManualLocation(input.value).then(function (loc) {
@@ -94,6 +109,9 @@
       }).catch(function (err) {
         refresh();
         errorEl.textContent = err && err.reason ? err.message : RL.messageFor('notfound');
+        // The text stays in the box so it can be corrected, and the box is marked and given focus.
+        // A dropped connection says nothing about the text, so it is not marked.
+        flagInput(!(err && err.reason === 'network'));
         input.focus();
       });
     });
