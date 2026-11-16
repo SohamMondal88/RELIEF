@@ -48,8 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const call911Button = document.querySelector('.btn-call-911');
     const requestButton = document.querySelector('.btn-request');
 
+    const ML = window.ReliefMapList || null;
+
     // Initialize map
     let map;
+    let mapRefs = null;
     let markers = [];
     let userMarker = null;
     const DEFAULT_CENTER = [22.9868, 87.8550]; // West Bengal, used when no location is saved
@@ -102,15 +105,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Name the map, point to the list and add a skip link (map-list.js).
+        mapRefs = ML ? ML.prepare(document, mapElement, { noun: 'ambulance services' }) : null;
+
         // Use the saved location if there is one, otherwise a West Bengal overview
         const userLocation = getUserLocation();
         const center = userLocation || DEFAULT_CENTER;
 
         map = L.map('map').setView(center, userLocation ? 13 : 7);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+        if (ML) ML.watchTiles(tiles, () => ML.tilesFailed(mapRefs));
 
         // Add marker for user's location if available
         setUserMarker(userLocation);
@@ -133,10 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 popupAnchor: [0, -32]
             });
 
-            const marker = L.marker([ambulance.lat, ambulance.lng], { icon: ambulanceIcon })
+            const marker = L.marker([ambulance.lat, ambulance.lng], Object.assign({ icon: ambulanceIcon }, ML ? ML.markerOptions(ambulance.name, ambulance.location) : {}))
                 .addTo(map)
                 .bindPopup(`<b>${ambulance.name}</b><br>${ambulance.location}<br>Phone: ${ambulance.phone}`);
 
+            if (ML) ML.decorateMarker(marker);
             markers.push(marker);
         });
 
@@ -157,21 +165,23 @@ document.addEventListener('DOMContentLoaded', function() {
             ambulanceItem.innerHTML = `
                 <div class="ambulance-info">
                     <h4>${ambulance.name}</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> ${ambulance.location}</p>
-                    <p><i class="fas fa-phone"></i> ${ambulance.phone}</p>
-                    <p><i class="fas fa-clock"></i> Avg. response time: ${ambulance.responseTime}</p>
+                    <p><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${ambulance.location}</p>
+                    <p><i class="fas fa-phone" aria-hidden="true"></i> ${ambulance.phone}</p>
+                    <p><i class="fas fa-clock" aria-hidden="true"></i> Avg. response time: ${ambulance.responseTime}</p>
                 </div>
                 <div class="ambulance-actions">
-                    <button class="btn-call" data-phone="${ambulance.phone}">
-                        <i class="fas fa-phone"></i> Call
+                    <button class="btn-call" data-phone="${ambulance.phone}" aria-label="Call ${ambulance.name}">
+                        <i class="fas fa-phone" aria-hidden="true"></i> Call
                     </button>
-                    <button class="btn-directions" data-lat="${ambulance.lat}" data-lng="${ambulance.lng}">
-                        <i class="fas fa-directions"></i> Directions
+                    <button class="btn-directions" data-lat="${ambulance.lat}" data-lng="${ambulance.lng}" aria-label="Directions to ${ambulance.name}">
+                        <i class="fas fa-directions" aria-hidden="true"></i> Directions
                     </button>
                 </div>
             `;
             ambulanceList.appendChild(ambulanceItem);
         });
+
+        if (ML) ML.markList(ambulanceList, '.ambulance-item', 'Ambulance services');
 
         // Add event listeners to call buttons
         document.querySelectorAll('.btn-call').forEach(button => {

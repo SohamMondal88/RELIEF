@@ -26,14 +26,10 @@ const KNOWN = {
   // (checked with curl on 9 November 2026). Fixing them needs the artwork, so they are tracked here until it is added.
   about: { firstParty: [/^404 \/assets\/images\/(cta-bg\.jpg|dots-pattern\.png|dots-pattern-white\.png|wave-divider-dark\.svg)$/] },
   contact: { firstParty: [/^404 \/assets\/css\/images\/(contact-hero\.jpg|wave-pattern\.png|form-pattern\.svg|dots-pattern\.svg)$/] },
-  // Same Leaflet call as ambulances below, and pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
+  // pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
   pharmacies: {
-    pageErrors: [/^L is not defined$/],
     firstParty: [/^404 \/assets\/images\/pharmacy[1-6]\.jpg$/]
   },
-  // assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with the CDN
-  // blocked the page throws "L is not defined". The same bug is tracked by test.fixme in sos.spec.js.
-  ambulances: { pageErrors: [/^L is not defined$/] },
   // assets/js/doctors.js points at ../assets/images/doctor1.jpg to doctor6.jpg, none of which exist in the repository.
   doctors: { firstParty: [/^404 \/assets\/images\/doctor[1-6]\.jpg$/] }
 };
