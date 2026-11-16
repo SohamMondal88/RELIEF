@@ -16,6 +16,7 @@
   var GPS_TTL_MS = 24 * 60 * 60 * 1000;          // 1 day
   var MANUAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;   // 7 days
   var DEFAULT_TIMEOUT_MS = 10000;
+  var LOOKUP_TIMEOUT_MS = 8000;
   var NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
   // Used for map centring only when no location is saved. Not shown as the user's position.
@@ -45,11 +46,22 @@
     unsupported: 'This browser does not support location. Enter your town, village or PIN code below.',
     notfound: 'We could not find that place. Check the spelling, or try a nearby town or a 6 digit PIN code.',
     network: 'We could not look up that place because the network is unavailable. Pick one of the suggested towns, or try again later.',
+    lookupTimeout: 'Looking up that place took too long. Pick one of the suggested towns, or try again.',
+    aborted: 'The lookup was replaced by a newer one.',
     invalid: 'Enter a town, village, address or a 6 digit PIN code.'
   };
 
   function messageFor(reason) {
     return MESSAGES[reason] || 'Something went wrong while getting your location. Please enter it manually.';
+  }
+
+  // The shared request helper (assets/js/request-resilience.js): a global on pages, required in Node.
+  function resilience() {
+    if (typeof ReliefResilience !== 'undefined' && ReliefResilience) return ReliefResilience;
+    if (typeof require === 'function' && typeof module === 'object') {
+      try { return require('./request-resilience.js'); } catch (e) { return null; }
+    }
+    return null;
   }
 
   function makeError(reason, original) {
@@ -279,8 +291,11 @@
 
   /**
    * Turns typed text (town, village, address or PIN code) into coordinates.
-   * Known towns resolve offline; everything else is looked up with OpenStreetMap Nominatim.
-   * Resolves {lat, lng, label, source: 'manual'}; rejects with .reason invalid | notfound | network.
+   * Known towns resolve offline; everything else is looked up with OpenStreetMap Nominatim, which
+   * gives up after 8 seconds (options.timeoutMs) and can be cancelled with options.signal.
+   * Resolves {lat, lng, label, source: 'manual'}; rejects with .reason invalid | notfound | network | aborted.
+   * A lookup that was too slow is a 'network' failure with its own message; one that was cancelled is 'aborted'
+   * and should not be shown to anyone.
    */
   function resolveManualLocation(text, options) {
     var opts = options || {};
@@ -295,16 +310,24 @@
     if (known) {
       return Promise.resolve({ lat: known.lat, lng: known.lng, label: known.label, source: 'manual' });
     }
-    var doFetch = opts.fetch || (typeof fetch !== 'undefined' ? fetch : null);
-    if (!doFetch) return Promise.reject(makeError('network'));
+    var R = resilience();
+    if (!R) return Promise.reject(makeError('network'));
     var url = NOMINATIM_URL + '?format=json&limit=1&countrycodes=in&q=' +
       encodeURIComponent(isPinCode(q) ? q + ', India' : q);
-    return Promise.resolve()
-      .then(function () { return doFetch(url, { headers: { Accept: 'application/json' } }); })
-      .catch(function (e) { throw makeError('network', e); })
-      .then(function (res) {
-        if (!res || !res.ok) throw makeError('network');
-        return res.json().catch(function (e) { throw makeError('network', e); });
+    // The lookup gives up after LOOKUP_TIMEOUT_MS, and opts.signal lets a newer lookup cancel this one.
+    return R.fetchJson(url, {
+      fetch: opts.fetch,
+      signal: opts.signal,
+      timeoutMs: opts.timeoutMs || LOOKUP_TIMEOUT_MS,
+      init: { headers: { Accept: 'application/json' } }
+    })
+      .catch(function (e) {
+        if (R.isAborted(e)) throw makeError('aborted', e);
+        // An empty answer from the geocoder means it found nothing.
+        if (e && e.reason === 'empty') throw makeError('notfound', e);
+        var err = makeError('network', e);
+        if (e && e.reason === 'timeout') err.message = MESSAGES.lookupTimeout;
+        throw err;
       })
       .then(function (results) {
         var first = Array.isArray(results) ? results[0] : null;

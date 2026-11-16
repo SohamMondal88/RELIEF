@@ -3,7 +3,8 @@
     'use strict';
 
     var H = window.HealthEvents;
-    if (!H) return;
+    var R = window.ReliefResilience; // assets/js/request-resilience.js
+    if (!H || !R) return;
 
     var DATA_URL = '../assets/data/health-events.json';
 
@@ -237,38 +238,67 @@
         el('filter-clear').addEventListener('click', clearFilters);
         el('events-empty-clear').addEventListener('click', clearFilters);
 
-        function loadSeed() {
-            if (typeof fetch !== 'function') return Promise.resolve([]);
-            return fetch(DATA_URL, { cache: 'no-cache' }).then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            }).then(function (data) {
+        // The reviewed list that ships with the site. It gives up after the helper's timeout, and starting a
+        // new load (Try again) cancels the one before it, so a late answer never overwrites a newer one.
+        function loadSeed(signal) {
+            return R.fetchJson(DATA_URL, { init: { cache: 'no-cache' }, signal: signal }).then(function (data) {
                 seedEvents = data && Array.isArray(data.events) ? data.events : [];
                 return seedEvents;
             });
         }
 
-        loadSeed()
-            .then(function (seed) { return store.publicEvents(seed); }, function () { return store.publicEvents(null).then(function (r) { r.seedFailed = true; return r; }); })
-            .then(function (result) {
-                events = result.events;
-                loading.hidden = true;
-                listNode.setAttribute('aria-busy', 'false');
-                if (result.seedFailed && events.length === 0) {
-                    errorBox.textContent = 'Events could not be loaded. Check your connection and reload the page.';
-                    errorBox.hidden = false;
-                    summary.textContent = '';
-                    return;
-                }
-                el('events-sample-note').hidden = !events.some(function (e) { return e.sample; });
-                var options = el('filter-location-options');
-                H.districts(events).forEach(function (name) {
-                    var opt = document.createElement('option');
-                    opt.value = name;
-                    options.appendChild(opt);
+        function showLoadError(error, focusRetry) {
+            var info = R.classify(error);
+            errorBox.textContent = '';
+            errorBox.appendChild(make('p', null, 'Events could not be loaded. ' + info.title + '. ' + info.message));
+            var retry = make('button', 'btn btn-secondary', 'Try again');
+            retry.type = 'button';
+            retry.addEventListener('click', function () { load(true); });
+            errorBox.appendChild(retry);
+            errorBox.hidden = false;
+            summary.textContent = '';
+            if (focusRetry) retry.focus();
+        }
+
+        var slot = R.createRequestSlot();
+
+        // fromRetry: the person pressed Try again, so after another failure focus goes back to that button.
+        function load(fromRetry) {
+            var request = slot.begin();
+            loading.hidden = false;
+            errorBox.hidden = true;
+            listNode.setAttribute('aria-busy', 'true');
+            loadSeed(request.signal)
+                .then(function (seed) { return store.publicEvents(seed); }, function (error) {
+                    if (R.isAborted(error)) throw error;
+                    return store.publicEvents(null).then(function (r) { r.seedFailed = true; r.seedError = error; return r; });
+                })
+                .then(function (result) {
+                    if (!request.isCurrent()) return;
+                    request.done();
+                    events = result.events;
+                    loading.hidden = true;
+                    listNode.setAttribute('aria-busy', 'false');
+                    if (result.seedFailed && events.length === 0) {
+                        showLoadError(result.seedError, fromRetry === true);
+                        return;
+                    }
+                    el('events-sample-note').hidden = !events.some(function (e) { return e.sample; });
+                    var options = el('filter-location-options');
+                    options.textContent = '';
+                    H.districts(events).forEach(function (name) {
+                        var opt = document.createElement('option');
+                        opt.value = name;
+                        options.appendChild(opt);
+                    });
+                    render();
+                }, function (error) {
+                    // Only a replaced load ends up here, and the newer one is already running.
+                    if (!R.isAborted(error)) throw error;
                 });
-                render();
-            });
+        }
+
+        load(false);
 
         // Demo submissions appear immediately, but stay marked unverified.
         window.addEventListener('relief:health-event-submitted', function () {

@@ -10,8 +10,9 @@
 
     var U = window.FacilityUtils;
     var R = window.FacilityReview;
+    var Res = window.ReliefResilience; // assets/js/request-resilience.js
     var section = document.getElementById('facility-freshness');
-    if (!U || !R || !section) return;
+    if (!U || !R || !Res || !section) return;
 
     var DATA_URL = '../assets/data/facilities.json';
     var PAGE_SIZE = 25;
@@ -96,12 +97,36 @@
     filter.addEventListener('change', function () { showAll = false; render(); });
     more.addEventListener('click', function () { showAll = !showAll; render(); });
 
-    setMessage('Loading facility records...', '');
-    fetch(DATA_URL)
-        .then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(function (json) { data = json; render(); })
-        .catch(function () { setMessage('The facility file could not be loaded, so freshness is unknown.', 'error'); });
+    var retry = make('button', 'btn btn-secondary', 'Try again');
+    retry.type = 'button';
+    retry.hidden = true;
+    message.parentNode.insertBefore(retry, message.nextSibling);
+
+    // Starting a new load (Try again) cancels the one before it. A load that takes too long ends with a
+    // message and a Try again button instead of "Loading..." for ever.
+    var slot = Res.createRequestSlot();
+
+    function load(fromRetry) {
+        var request = slot.begin();
+        retry.hidden = true;
+        setMessage('Loading facility records...', '');
+        Res.fetchJson(DATA_URL, { signal: request.signal })
+            .then(function (json) {
+                if (!request.isCurrent()) return;
+                data = json;
+                render();
+                request.done();
+            })
+            .catch(function (error) {
+                if (Res.isAborted(error) || !request.isCurrent()) return;
+                request.done();
+                var info = Res.classify(error);
+                setMessage('The facility file could not be loaded, so freshness is unknown. ' + info.title + '. ' + info.message, 'error');
+                retry.hidden = false;
+                if (fromRetry) retry.focus();
+            });
+    }
+
+    retry.addEventListener('click', function () { load(true); });
+    load(false);
 })();

@@ -214,14 +214,14 @@ test.describe('requests that never finish', () => {
     await expect(page.locator('.state-loading')).toHaveCount(0);
   });
 
-  // Same for the Nominatim lookup in location-service.js: "Looking up that place..." for ever.
-  test.fixme('a place lookup gives up waiting and shows an error', async ({ page }) => {
+  // The Nominatim lookup in location-service.js gives up after 8 seconds (Issue #173).
+  test('a place lookup gives up waiting and shows an error', async ({ page }) => {
     test.setTimeout(45000);
     await holdRequests(page, NOMINATIM);
     await page.goto('/pages/hospitals.html');
     await page.getByLabel('Or enter a town, village, PIN code or address').fill('Mejia');
     await page.getByRole('button', { name: 'Set location' }).click();
-    await expect(page.locator('#location-error')).not.toBeEmpty({ timeout: 20000 });
+    await expect(page.locator('#location-error')).toContainText('took too long', { timeout: 20000 });
     await expect(page.locator('#location-current')).not.toContainText('Looking up that place');
   });
 });

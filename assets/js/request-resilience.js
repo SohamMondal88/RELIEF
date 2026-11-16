@@ -5,6 +5,8 @@
  *
  *  - classify(error)      turns any failure into { kind, title, message, action, retryable, requestId }
  *  - retry(fn, options)   bounded retries with backoff, only for failures that are safe to repeat
+ *  - fetchJson(url, opts) one GET-style fetch with a timeout, an optional caller signal and classified errors
+ *  - createRequestSlot()  "latest request wins": starting a new request aborts the one before it
  *  - newIdempotencyKey()  a key a caller keeps across retries so a repeated POST is not a second submission
  *  - extractRequestId()   reads a request id from response headers or body when the backend sends one
  *  - redact()/logError()  operational logging that never contains passwords, tokens or health details
@@ -286,6 +288,161 @@
     }
   }
 
+  // ---- Fetching JSON with a deadline ------------------------------------
+
+  var DEFAULT_FETCH_TIMEOUT_MS = 10000;
+
+  var FETCH_ERROR_TEXT = {
+    offline: 'You appear to be offline.',
+    timeout: 'The request took too long and was stopped.',
+    aborted: 'The request was cancelled.',
+    network: 'The request could not be sent.',
+    'bad-answer': 'The answer was not valid JSON.',
+    empty: 'The answer was empty.'
+  };
+
+  /**
+   * The errors fetchJson rejects with. They carry what classify() reads, so the same code that shows
+   * a backend failure shows these:
+   *   offline / timeout / network / bad-answer / empty: code 'backend-unavailable' and a `reason`
+   *   an HTTP failure: `status` (and requestId, retryAfterMs when the server sent them)
+   *   aborted: name 'AbortError', reason 'aborted', aborted true. The caller cancelled it, so nobody
+   *            should show it as a failure (see isAborted()).
+   */
+  function fetchError(reason, extra) {
+    var error = new Error(FETCH_ERROR_TEXT[reason] || 'The request failed.');
+    error.reason = reason;
+    if (reason === 'aborted') {
+      error.name = 'AbortError';
+      error.aborted = true;
+    } else {
+      if (reason === 'timeout') error.name = 'TimeoutError';
+      error.code = 'backend-unavailable';
+    }
+    return Object.assign(error, extra || {});
+  }
+
+  /** True for the error of a request that was cancelled on purpose (a newer one replaced it). */
+  function isAborted(error) {
+    return Boolean(error && error.aborted === true);
+  }
+
+  // Blank bodies are "empty", broken ones are "not JSON". Responses without text() (small test fakes) use json().
+  function readJsonBody(response) {
+    if (response.status === 204) return Promise.reject(fetchError('empty'));
+    if (typeof response.text === 'function') {
+      return response.text().then(function (text) {
+        if (!String(text).trim()) throw fetchError('empty');
+        var data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw fetchError('bad-answer');
+        }
+        if (data === null) throw fetchError('empty');
+        return data;
+      });
+    }
+    return response.json().then(function (data) {
+      if (data === null || data === undefined) throw fetchError('empty');
+      return data;
+    }, function () { throw fetchError('bad-answer'); });
+  }
+
+  /**
+   * Fetches `url` and resolves with the parsed JSON. Never waits for ever and never resolves with
+   * something that is not a usable answer.
+   *
+   * options:
+   *   timeoutMs  how long to wait for the whole answer (default 10 s), then reject with reason 'timeout'
+   *   signal     an AbortSignal from the caller. When it fires the request is cancelled and the
+   *              promise rejects with an error for which isAborted() is true
+   *   init       extra fetch options (headers, cache, ...)
+   *   fetch      the fetch function to use (tests pass a fake)
+   *
+   * Rejects with: offline (before anything is sent), timeout, aborted, network (the request could not be
+   * made), an HTTP error (status 4xx/5xx), bad-answer (not JSON) or empty (no body, 204 or null).
+   * classify() turns each of them into the message to show.
+   */
+  function fetchJson(url, options) {
+    var o = options || {};
+    var doFetch = o.fetch || (typeof fetch === 'function' ? fetch : null);
+    var timeoutMs = Number(o.timeoutMs) > 0 ? Number(o.timeoutMs) : DEFAULT_FETCH_TIMEOUT_MS;
+    var external = o.signal || null;
+    if (external && external.aborted) return Promise.reject(fetchError('aborted'));
+    if (!doFetch) return Promise.reject(fetchError('network'));
+    if (!runtime.isOnline()) return Promise.reject(fetchError('offline', { sent: false }));
+
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      var timer = null;
+      function finish(settle, value) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (external) external.removeEventListener('abort', onCallerAbort);
+        settle(value);
+      }
+      function stop(reason) {
+        if (controller) controller.abort();
+        finish(reject, fetchError(reason, reason === 'timeout' ? { sent: true } : {}));
+      }
+      function onCallerAbort() { stop('aborted'); }
+      timer = setTimeout(function () { stop('timeout'); }, timeoutMs);
+      if (external) external.addEventListener('abort', onCallerAbort);
+
+      var init = Object.assign({}, o.init || {});
+      if (controller) init.signal = controller.signal;
+      Promise.resolve().then(function () { return doFetch(url, init); }).then(function (response) {
+        if (!response || typeof response.ok !== 'boolean') throw fetchError('network');
+        if (!response.ok) {
+          var status = response.status;
+          var retryAfter = response.headers && typeof response.headers.get === 'function'
+            ? parseRetryAfter(response.headers.get('retry-after')) : null;
+          var failure = new Error('HTTP ' + status);
+          failure.status = status;
+          failure.requestId = extractRequestId(response);
+          failure.retryAfterMs = retryAfter;
+          failure.sent = true;
+          throw failure;
+        }
+        return readJsonBody(response);
+      }).then(function (data) {
+        finish(resolve, data);
+      }, function (error) {
+        if (error && (error.reason || typeof error.status === 'number')) { finish(reject, error); return; }
+        // A TypeError from fetch means the request never completed: offline, blocked, DNS, a dropped connection.
+        finish(reject, fetchError(runtime.isOnline() ? 'network' : 'offline', { original: error }));
+      });
+    });
+  }
+
+  /**
+   * "Latest request wins". begin() starts a request: the previous one's signal is aborted and the new
+   * request gets its own { signal, isCurrent(), done() }. A late answer from an older request can ask
+   * isCurrent() before it touches the page. abort() cancels whatever is running (for example when the
+   * person leaves or clears the field).
+   */
+  function createRequestSlot() {
+    var current = null;
+    function abort() {
+      if (current && current.controller) current.controller.abort();
+      current = null;
+    }
+    function begin() {
+      abort();
+      var token = { controller: typeof AbortController === 'function' ? new AbortController() : null };
+      current = token;
+      return {
+        signal: token.controller ? token.controller.signal : undefined,
+        isCurrent: function () { return current === token; },
+        done: function () { if (current === token) current = null; }
+      };
+    }
+    return { begin: begin, abort: abort };
+  }
+
   // ---- Logging without sensitive data ------------------------------------
 
   var SENSITIVE_KEY = /pass(word)?|pwd|token|secret|authorization|auth|cookie|session|api[-_]?key|bearer|credential|otp|pin\b|ssn|email|phone|mobile|address|dob|birth|name|symptom|diagnos|condition|medic|allerg|prescri|health|patient|note|message|body|reason|evidence|proposedvalue|contact/i;
@@ -485,6 +642,9 @@
     isIdempotentMethod: isIdempotentMethod,
     isSafeToRetry: isSafeToRetry,
     retry: retry,
+    fetchJson: fetchJson,
+    isAborted: isAborted,
+    createRequestSlot: createRequestSlot,
     redact: redact,
     safeUrl: safeUrl,
     logError: logError,

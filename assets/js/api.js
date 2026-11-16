@@ -330,12 +330,23 @@ const ReliefAPI = (function() {
      */
     const verifySubscription = () => backendRequest('/v1/subscription');
 
+    // One OpenStreetMap Nominatim search: encoded query, a timeout, the HTTP status checked, and the answer
+    // must be a list. Failures are classified like every other request (ReliefResilience.classify).
+    const nominatimSearch = async (words) => {
+        // Looked up when called: on some pages this file loads before request-resilience.js.
+        const shared = resilience || (typeof ReliefResilience !== 'undefined' ? ReliefResilience : null);
+        if (!shared) throw backendError('backend-unavailable', 'The request helper is not loaded.', { reason: 'bad-config', sent: false });
+        const query = words.map(encodeURIComponent).join('+');
+        const data = await shared.fetchJson(`${config.OPENSTREETMAP_NOMINATIM_URL}/search?q=${query}&format=json`);
+        if (!Array.isArray(data)) throw backendError('backend-unavailable', 'The search service sent an unusable answer.', { reason: 'bad-answer' });
+        return data;
+    };
+
     // Medical Data Services (using OpenMRS instead of Infermedica)
     const searchDoctors = async (params) => {
         try {
             // Using OpenStreetMap for location-based doctor search
-            const response = await fetch(`${config.OPENSTREETMAP_NOMINATIM_URL}/search?q=doctor+${params.specialty}+in+${params.location}&format=json`);
-            const data = await response.json();
+            const data = await nominatimSearch(['doctor', params.specialty, 'in', params.location]);
 
             return data.map(item => ({
                 id: item.place_id,
@@ -354,8 +365,7 @@ const ReliefAPI = (function() {
     const searchHospitals = async (params) => {
         try {
             // Using OpenStreetMap for hospital search
-            const response = await fetch(`${config.OPENSTREETMAP_NOMINATIM_URL}/search?q=hospital+near+${params.lat},${params.lng}&format=json`);
-            const data = await response.json();
+            const data = await nominatimSearch(['hospital', 'near', `${params.lat},${params.lng}`]);
             return data.map(item => ({
                 id: item.place_id,
                 name: item.display_name,
@@ -372,8 +382,7 @@ const ReliefAPI = (function() {
     const searchPharmacies = async (params) => {
         try {
             // Using OpenStreetMap for pharmacy search
-            const response = await fetch(`${config.OPENSTREETMAP_NOMINATIM_URL}/search?q=pharmacy+near+${params.lat},${params.lng}&format=json`);
-            const data = await response.json();
+            const data = await nominatimSearch(['pharmacy', 'near', `${params.lat},${params.lng}`]);
             return data.map(item => ({
                 id: item.place_id,
                 name: item.display_name,
