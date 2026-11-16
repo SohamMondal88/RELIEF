@@ -325,6 +325,8 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
     if (doc.querySelectorAll) {
         doc.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', function() {
+                // The Services toggle only opens its submenu, so the menu has to stay open for it.
+                if (link.classList && link.classList.contains('dropdown-toggle')) return;
                 if (typeof window !== 'undefined' && window.innerWidth <= RELIEF_MOBILE_NAV_MAX) {
                     closeMobileMenu();
                 }

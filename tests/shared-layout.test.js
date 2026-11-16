@@ -288,6 +288,40 @@ test('opening the menu moves focus to its first link, and Escape returns it to t
   assert.strictEqual(buttonFocused, true, 'focus is back on the button');
 });
 
+test('the Services toggle keeps the menu open on a tablet, a plain link closes it', () => {
+  const { initMobileNavigation } = require('../assets/js/main.js');
+  const attrs = { 'aria-expanded': 'true' };
+  const open = new Set(['btn']);
+  const nav = { id: 'main-nav-links', classList: { remove: () => open.delete('nav') }, querySelector: () => null, contains: () => false };
+  const button = {
+    dataset: {}, classList: { toggle() {}, remove: () => open.delete('btn'), contains: (n) => open.has('btn') },
+    getAttribute: (k) => attrs[k], setAttribute: (k, v) => { attrs[k] = v; }, addEventListener() {}, focus() {}, contains: () => false
+  };
+  const handlers = {};
+  const link = (name, isToggle) => ({
+    classList: { contains: (c) => isToggle && c === 'dropdown-toggle' },
+    addEventListener: (n, fn) => { if (n === 'click') handlers[name] = fn; }
+  });
+  const doc = {
+    querySelector: (s) => (s === '.hamburger' ? button : nav),
+    querySelectorAll: (s) => (s === '.nav-links' ? [nav] : s === '.nav-links a' ? [link('services', true), link('home', false)] : []),
+    getElementById: () => nav,
+    addEventListener() {}
+  };
+  const had = Object.prototype.hasOwnProperty.call(global, 'window');
+  const before = global.window;
+  global.window = { innerWidth: 1100 };
+  try {
+    assert.strictEqual(initMobileNavigation(doc), true);
+    handlers.services();
+    assert.strictEqual(attrs['aria-expanded'], 'true', 'the Services toggle did not close the menu');
+    handlers.home();
+    assert.strictEqual(attrs['aria-expanded'], 'false', 'a plain link still closes it');
+  } finally {
+    if (had) global.window = before; else delete global.window;
+  }
+});
+
 test('the shared stylesheet is saved offline with the pages that use it', () => {
   assert.match(read('sw.js'), /'assets\/css\/shared-layout\.css'/);
   ['pages/hospitals.html', 'pages/firstaid.html'].forEach((file) => assert.match(read(file), /assets\/css\/shared-layout\.css/));

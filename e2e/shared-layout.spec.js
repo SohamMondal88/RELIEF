@@ -131,7 +131,10 @@ test.describe('phone menu with the keyboard', () => {
     });
   }
 
-  test('the Services group opens from the keyboard on a phone and its links are reachable', async ({ page }) => {
+  // 375px is a phone, 1100px is a tablet or small laptop (993 to 1279px also uses the button, since the header got wider).
+  for (const width of [375, 1100]) {
+  test(`the Services group opens from the keyboard at ${width}px and its links are reachable`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
     await open(page, 'pages/about.html');
     await page.locator('.hamburger').focus();
     await page.keyboard.press('Enter');
@@ -139,12 +142,20 @@ test.describe('phone menu with the keyboard', () => {
     await services.focus();
     await page.keyboard.press('Enter');
     await expect(services).toHaveAttribute('aria-expanded', 'true');
+    // Opening the submenu must not close the menu around it.
+    await expect(page.locator('.hamburger')).toHaveAttribute('aria-expanded', 'true');
+    await services.click();
+    await expect(services).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('.hamburger')).toHaveAttribute('aria-expanded', 'true');
+    await services.click();
+    await expect(services).toHaveAttribute('aria-expanded', 'true');
     const hospitals = page.locator('#main-nav-links .dropdown-menu').getByRole('link', { name: 'Hospitals' });
     await expect(hospitals).toBeVisible();
     await hospitals.focus();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/pages\/hospitals\.html$/);
   });
+  }
 
   test('the open menu fits the screen, upright and sideways', async ({ page }) => {
     for (const size of [{ width: 375, height: 667 }, { width: 667, height: 375 }, { width: 320, height: 568 }]) {
