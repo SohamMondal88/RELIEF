@@ -1,0 +1,57 @@
+{
+  "_note": "Resources for pages/emergency-hub.html. A resource with a contact (REGION:number) takes its number, source and check date from REGIONAL_EMERGENCY_DATA in assets/js/emergency-sos.js, so numbers are never typed twice. Other resources are pages of this site. lastReviewed stays null until a person has reviewed the resource: do not guess a date. See docs/EMERGENCY_HUB.md.",
+  "schemaVersion": 1,
+  "owner": "RELIEF maintainers (to be confirmed, see docs/EMERGENCY_HUB.md)",
+  "reviewCadenceDays": 180,
+  "types": [
+    { "id": "all-services", "label": "Police, fire and medical emergencies" },
+    { "id": "medical", "label": "Medical emergency and ambulance" },
+    { "id": "maternal-child", "label": "Pregnancy and young children" },
+    { "id": "first-aid", "label": "First aid while help is on the way" }
+  ],
+  "audiences": [
+    { "id": "everyone", "label": "Everyone" },
+    { "id": "mothers-children", "label": "Mothers and young children" }
+  ],
+  "resources": [
+    { "id": "in-112", "type": "all-services", "audience": "everyone", "contact": "IN:112" },
+    { "id": "in-108", "type": "medical", "audience": "everyone", "contact": "IN:108" },
+    { "id": "in-102", "type": "maternal-child", "audience": "mothers-children", "contact": "IN:102" },
+    { "id": "eu-112", "type": "all-services", "audience": "everyone", "contact": "EU:112" },
+    { "id": "us-911", "type": "all-services", "audience": "everyone", "contact": "US:911" },
+    { "id": "uk-999", "type": "all-services", "audience": "everyone", "contact": "UK:999" },
+    {
+      "id": "relief-sos",
+      "type": "medical",
+      "audience": "everyone",
+      "title": "Emergency SOS request",
+      "summary": "Send an SOS request with a confirmation step and an SMS fallback. RELIEF does not dispatch help, so call your local emergency number as well.",
+      "href": "ambulances.html#emergency-sos",
+      "source": "RELIEF (this site)",
+      "sourceUrl": null,
+      "lastReviewed": null
+    },
+    {
+      "id": "relief-firstaid",
+      "type": "first-aid",
+      "audience": "everyone",
+      "title": "First aid guides",
+      "summary": "Step by step guides that also work offline once saved. They have not been reviewed by a clinician.",
+      "href": "firstaid.html",
+      "source": "RELIEF first aid guides, review status in docs/FIRST_AID_REVIEW_CHECKLIST.md",
+      "sourceUrl": null,
+      "lastReviewed": null
+    },
+    {
+      "id": "relief-hospitals",
+      "type": "medical",
+      "audience": "everyone",
+      "title": "Hospital finder",
+      "summary": "Search hospitals and other facilities. Listings marked \"Not verified\" may be out of date, so call ahead.",
+      "href": "hospitals.html",
+      "source": "RELIEF facility list, review rules in docs/FACILITY_VERIFICATION_POLICY.md",
+      "sourceUrl": null,
+      "lastReviewed": null
+    }
+  ]
+}

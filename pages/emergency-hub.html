@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emergency Resource Hub | RELIEF</title>
+  <meta name="description"
+    content="Emergency resources grouped by type and audience, each with its source and review status. RELIEF does not dispatch help: call your local emergency number." />
+  <link rel="stylesheet" href="../assets/css/professional-pages.css" />
+  <link rel="stylesheet" href="../assets/css/emergency-hub.css" />
+
+  <!-- Vercel Web Analytics -->
+  <script src="../assets/js/vercel-analytics.js"></script>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap nav">
+      <div class="brand">
+        <img src="../assets/images/logo.jpg" alt="Relief" width="36" height="36" />
+        <strong>RELIEF</strong>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="../index.html">Home</a>
+        <a href="./hospitals.html">Hospitals</a>
+        <a href="./ambulances.html">Ambulances</a>
+        <a href="./emergency-hub.html" aria-current="page">Emergency hub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap" tabindex="-1">
+    <section class="hero">
+      <h1>Emergency resource hub</h1>
+      <p class="hub-warning" role="note">
+        <strong>RELIEF does not dispatch help and cannot send an ambulance, police or fire service to you.</strong>
+        In a life-threatening emergency, call the emergency number for the country you are in now.
+      </p>
+      <h2 id="help-heading">Call for help</h2>
+      <ul id="hub-help-numbers" class="hub-help" aria-labelledby="help-heading"></ul>
+      <p class="muted">
+        Tapping a number opens your phone's dialer and nothing is dialled until you press call there. This page works
+        without signing in and without sharing your location.
+      </p>
+    </section>
+
+    <section class="card hub-find" aria-labelledby="find-heading">
+      <h2 id="find-heading">Find a resource</h2>
+      <form id="hub-form" role="search" method="post" novalidate>
+        <div class="hub-filters">
+          <div>
+            <label for="hub-search">Search</label>
+            <input id="hub-search" name="q" type="search" maxlength="100" autocomplete="off" placeholder="For example: ambulance" />
+          </div>
+          <div>
+            <label for="hub-type">Emergency type</label>
+            <select id="hub-type" name="type"><option value="">All emergency types</option></select>
+          </div>
+          <div>
+            <label for="hub-audience">Audience</label>
+            <select id="hub-audience" name="audience"><option value="">All audiences</option></select>
+          </div>
+        </div>
+      </form>
+      <p id="hub-status" class="hub-status" role="status" aria-live="polite"></p>
+      <p id="hub-owner" class="muted"></p>
+    </section>
+
+    <div id="hub-loading" class="card hub-state" role="status">Loading resources...</div>
+
+    <div id="hub-unavailable" class="card hub-state hub-state--error" role="alert" hidden>
+      <h2>The resource list could not be loaded</h2>
+      <p>
+        Do not wait for this page. Dial the emergency number for the country you are in from your phone's keypad.
+        You can also open the <a href="./ambulances.html">Ambulances page</a> or the <a href="./firstaid.html">first aid guides</a>.
+      </p>
+    </div>
+
+    <div id="hub-empty" class="card hub-state" hidden>
+      <h2>No resources have been published yet</h2>
+      <p>Nothing has passed review for this list yet. Call your local emergency number if you need help now.</p>
+    </div>
+
+    <div id="hub-nomatch" class="card hub-state" hidden>
+      <h2>Nothing matches "<span id="hub-nomatch-query"></span>"</h2>
+      <p>Try one word or clear the filters. If you cannot find what you need, call your local emergency number.</p>
+    </div>
+
+    <noscript>
+      <div class="card hub-state hub-state--error">
+        <h2>This hub needs JavaScript</h2>
+        <p>
+          Dial the emergency number for the country you are in from your phone's keypad, or open the
+          <a href="./ambulances.html">Ambulances page</a>.
+        </p>
+      </div>
+    </noscript>
+
+    <section id="hub-results" class="hub-results" aria-label="Emergency resources"></section>
+
+    <aside class="card hub-wellness" aria-labelledby="wellness-heading">
+      <h2 id="wellness-heading">Not an emergency?</h2>
+      <p>
+        This hub is only for urgent help. For everyday health questions, use the
+        <a href="./symptoms.html">symptom checker</a> or <a href="./doctors.html">find a doctor</a>. They are general
+        information and are not emergency guidance.
+      </p>
+    </aside>
+  </main>
+
+  <footer class="wrap footer">
+    RELIEF lists resources for information only. It is not an emergency service.
+  </footer>
+
+  <script src="../assets/js/emergency-sos.js"></script>
+  <script src="../assets/js/emergency-hub.js"></script>
+  <script src="../assets/js/emergency-hub-ui.js"></script>
+</body>
+
+</html>
