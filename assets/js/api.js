@@ -31,8 +31,11 @@ const ReliefAPI = (function() {
     // ---- Firebase ----------------------------------------------------------
     // One place that starts Firebase. getFirebase() answers with either
     //   { available: true, app, auth, db }
-    // or { available: false, reason, message }. It never throws and never exposes config values.
-    // reason: sdk-missing | incomplete-config | placeholder-config | init-failed | service-missing
+    // or { available: false, reason, message } (plus app, auth and db for whichever of them did
+    // start). It never throws and never exposes config values.
+    // reason: sdk-missing | incomplete-config | placeholder-config | init-failed | auth-missing | firestore-missing
+    // When only Firestore is missing the Auth client is still kept, so logout() can end a session
+    // that an earlier page saved. Sign-in and sign-up need both services and stay unavailable.
     // No page loads the Firebase SDK today (see docs/FIREBASE_SECURITY.md), so 'sdk-missing' is
     // the normal state and stays silent. Any other reason means someone added the SDK but not a
     // working setup, so it is logged once. Deployments can supply the public web config with
@@ -42,9 +45,11 @@ const ReliefAPI = (function() {
 
     const firebaseUnavailable = (reason) => ({ available: false, reason, message: FIREBASE_UNAVAILABLE_MESSAGE });
 
-    const firebaseConfigProblem = () => {
-        const override = typeof window !== 'undefined' && window.RELIEF_FIREBASE_CONFIG;
-        const settings = override && typeof override === 'object' ? override : config.FIREBASE_CONFIG;
+    // Checks a set of Firebase options: the four required fields are filled in and none of the
+    // values is a leftover your_* placeholder. Used for our own config and for an app that
+    // another script already started.
+    const firebaseConfigProblem = (settings) => {
+        if (!settings || typeof settings !== 'object') return { reason: 'incomplete-config' };
         const values = FIREBASE_REQUIRED_FIELDS.map((name) => settings[name]);
         if (values.some((value) => typeof value !== 'string' || !value.trim())) return { reason: 'incomplete-config' };
         if (Object.keys(settings).some((name) => /your[_-]/i.test(String(settings[name])))) {
@@ -58,14 +63,24 @@ const ReliefAPI = (function() {
         try {
             // Reuse an app another script (or an earlier copy of this file) already started.
             // Starting a second default app throws "duplicate-app".
+            // Either way the options are checked before anything is used.
             let app = firebase.apps && firebase.apps.length ? firebase.apps[0] : null;
-            if (!app) {
-                const checked = firebaseConfigProblem();
+            if (app) {
+                const existing = firebaseConfigProblem(app.options);
+                if (!existing.settings) return firebaseUnavailable(existing.reason);
+            } else {
+                const override = typeof window !== 'undefined' && window.RELIEF_FIREBASE_CONFIG;
+                const checked = firebaseConfigProblem(override && typeof override === 'object' ? override : config.FIREBASE_CONFIG);
                 if (!checked.settings) return firebaseUnavailable(checked.reason);
                 app = firebase.initializeApp(checked.settings);
             }
-            if (typeof firebase.auth !== 'function' || typeof firebase.firestore !== 'function') {
-                return firebaseUnavailable('service-missing');
+            const hasAuth = typeof firebase.auth === 'function';
+            const hasFirestore = typeof firebase.firestore === 'function';
+            if (!hasAuth || !hasFirestore) {
+                const partial = firebaseUnavailable(hasAuth ? 'firestore-missing' : 'auth-missing');
+                if (hasAuth) partial.auth = firebase.auth();
+                if (hasFirestore) partial.db = firebase.firestore();
+                return Object.assign(partial, { app });
             }
 
             // App Check lets Firebase reject traffic that does not come from the real site.
@@ -260,7 +275,7 @@ const ReliefAPI = (function() {
                 throw new Error('Invalid email or password format');
             }
 
-            if (!auth) throw authUnavailableError();
+            if (!auth || !db) throw authUnavailableError();
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
             const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
 
@@ -283,7 +298,7 @@ const ReliefAPI = (function() {
                 throw new Error('Invalid email or password format');
             }
 
-            if (!auth) throw authUnavailableError();
+            if (!auth || !db) throw authUnavailableError();
             const userCredential = await auth.createUserWithEmailAndPassword(
                 userData.email,
                 userData.password
@@ -327,9 +342,9 @@ const ReliefAPI = (function() {
 
     const getCurrentUser = async () => {
         try {
-            if (!auth) {
+            if (!auth || !db) {
                 // No SDK on this page: nobody can be signed in. A page that has the SDK but no
-                // usable setup is reported instead of being treated as signed out.
+                // usable setup (or only half of it) is reported instead of being treated as signed out.
                 if (getFirebase().reason === 'sdk-missing') return null;
                 throw authUnavailableError();
             }

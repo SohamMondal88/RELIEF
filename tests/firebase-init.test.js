@@ -22,7 +22,7 @@ function stubFirebase(options) {
   const opts = options || {};
   const calls = { initializeApp: [], auth: 0, firestore: 0, appCheckActivate: [] };
   const sdk = {
-    apps: opts.existingApp ? [{ name: '[DEFAULT]' }] : [],
+    apps: opts.existingApp ? [{ name: '[DEFAULT]', options: opts.existingOptions || GOOD_CONFIG }] : [],
     initializeApp(config) {
       calls.initializeApp.push(config);
       if (sdk.apps.length) {
@@ -147,6 +147,25 @@ test('repeated init: an app that already exists is reused and nothing throws', (
   assert.strictEqual(calls.auth, 1);
 });
 
+test('repeated init: an existing app with placeholder or incomplete options is not trusted', async () => {
+  const cases = [
+    [Object.assign({}, GOOD_CONFIG, { apiKey: 'your_firebase_api_key' }), 'placeholder-config'],
+    [Object.assign({}, GOOD_CONFIG, { projectId: 'your_project' }), 'placeholder-config'],
+    [{ apiKey: GOOD_CONFIG.apiKey, projectId: GOOD_CONFIG.projectId }, 'incomplete-config'],
+    [undefined, 'incomplete-config']
+  ];
+  for (const [options, reason] of cases) {
+    const { sdk, calls } = stubFirebase({ existingApp: true });
+    sdk.apps[0].options = options;
+    const { api, warnings } = loadApi({ firebase: sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } });
+    assert.deepStrictEqual(api.getFirebaseStatus(), { available: false, reason }, reason);
+    assert.strictEqual(calls.initializeApp.length, 0);
+    assert.strictEqual(calls.auth, 0, 'no service is handed out for a bad app');
+    assert.strictEqual(warnings.length, 1);
+    assertUnavailable(await rejection(api.login('a@b.co', 'secret1')), reason);
+  }
+});
+
 test('repeated init: loading api.js twice starts the app only once', () => {
   const { sdk, calls } = stubFirebase();
   const globals = { firebase: sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } };
@@ -157,17 +176,28 @@ test('repeated init: loading api.js twice starts the app only once', () => {
   assert.deepStrictEqual(second.api.getFirebaseStatus(), { available: true, reason: null });
 });
 
-test('a missing Auth or Firestore script makes sign-in unavailable instead of a TypeError', async () => {
+test('a missing Auth script makes sign-in unavailable instead of a TypeError', async () => {
   const noAuth = stubFirebase({ auth: false });
-  const first = loadApi({ firebase: noAuth.sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } });
-  assert.strictEqual(first.api.getFirebaseStatus().reason, 'service-missing');
-  assert.ok(first.api, 'ReliefAPI is still defined');
-  assertUnavailable(await rejection(first.api.login('a@b.co', 'secret1')), 'service-missing');
-  assertUnavailable(await rejection(first.api.getCurrentUser()), 'service-missing');
+  const { api } = loadApi({ firebase: noAuth.sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } });
+  assert.deepStrictEqual(api.getFirebaseStatus(), { available: false, reason: 'auth-missing' });
+  assert.ok(api, 'ReliefAPI is still defined');
+  assertUnavailable(await rejection(api.login('a@b.co', 'secret1')), 'auth-missing');
+  assertUnavailable(await rejection(api.getCurrentUser()), 'auth-missing');
+  assert.deepStrictEqual(await api.logout(), { success: true });
+});
 
-  const noDb = stubFirebase({ firestore: false });
-  const second = loadApi({ firebase: noDb.sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } });
-  assert.strictEqual(second.api.getFirebaseStatus().reason, 'service-missing');
+test('a missing Firestore script keeps Auth for sign-out but sign-in stays unavailable', async () => {
+  let signedOut = 0;
+  const authObject = { currentUser: { uid: 'u1', getIdToken: async () => 'token' }, signOut: async () => { signedOut += 1; } };
+  const noDb = stubFirebase({ firestore: false, authObject });
+  const { api } = loadApi({ firebase: noDb.sdk, window: { RELIEF_FIREBASE_CONFIG: GOOD_CONFIG } });
+  assert.deepStrictEqual(api.getFirebaseStatus(), { available: false, reason: 'firestore-missing' });
+  assertUnavailable(await rejection(api.login('a@b.co', 'secret1')), 'firestore-missing');
+  assertUnavailable(await rejection(api.signup({ email: 'a@b.co', password: 'secret1' })), 'firestore-missing');
+  assertUnavailable(await rejection(api.getCurrentUser()), 'firestore-missing');
+  assert.deepStrictEqual(await api.logout(), { success: true });
+  assert.strictEqual(signedOut, 1, 'the saved Firebase session is really ended');
+  assert.deepStrictEqual(await api.refreshSession(), { refreshed: true }, 'the kept Auth client also refreshes the session');
 });
 
 test('a service that throws while starting is reported as unavailable', async () => {
