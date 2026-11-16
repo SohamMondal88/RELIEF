@@ -5,6 +5,12 @@ const PORT = Number(process.env.E2E_PORT || 4173);
 // Point E2E_BASE_URL at your own server (for example python3 -m http.server 8000) to skip the built-in one.
 const externalBase = process.env.E2E_BASE_URL;
 const baseURL = externalBase || `http://127.0.0.1:${PORT}`;
+// e2e/pwa-clean-urls.spec.js runs against a second copy of the server that serves clean URLs like Vercel does
+// (default port: PORT + 1, change it with E2E_CLEAN_PORT, or point E2E_CLEAN_BASE_URL at your own clean-URL server).
+const cleanPort = Number(process.env.E2E_CLEAN_PORT || PORT + 1);
+const externalCleanBase = process.env.E2E_CLEAN_BASE_URL;
+const cleanBaseURL = externalCleanBase || `http://127.0.0.1:${cleanPort}`;
+const CLEAN_SPEC = /pwa-clean-urls\.spec\.js$/;
 const isCI = !!process.env.CI;
 
 module.exports = defineConfig({
@@ -35,14 +41,25 @@ module.exports = defineConfig({
       : {}
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
+    { name: 'chromium', testIgnore: CLEAN_SPEC, use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium-clean-urls', testMatch: CLEAN_SPEC, use: { ...devices['Desktop Chrome'], baseURL: cleanBaseURL } }
   ],
-  webServer: externalBase
-    ? undefined
-    : {
-        command: `node e2e/static-server.js ${PORT}`,
-        url: baseURL,
-        reuseExistingServer: !isCI,
-        timeout: 15000
-      }
+  webServer: [
+    externalBase
+      ? null
+      : {
+          command: `node e2e/static-server.js ${PORT}`,
+          url: baseURL,
+          reuseExistingServer: !isCI,
+          timeout: 15000
+        },
+    externalCleanBase
+      ? null
+      : {
+          command: `node e2e/static-server.js ${cleanPort} --clean-urls`,
+          url: cleanBaseURL,
+          reuseExistingServer: !isCI,
+          timeout: 15000
+        }
+  ].filter(Boolean)
 });

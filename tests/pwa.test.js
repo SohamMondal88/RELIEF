@@ -3,6 +3,9 @@
  * The manifest and its icons, the pages that link it, that the service worker saves only
  * the allow-listed public files, cleans old caches and never stores anything else, and
  * that a page that cannot be reached falls back to pages/offline.html.
+ * Issue #186: the same behaviour on the clean addresses Vercel serves (/pages/firstaid
+ * next to /pages/firstaid.html), no redirected response for a navigation and no redirect
+ * on the way to the offline page.
  * The service worker is run for real in a vm with a fake cache and fetch.
  */
 const { describe, it } = require('node:test');
@@ -31,7 +34,14 @@ function makeWorker({ network } = {}) {
       store.get(name).set(String(url), res);
     },
     async put(key, res) { store.get(name).set(String(key), res); },
-    async match(key) { const hit = store.get(name).get(String(key)); return hit ? hit.clone() : undefined; },
+    async match(key) {
+      const hit = store.get(name).get(String(key));
+      if (!hit) return undefined;
+      const copy = hit.clone();
+      // clone() of the fake flagged response would lose the flag, a real cache keeps it.
+      if (hit.redirected) Object.defineProperty(copy, 'redirected', { value: true });
+      return copy;
+    },
     async keys() { return [...store.get(name).keys()].map((url) => ({ url })); }
   });
   const caches = {
@@ -51,7 +61,7 @@ function makeWorker({ network } = {}) {
     skipWaiting: () => { state.skipWaiting += 1; return Promise.resolve(); },
     clients: { claim: () => { state.claimed += 1; return Promise.resolve(); } }
   };
-  vm.runInNewContext(swSource, { self, caches, fetch: net, URL, Response, Promise, Set, Map, Array, Object, String }, { filename: 'sw.js' });
+  vm.runInNewContext(swSource, { self, caches, fetch: net, URL, Response, Headers, Promise, Set, Map, Array, Object, String }, { filename: 'sw.js' });
 
   async function fire(type, init) {
     let waiting = [];
@@ -68,6 +78,18 @@ function makeWorker({ network } = {}) {
   const cachedUrls = () => [...store.values()].flatMap((c) => [...c.keys()]).map((u) => new URL(u).pathname).sort();
   return { store, state, fire, navigate, request, cachedUrls, fetched, listeners };
 }
+
+// A response the way the browser reports one that followed a redirect (the .html address answering 308 to the clean one).
+const redirected = (body, init) => {
+  const res = new Response(body, init);
+  Object.defineProperty(res, 'redirected', { value: true });
+  return res;
+};
+// The real offline page for pages/offline.html, a short body for everything else.
+const withOfflinePage = (extra) => async (req) => {
+  if (new URL(req.url).pathname === '/pages/offline.html') return new Response(read('pages/offline.html'), { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  return extra ? extra(req) : new Response('body of ' + req.url, { status: 200 });
+};
 
 const readList = (name) => {
   const match = swSource.match(new RegExp('const ' + name + ' = \\[([\\s\\S]*?)\\];'));
@@ -229,8 +251,8 @@ describe('service worker behaviour', () => {
     assert.deepStrictEqual(w.cachedUrls(), []);
   });
 
-  it('account pages are fetched from the network, never saved, and fall back to the offline page', async () => {
-    const w = makeWorker();
+  it('account pages are fetched from the network, never saved, and show the offline page when it cannot be reached', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
     await w.fire('install');
     const before = w.cachedUrls();
     for (const page of ['/pages/dashboard.html', '/pages/login.html', '/pages/signup.html', '/pages/appointments.html', '/profiles/patient/patient.html', '/index.html']) {
@@ -239,19 +261,21 @@ describe('service worker behaviour', () => {
     }
     assert.deepStrictEqual(w.cachedUrls(), before);
     w.state.online = false;
-    const e = await w.navigate('/pages/dashboard.html');
-    const res = await e.response;
-    assert.strictEqual(res.status, 302);
-    assert.strictEqual(res.headers.get('location'), ORIGIN + '/pages/offline.html');
+    const res = await (await w.navigate('/pages/dashboard.html')).response;
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('location'), null);
+    assert.match(await res.text(), /<h1>You are offline<\/h1>/);
     assert.deepStrictEqual(w.cachedUrls(), before);
   });
 
   it('a listed page that is not saved yet and cannot be reached also shows the offline page', async () => {
-    const w = makeWorker();
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    w.store.values().next().value.delete(ORIGIN + '/pages/hospitals.html');
     w.state.online = false;
     const res = await (await w.navigate('/pages/hospitals.html')).response;
-    assert.strictEqual(res.status, 302);
-    assert.strictEqual(res.headers.get('location'), ORIGIN + '/pages/offline.html');
+    assert.strictEqual(res.status, 200);
+    assert.match(await res.text(), /<h1>You are offline<\/h1>/);
   });
 
   it('the offline page itself cannot redirect to itself', async () => {
@@ -264,5 +288,151 @@ describe('service worker behaviour', () => {
   it('a new version number gives a new cache name, so the old one is cleaned', () => {
     assert.match(swSource, /const CACHE_VERSION = 'v\d+';/);
     assert.match(swSource, /name\.startsWith\(CACHE_PREFIX\) && name !== CACHE_NAME/);
+  });
+});
+
+describe('clean URLs (cleanUrls in vercel.json)', () => {
+  it('vercel.json really has cleanUrls on, which is why the clean address matters', () => {
+    assert.strictEqual(JSON.parse(read('vercel.json')).cleanUrls, true);
+  });
+
+  it('the clean address of a listed page is fetched first, saved under the .html path, and served from it offline', async () => {
+    const w = makeWorker();
+    const online = await w.navigate('/pages/firstaid?from=home#top');
+    assert.strictEqual(await (await online.response).text(), 'body of ' + ORIGIN + '/pages/firstaid?from=home#top');
+    assert.deepStrictEqual(w.fetched, [ORIGIN + '/pages/firstaid?from=home#top']);
+    assert.deepStrictEqual(w.cachedUrls(), ['/pages/firstaid.html']);
+    w.state.online = false;
+    for (const asked of ['/pages/firstaid', '/pages/firstaid.html', '/pages/firstaid?x=1']) {
+      const res = await (await w.navigate(asked)).response;
+      assert.strictEqual(await res.text(), 'body of ' + ORIGIN + '/pages/firstaid?from=home#top', asked);
+    }
+  });
+
+  it('the clean address of every listed page is answered from the saved copy offline', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    w.state.online = false;
+    for (const file of PAGES.filter((p) => p !== 'pages/offline.html')) {
+      const res = await (await w.navigate('/' + file.replace(/\.html$/, ''))).response;
+      assert.strictEqual(await res.text(), 'body of ' + ORIGIN + '/' + file, file);
+    }
+  });
+
+  it('a saved copy that was stored after a redirect is handed out without the redirected flag', async () => {
+    // What the cache of an already running version holds: the install of that version fetched the .html address, which redirected.
+    const w = makeWorker();
+    const name = 'relief-static-' + swSource.match(/const CACHE_VERSION = '(v\d+)';/)[1];
+    w.store.set(name, new Map([[ORIGIN + '/pages/hospitals.html', redirected('saved after a redirect', { status: 200, headers: { 'X-Test': '1' } })]]));
+    assert.ok(w.store.get(name).get(ORIGIN + '/pages/hospitals.html').redirected);
+    w.state.online = false;
+    for (const asked of ['/pages/hospitals', '/pages/hospitals.html']) {
+      const res = await (await w.navigate(asked)).response;
+      assert.strictEqual(res.redirected, false, asked);
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.headers.get('x-test'), '1');
+      assert.strictEqual(await res.text(), 'saved after a redirect');
+    }
+  });
+
+  it('a navigation that the server answers with a redirect is passed on untouched and not saved', async () => {
+    const w = makeWorker({ network: async () => new Response(null, { status: 308, headers: { Location: '/pages/firstaid' } }) });
+    const res = await (await w.navigate('/pages/firstaid.html')).response;
+    assert.strictEqual(res.status, 308);
+    assert.deepStrictEqual(w.cachedUrls(), []);
+  });
+
+  it('the offline fallback is the saved offline page itself, no redirect, for the .html and the clean address', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    w.state.online = false;
+    for (const asked of ['/pages/dashboard', '/pages/dashboard.html', '/profiles/patient/patient', '/index', '/']) {
+      const res = await (await w.navigate(asked)).response;
+      assert.strictEqual(res.status, 200, asked);
+      assert.strictEqual(res.redirected, false);
+      assert.strictEqual(res.headers.get('location'), null);
+      assert.match(res.headers.get('content-type'), /^text\/html/);
+      const html = await res.text();
+      assert.match(html, /<h1>You are offline<\/h1>/, asked);
+    }
+  });
+
+  it('the offline page keeps its links working from any address through a base tag', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    w.state.online = false;
+    const html = await (await (await w.navigate('/profiles/patient/patient')).response).text();
+    const base = html.match(/<base href="([^"]+)">/);
+    assert.ok(base, 'base tag');
+    assert.strictEqual(base[1], ORIGIN + '/pages/offline.html');
+    assert.ok(html.indexOf(base[0]) < html.indexOf('<link rel="stylesheet"'), 'base comes before the first link');
+    // The page asks for ../assets/css/offline.css and firstaid.html, which must land on the saved files.
+    const resolve = (ref) => new URL(ref, base[1]).pathname;
+    assert.strictEqual(resolve(html.match(/<link rel="stylesheet" href="([^"]+)"/)[1]), '/assets/css/offline.css');
+    assert.strictEqual(resolve(html.match(/<a href="(firstaid\.html)"/)[1]), '/pages/firstaid.html');
+    assert.ok(ASSETS.includes('assets/css/offline.css'));
+  });
+
+  it('the saved offline page opens from its clean address too', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    w.state.online = false;
+    const res = await (await w.navigate('/pages/offline')).response;
+    assert.match(await res.text(), /<h1>You are offline<\/h1>/);
+  });
+
+  it('with no saved offline page the fallback is the plain 503 text, never a redirect', async () => {
+    const w = makeWorker();
+    w.state.online = false;
+    const res = await (await w.navigate('/pages/dashboard')).response;
+    assert.strictEqual(res.status, 503);
+    assert.strictEqual(res.headers.get('location'), null);
+  });
+
+  it('only navigations get the offline page, a script asking for a listed page gets the network error', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    w.state.online = false;
+    for (const asked of [ORIGIN + '/pages/firstaid', ORIGIN + '/pages/firstaid.html']) {
+      const e = await w.request(asked);
+      await assert.rejects(e.response, TypeError);
+    }
+  });
+
+  it('api paths, other methods and unknown routes stay on the network and never get HTML from the cache', async () => {
+    const w = makeWorker({ network: withOfflinePage() });
+    await w.fire('install');
+    const before = w.cachedUrls();
+    const fetchedBefore = w.fetched.length;
+    // None of these are looked at by the cache code: no respondWith at all.
+    for (const asked of [ORIGIN + '/api/firstaid', ORIGIN + '/v1/hospitals', ORIGIN + '/pages/firstaid/', ORIGIN + '/pages/firstaid.json', ORIGIN + '/assets/data/facilities.json']) {
+      assert.strictEqual((await w.request(asked)).response, undefined, asked);
+    }
+    for (const asked of ['/pages/firstaid', '/pages/firstaid.html', '/pages/dashboard']) {
+      assert.strictEqual((await w.request(ORIGIN + asked, { method: 'POST' })).response, undefined, asked);
+      assert.strictEqual((await w.request(ORIGIN + asked, { method: 'PUT' })).response, undefined, asked);
+    }
+    assert.strictEqual(w.fetched.length, fetchedBefore);
+    assert.deepStrictEqual(w.cachedUrls(), before);
+    // A navigation to an api-looking path is answered by the network, and offline by the offline page, never by a saved page.
+    const online = await w.navigate('/api/firstaid');
+    assert.strictEqual(await (await online.response).text(), 'body of ' + ORIGIN + '/api/firstaid');
+    w.state.online = false;
+    const offline = await (await w.navigate('/api/firstaid')).response;
+    assert.match(await offline.text(), /<h1>You are offline<\/h1>/);
+  });
+
+  it('an unknown route reaches the network and its 404 page is shown as it is, not replaced or saved', async () => {
+    const w = makeWorker({ network: async () => new Response('custom 404 page', { status: 404 }) });
+    const res = await (await w.navigate('/pages/does-not-exist')).response;
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(await res.text(), 'custom 404 page');
+    assert.deepStrictEqual(w.cachedUrls(), []);
+  });
+
+  it('a failed answer for the clean address is passed on and never saved', async () => {
+    const w = makeWorker({ network: async () => new Response('nope', { status: 404 }) });
+    const res = await (await w.navigate('/pages/firstaid')).response;
+    assert.strictEqual(res.status, 404);
+    assert.deepStrictEqual(w.cachedUrls(), []);
   });
 });

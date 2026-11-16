@@ -162,7 +162,7 @@ Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that i
 
 The full list of what is saved, the offline limits, the install manifest, Vercel notes and the offline and update checks are in [OFFLINE_AND_INSTALL.md](OFFLINE_AND_INSTALL.md).
 
-- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Every saved file is network-first (fresh copy when online, saved copy when offline). A page that is not saved and cannot be reached shows `pages/offline.html`.
+- **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Every saved file is network-first (fresh copy when online, saved copy when offline). Both `/pages/firstaid.html` and the clean `/pages/firstaid` match. A page that is not saved and cannot be reached shows `pages/offline.html` at the address that was asked for (no redirect).
 - **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
