@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
     const locateButton = document.getElementById('use-my-location');
+    const legendEl = document.getElementById('status-legend');
 
     if (!hospitalsList || !U) return;
 
@@ -185,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!U.isValidCoord(f.lat, f.lng)) return;
             const marker = L.marker([f.lat, f.lng])
                 .addTo(map)
-                .bindPopup('<b>' + U.escapeHtml(f.name) + '</b><br>' + U.escapeHtml(f.district));
+                .bindPopup(U.popupHtml(f, { policy: reviewPolicy }));
             markers.push(marker);
         });
         if (markers.length > 0) {
@@ -229,16 +230,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ? '<p class="hospital-distance">' + U.escapeHtml(U.formatDistance(f.distanceKm)) + '</p>'
             : '';
         // The label comes from the review state and the check date, never from a bare flag.
-        const label = U.reviewLabel(f, { policy: reviewPolicy });
-        const badgeClass = 'badge-' + (label.state === 'pending' ? 'unverified' : label.state);
-        const badgeText = label.badge;
-        const detail = label.detail;
+        // The map popup uses the same function, so the list and the map agree.
+        const status = U.dataStatus(f, { policy: reviewPolicy });
         return '' +
             '<div class="hospital-info">' +
                 '<h4 class="hospital-name">' + U.escapeHtml(f.name) + '</h4>' +
                 '<p class="hospital-type">' + U.escapeHtml(U.FACILITY_TYPES[f.type] || f.type || 'Not available') + '</p>' +
-                '<p><span class="verify-badge ' + badgeClass + '">' + badgeText + '</span> ' +
-                    '<span class="verify-detail">' + U.escapeHtml(detail) + '</span></p>' +
+                '<p>' + U.statusBadgeHtml(status) + ' ' +
+                    '<span class="verify-detail">' + U.escapeHtml(status.detail) + '</span></p>' +
                 '<p class="hospital-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ' +
                     (f.district ? U.escapeHtml(f.district) : notAvailable) + '</p>' +
                 distance +
@@ -418,6 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 facilities = U.normalizeFacilities(checked ? checked.accepted : data);
                 reviewPolicy = U.getReviewPolicy(data);
+                if (legendEl) {
+                    legendEl.innerHTML = U.legendHtml(facilities, { policy: reviewPolicy });
+                    legendEl.hidden = legendEl.innerHTML === '';
+                }
                 populateFilters();
                 applyFilters();
                 // The correction form (facility-corrections-ui.js) fills its list from this.

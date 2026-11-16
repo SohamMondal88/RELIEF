@@ -11,7 +11,7 @@
  * Any other page that cannot be reached shows pages/offline.html instead of the
  * browser error. That page is not a copy of the missing page, nothing is saved.
  */
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const CACHE_PREFIX = 'relief-static-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 
@@ -28,6 +28,7 @@ const PAGE_PATHS = [
 // The facility list (assets/data/facilities.json) is deliberately not saved: it can go out of date.
 const ASSET_PATHS = [
   'assets/css/firstaid.css',
+  'assets/css/data-status.css',
   'assets/css/hospitals.css',
   'assets/css/location-panel.css',
   'assets/css/offline.css',

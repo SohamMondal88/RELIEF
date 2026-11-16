@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const doctors = [
         {
             id: 1,
+            synthetic: true,
             name: "Dr. Sarah Johnson",
             specialty: "Cardiologist",
             location: "Downtown Medical Center, 2.5 miles away",
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 2,
+            synthetic: true,
             name: "Dr. Michael Chen",
             specialty: "General Practitioner",
             location: "Westside Clinic, 1.2 miles away",
@@ -25,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 3,
+            synthetic: true,
             name: "Dr. Emily Rodriguez",
             specialty: "Pediatrician",
             location: "Children's Hospital, 3.1 miles away",
@@ -36,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 4,
+            synthetic: true,
             name: "Dr. James Wilson",
             specialty: "Neurologist",
             location: "Neuro Center, 4.3 miles away",
@@ -47,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 5,
+            synthetic: true,
             name: "Dr. Lisa Park",
             specialty: "Dermatologist",
             location: "Skin Health Clinic, 1.8 miles away",
@@ -58,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 6,
+            synthetic: true,
             name: "Dr. Robert Taylor",
             specialty: "Psychiatrist",
             location: "Mental Wellness Center, 2.7 miles away",
@@ -68,6 +74,11 @@ document.addEventListener('DOMContentLoaded', function() {
             bio: "Psychiatrist specializing in anxiety, depression, and cognitive behavioral therapy."
         }
     ];
+
+    const U = window.FacilityUtils;
+    // These are made up, so every card says so (the label and the legend come from facility-utils.js).
+    const legendEl = document.getElementById('status-legend');
+    if (legendEl && U) legendEl.innerHTML = U.legendHtml(doctors);
 
     // DOM elements
     const doctorsList = document.querySelector('.doctors-list');
@@ -175,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="doctor-info">
                     <h4 class="doctor-name">${doctor.name}</h4>
                     <p class="doctor-specialty">${doctor.specialty}</p>
+                    ${U ? `<p class="doctor-status">${U.statusBadgeHtml(U.dataStatus(doctor))}</p>` : ''}
                     <p class="doctor-location"><i class="fas fa-map-marker-alt"></i> ${doctor.location}</p>
                     <div class="doctor-rating">
                         <div class="stars">

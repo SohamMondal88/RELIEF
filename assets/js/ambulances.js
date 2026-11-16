@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ambulanceServices = [
         {
             id: 1,
+            synthetic: true,
             name: "City Emergency Medical Services",
             type: "Emergency",
             location: "123 Main St, Downtown, 1.5 miles away",
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 2,
+            synthetic: true,
             name: "Metro Ambulance Service",
             type: "Emergency & Non-Emergency",
             location: "456 Oak Ave, Westside, 2.8 miles away",
@@ -23,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 3,
+            synthetic: true,
             name: "Regional Medical Transport",
             type: "Non-Emergency",
             location: "789 Pine Rd, Northside, 3.2 miles away",
@@ -33,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         {
             id: 4,
+            synthetic: true,
             name: "Community Ambulance Network",
             type: "Emergency",
             location: "321 Elm Blvd, Eastside, 4.5 miles away",
@@ -42,6 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
             lng: -73.9960
         }
     ];
+
+    const U = window.FacilityUtils;
+    // These are made up, so every card and map popup says so (the label and the legend come from facility-utils.js).
+    const legendEl = document.getElementById('status-legend');
+    if (legendEl && U) legendEl.innerHTML = U.legendHtml(ambulanceServices);
 
     // DOM elements
     const ambulanceList = document.querySelector('.ambulance-list');
@@ -135,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const marker = L.marker([ambulance.lat, ambulance.lng], { icon: ambulanceIcon })
                 .addTo(map)
-                .bindPopup(`<b>${ambulance.name}</b><br>${ambulance.location}<br>Phone: ${ambulance.phone}`);
+                .bindPopup((U ? U.popupHtml(ambulance) : `<b>${ambulance.name}</b><br>${ambulance.location}`) + `<br>Phone: ${ambulance.phone}`);
 
             markers.push(marker);
         });
@@ -157,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ambulanceItem.innerHTML = `
                 <div class="ambulance-info">
                     <h4>${ambulance.name}</h4>
+                    ${U ? `<p class="ambulance-status">${U.statusBadgeHtml(U.dataStatus(ambulance))}</p>` : ''}
                     <p><i class="fas fa-map-marker-alt"></i> ${ambulance.location}</p>
                     <p><i class="fas fa-phone"></i> ${ambulance.phone}</p>
                     <p><i class="fas fa-clock"></i> Avg. response time: ${ambulance.responseTime}</p>

@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ambulance Services | Relief</title>
     <link rel="stylesheet" href="../assets/css/ambulances.css">
+    <link rel="stylesheet" href="../assets/css/data-status.css">
     <link rel="stylesheet" href="../assets/css/location-panel.css">
     <link rel="stylesheet" href="../assets/css/emergency-sos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
@@ -133,6 +134,7 @@
 
             <div class="nearby-ambulances">
                 <h3>Nearby Ambulance Services</h3>
+                <aside class="status-legend" id="status-legend" aria-label="What the status labels mean"></aside>
                 <div class="ambulance-list">
                     <!-- Ambulance services will be populated by JavaScript -->
                 </div>
@@ -223,6 +225,7 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/location-service.js"></script>
     <script src="../assets/js/location-panel.js"></script>
+    <script src="../assets/js/facility-utils.js"></script>
     <script src="../assets/js/ambulances.js"></script>
     <script src="../assets/js/emergency-sos.js"></script>
 
