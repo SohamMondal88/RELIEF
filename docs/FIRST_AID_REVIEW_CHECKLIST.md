@@ -10,6 +10,8 @@ It builds on [MEDICALLY_CAUTIOUS_GUIDANCE.md](MEDICALLY_CAUTIOUS_GUIDANCE.md) (s
 - Any translated copy of those articles.
 - Any other page or chatbot answer that tells a person what to do to someone who is hurt or ill.
 
+**Markup in articles.** The body (`content`) of a first aid article is the one place on the site that keeps trusted rich HTML on purpose: the lists, warnings and icons are written as HTML in `assets/js/firstaid.js` and put on the page as is. That is only safe because the text is written in that file and reviewed with the article. Never build `content` from user input, a form, browser storage or a server or JSON response; if articles ever load from a file, they must be sanitised with a maintained allowlist first. Everything else on the page, including the article title, goes through `escapeHtml` from `assets/js/safe-html.js`.
+
 Contributors are not clinicians and cannot approve medical content. A pull request can show that the text follows named public sources and that this checklist was done. Only a licensed clinician can mark it clinically reviewed.
 
 ## 2. Review status and what the site may say

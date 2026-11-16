@@ -20,6 +20,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  // The server's message and guidance are text, never markup. If the shared helper did not load
+  // (see safe-html.js) nothing from the server is printed: the dialog still shows the verified
+  // numbers and the standard guidance below it.
+  const safeHtml = (typeof module === 'object' && module.exports) ? require('./safe-html.js') : globalThis.ReliefSafeHtml;
+  function escapeText(value) {
+    return safeHtml ? safeHtml.escapeHtml(value) : '';
+  }
+
   // State definitions for explicit request lifecycle
   const SOS_STATES = {
     IDLE: 'IDLE',
@@ -700,13 +708,13 @@
                 <h3 class="relief-sos-status-title">
                   ${isSuccess ? 'SOS Request Accepted' : (res.state === SOS_STATES.OFFLINE ? 'Device is Offline' : 'Web Dispatch Unavailable')}
                 </h3>
-                <p class="relief-sos-status-msg">${res.message}</p>
+                <p class="relief-sos-status-msg">${escapeText(res.message)}</p>
               </div>
             </div>
 
             <div class="relief-sos-guidance-box">
               <h4>Recommended Action</h4>
-              <p>${res.guidance}</p>
+              <p>${escapeText(res.guidance)}</p>
             </div>
 
             <div class="relief-sos-regional-box">

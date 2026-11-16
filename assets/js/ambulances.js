@@ -1,3 +1,30 @@
+// Builds one ambulance list item and one map popup. Every value goes through escapeHtml so
+// service data (hardcoded here, but it will come from JSON) can never turn into markup.
+function buildAmbulanceItemHtml(ambulance) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    return `
+                <div class="ambulance-info">
+                    <h4>${H.escapeHtml(ambulance.name)}</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> ${H.escapeHtml(ambulance.location)}</p>
+                    <p><i class="fas fa-phone"></i> ${H.escapeHtml(ambulance.phone)}</p>
+                    <p><i class="fas fa-clock"></i> Avg. response time: ${H.escapeHtml(ambulance.responseTime)}</p>
+                </div>
+                <div class="ambulance-actions">
+                    <button class="btn-call" data-phone="${H.escapeHtml(ambulance.phone)}">
+                        <i class="fas fa-phone"></i> Call
+                    </button>
+                    <button class="btn-directions" data-lat="${H.escapeHtml(ambulance.lat)}" data-lng="${H.escapeHtml(ambulance.lng)}">
+                        <i class="fas fa-directions"></i> Directions
+                    </button>
+                </div>
+            `;
+}
+
+function buildAmbulancePopupHtml(ambulance) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    return `<b>${H.escapeHtml(ambulance.name)}</b><br>${H.escapeHtml(ambulance.location)}<br>Phone: ${H.escapeHtml(ambulance.phone)}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Mock ambulance services data
     const ambulanceServices = [
@@ -135,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const marker = L.marker([ambulance.lat, ambulance.lng], { icon: ambulanceIcon })
                 .addTo(map)
-                .bindPopup(`<b>${ambulance.name}</b><br>${ambulance.location}<br>Phone: ${ambulance.phone}`);
+                .bindPopup(buildAmbulancePopupHtml(ambulance));
 
             markers.push(marker);
         });
@@ -154,22 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ambulanceServices.forEach(ambulance => {
             const ambulanceItem = document.createElement('div');
             ambulanceItem.className = 'ambulance-item';
-            ambulanceItem.innerHTML = `
-                <div class="ambulance-info">
-                    <h4>${ambulance.name}</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> ${ambulance.location}</p>
-                    <p><i class="fas fa-phone"></i> ${ambulance.phone}</p>
-                    <p><i class="fas fa-clock"></i> Avg. response time: ${ambulance.responseTime}</p>
-                </div>
-                <div class="ambulance-actions">
-                    <button class="btn-call" data-phone="${ambulance.phone}">
-                        <i class="fas fa-phone"></i> Call
-                    </button>
-                    <button class="btn-directions" data-lat="${ambulance.lat}" data-lng="${ambulance.lng}">
-                        <i class="fas fa-directions"></i> Directions
-                    </button>
-                </div>
-            `;
+            ambulanceItem.innerHTML = buildAmbulanceItemHtml(ambulance);
             ambulanceList.appendChild(ambulanceItem);
         });
 

@@ -1,3 +1,50 @@
+// Builds one pharmacy card and one map popup. Every value goes through escapeHtml / cssUrl so
+// pharmacy data (hardcoded here, but it will come from JSON) can never turn into markup.
+function buildPharmacyCardHtml(pharmacy) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    const hours = pharmacy.hours || {};
+    return `
+                <div class="pharmacy-image" style="background-image: ${H.escapeHtml(H.cssUrl(pharmacy.image))}"></div>
+                <div class="pharmacy-info">
+                    <h4 class="pharmacy-name">${H.escapeHtml(pharmacy.name)}</h4>
+                    <p class="pharmacy-type">${H.escapeHtml(pharmacy.type)}</p>
+                    <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${H.escapeHtml(pharmacy.location)}</p>
+                    <div class="pharmacy-services">
+                        ${(pharmacy.services || []).map(service =>
+                            `<span class="service-tag">${H.escapeHtml(service)}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="pharmacy-hours">
+                        <div class="hours-item">
+                            <span>Mon-Fri:</span>
+                            <span>${H.escapeHtml(hours.monFri)}</span>
+                        </div>
+                        <div class="hours-item">
+                            <span>Sat:</span>
+                            <span>${H.escapeHtml(hours.sat)}</span>
+                        </div>
+                        <div class="hours-item">
+                            <span>Sun:</span>
+                            <span>${H.escapeHtml(hours.sun)}</span>
+                        </div>
+                    </div>
+                    <div class="pharmacy-actions">
+                        <button class="btn-delivery" data-id="${H.escapeHtml(pharmacy.id)}">
+                            <i class="fas fa-truck"></i> Request Delivery
+                        </button>
+                        <button class="btn-call" data-phone="${H.escapeHtml(pharmacy.phone)}">
+                            <i class="fas fa-phone"></i> Call
+                        </button>
+                    </div>
+                </div>
+            `;
+}
+
+function buildPharmacyPopupHtml(pharmacy) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    return `<b>${H.escapeHtml(pharmacy.name)}</b><br>${H.escapeHtml(pharmacy.location)}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Mock pharmacy data
     const pharmacies = [
@@ -167,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pharmaciesToShow.forEach(pharmacy => {
             const marker = L.marker([pharmacy.lat, pharmacy.lng])
                 .addTo(map)
-                .bindPopup(`<b>${pharmacy.name}</b><br>${pharmacy.location}`);
+                .bindPopup(buildPharmacyPopupHtml(pharmacy));
 
             markers.push(marker);
         });
@@ -239,41 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedPharmacies.forEach(pharmacy => {
             const pharmacyCard = document.createElement('div');
             pharmacyCard.className = 'pharmacy-card';
-            pharmacyCard.innerHTML = `
-                <div class="pharmacy-image" style="background-image: url('${pharmacy.image}')"></div>
-                <div class="pharmacy-info">
-                    <h4 class="pharmacy-name">${pharmacy.name}</h4>
-                    <p class="pharmacy-type">${pharmacy.type}</p>
-                    <p class="pharmacy-location"><i class="fas fa-map-marker-alt"></i> ${pharmacy.location}</p>
-                    <div class="pharmacy-services">
-                        ${pharmacy.services.map(service =>
-                            `<span class="service-tag">${service}</span>`
-                        ).join('')}
-                    </div>
-                    <div class="pharmacy-hours">
-                        <div class="hours-item">
-                            <span>Mon-Fri:</span>
-                            <span>${pharmacy.hours.monFri}</span>
-                        </div>
-                        <div class="hours-item">
-                            <span>Sat:</span>
-                            <span>${pharmacy.hours.sat}</span>
-                        </div>
-                        <div class="hours-item">
-                            <span>Sun:</span>
-                            <span>${pharmacy.hours.sun}</span>
-                        </div>
-                    </div>
-                    <div class="pharmacy-actions">
-                        <button class="btn-delivery" data-id="${pharmacy.id}">
-                            <i class="fas fa-truck"></i> Request Delivery
-                        </button>
-                        <button class="btn-call" data-phone="${pharmacy.phone}">
-                            <i class="fas fa-phone"></i> Call
-                        </button>
-                    </div>
-                </div>
-            `;
+            pharmacyCard.innerHTML = buildPharmacyCardHtml(pharmacy);
             pharmaciesList.appendChild(pharmacyCard);
         });
 

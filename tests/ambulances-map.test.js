@@ -9,6 +9,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
+// ambulances.js builds its list with the shared escape helper, which the page loads before it
+const safeHtml = require('../assets/js/safe-html.js');
 const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'ambulances.js'), 'utf8');
 
 // Just enough DOM for ambulances.js, with a record of what the script did.
@@ -62,7 +64,7 @@ function fakePage() {
 
 function run(extraGlobals) {
   const page = fakePage();
-  const context = vm.createContext(Object.assign({ document: page.document, window: {} }, extraGlobals));
+  const context = vm.createContext(Object.assign({ document: page.document, window: {}, ReliefSafeHtml: safeHtml }, extraGlobals));
   vm.runInContext(source, context, { filename: 'ambulances.js' });
   // Fire DOMContentLoaded for every script listener, like the browser does.
   page.listeners.DOMContentLoaded.forEach((fn) => fn());
