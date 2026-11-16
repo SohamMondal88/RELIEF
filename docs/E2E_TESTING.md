@@ -32,7 +32,8 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |
 | `e2e/sos.spec.js` | SOS dialog (focus, Escape, Tab trap), no backend configured, server error, unconfirmed 200, dropped connection, Retry, confirmed success with a mocked location, denied location, offline, closing while a request is in flight |
 | `e2e/reminders.spec.js` | Reminder add, validation and duplicate, edit, pause and resume, done and remove, persistence across reload, due banner with a fixed clock |
-| `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
+| `e2e/smoke.spec.js` | Smoke check of every public page in `pages/` (home, the directory pages, appointments, dashboard, subscription, health events, blog, login, signup and the static pages such as terms and privacy): each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
+| `e2e/page-guards.spec.js` | Scripts that look for optional elements (Issue #193): the blog page still runs its navbar and card scripts without a mobile menu, and the first aid page survives a click outside the guides after a search with no result |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
 
@@ -81,6 +82,7 @@ Known problems the smoke check currently tolerates:
 |---|---|
 | `home` | `assets/css/style.css` line 1120 has `url('assets/images/pattern.png')`, which resolves to `/assets/css/assets/images/pattern.png`; the file does not exist in `assets/images/` either |
 | `doctors` | `assets/js/doctors.js` points at `../assets/images/doctor1.jpg` to `doctor6.jpg`, which are not in the repository |
+| `blog` | `assets/css/blog.css` line 545 uses `../images/health-hero-bg.jpg`, which is not in the repository |
 | `ambulances` | `ambulances.js` throws "L is not defined" when the Leaflet script did not load (the same bug as the `test.fixme` in `sos.spec.js`) |
 
 ## When a test fails

@@ -34,6 +34,9 @@ const KNOWN = {
   // assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with the CDN
   // blocked the page throws "L is not defined". The same bug is tracked by test.fixme in sos.spec.js.
   ambulances: { pageErrors: [/^L is not defined$/] },
+  // assets/css/blog.css line 545 uses ../images/health-hero-bg.jpg for the newsletter banner. The file is not in the
+  // repository and returns 404 on the live site too (checked with curl on 16 November 2026), so it needs the artwork.
+  blog: { firstParty: [/^404 \/assets\/images\/health-hero-bg\.jpg$/] },
   // assets/js/doctors.js points at ../assets/images/doctor1.jpg to doctor6.jpg, none of which exist in the repository.
   doctors: { firstParty: [/^404 \/assets\/images\/doctor[1-6]\.jpg$/] }
 };
