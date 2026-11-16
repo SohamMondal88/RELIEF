@@ -20,6 +20,20 @@ Every screen uses the same four states (`renderState`): **loading** (`role=statu
 people may open in a health emergency (facility list) add "If this is an emergency, call your local
 emergency number now."
 
+### Provider lists (doctors, hospitals, pharmacies, ambulances)
+
+These four lists use `describeDirectory` / `renderDirectory` so the three ways of having nothing to show
+look different:
+
+| Situation | State | Buttons |
+|---|---|---|
+| The filters match nothing | empty, `role=status`, "No ... found matching your criteria" | Clear search and filters |
+| The list itself is empty | empty, `role=status`, "No ... are listed right now", says it does not mean there are none nearby | none |
+| Loading the list failed, or building it threw | error, `role=alert` | Try again |
+
+Empty and error states always include the emergency line, and the emergency buttons and SOS sit outside the list so a state never hides them. None of the texts says a provider is live, open or available.
+The hospitals list loads `assets/data/facilities.json`, so it also has a real loading state. The doctor, pharmacy and ambulance lists are built from data inside their scripts, so there is nothing to wait for and they have no loading state (a spinner there would be fake). `guardList(container, build)` wraps the code that draws such a list: if it throws, the error state with Try again is shown and the failure is logged without the error text. Without JavaScript each list shows a `<noscript>` line with the emergency numbers.
+
 ## Retries
 
 * **Reads** (GET): up to 2 retries on timeouts, network errors, 5xx and a `Retry-After` of 5 s or less,

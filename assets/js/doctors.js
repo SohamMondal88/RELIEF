@@ -78,8 +78,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
 
-    // Display all doctors initially
-    displayDoctors(doctors);
+    const R = window.ReliefResilience || null;
+
+    // Runs a function that builds the list. If it throws, the list shows an error with Try again
+    // instead of the page stopping half way (see ReliefResilience.guardList).
+    function guarded(fn) {
+        return function () {
+            if (R) R.guardList(doctorsList, fn, { context: 'doctors list', noun: 'doctors' });
+            else fn();
+        };
+    }
+
+    function clearFilters() {
+        searchInput.value = '';
+        specialtyFilter.value = '';
+        locationFilter.value = '';
+        availabilityFilter.value = '';
+        filterDoctors();
+        searchInput.focus();
+    }
+
+    // No matches (clear the filters) and no data at all are different states, and neither is an error.
+    function showEmpty() {
+        const noData = doctors.length === 0;
+        if (R) {
+            R.renderDirectory(doctorsList, noData ? 'no-data' : 'no-results', { noun: 'doctors', onReset: noData ? null : clearFilters });
+        } else {
+            doctorsList.innerHTML = '<p class="no-results">No doctors found matching your criteria.</p>';
+        }
+    }
 
     // Filter doctors based on search and filters
     function filterDoctors() {
@@ -160,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         doctorsList.innerHTML = '';
 
         if (doctorsToDisplay.length === 0) {
-            doctorsList.innerHTML = '<p class="no-results">No doctors found matching your criteria.</p>';
+            showEmpty();
             return;
         }
 
@@ -219,17 +246,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listeners
-    searchInput.addEventListener('input', filterDoctors);
-    filterButton.addEventListener('click', filterDoctors);
-    sortSelect.addEventListener('change', () => {
+    searchInput.addEventListener('input', guarded(filterDoctors));
+    filterButton.addEventListener('click', guarded(filterDoctors));
+    sortSelect.addEventListener('change', guarded(() => {
         const currentDoctors = Array.from(document.querySelectorAll('.doctor-card')).length > 0 ?
             doctors :
             JSON.parse(JSON.stringify(doctors));
         displayDoctors(currentDoctors);
-    });
+    }));
 
     // Initialize with filtered doctors
-    filterDoctors();
+    guarded(filterDoctors)();
 });
 
 

@@ -9,6 +9,8 @@
  *  - extractRequestId()   reads a request id from response headers or body when the backend sends one
  *  - redact()/logError()  operational logging that never contains passwords, tokens or health details
  *  - renderState()        the same loading / empty / success / error markup on every page
+ *  - describeDirectory()  what a provider list says when it is loading, has no matches, has no data or failed
+ *  - guardList()          runs the code that builds a list and shows the error state with Try again if it throws
  *  - degrade()            runs a non-critical feature and falls back instead of breaking the page
  *
  * Retry rules (see docs/ERROR_HANDLING.md):
@@ -405,7 +407,7 @@
       return { state: state, role: 'status', live: 'polite', title: m.title || '', message: m.message || 'Loading...', retry: false };
     }
     if (state === 'empty') {
-      return { state: state, role: 'status', live: 'polite', title: m.title || 'Nothing to show yet', message: m.message || 'There are no results.', retry: false };
+      return { state: state, role: 'status', live: 'polite', title: m.title || 'Nothing to show yet', message: m.message || 'There are no results.', retry: false, emergency: Boolean(m.emergency) };
     }
     if (state === 'success') {
       return { state: state, role: 'status', live: 'polite', title: m.title || '', message: m.message || 'Done.', retry: false };
@@ -443,7 +445,7 @@
     var html = '';
     if (d.title) html += '<p class="state-title"><strong>' + escapeHtml(d.title) + '</strong></p>';
     html += '<p class="state-message">' + escapeHtml(d.message) + '</p>';
-    if (d.state === 'error' && d.emergency) html += '<p class="state-emergency">' + escapeHtml(EMERGENCY_NOTE) + '</p>';
+    if ((d.state === 'error' || d.state === 'empty') && d.emergency) html += '<p class="state-emergency">' + escapeHtml(EMERGENCY_NOTE) + '</p>';
     if (d.state === 'error' && d.reference) html += '<p class="state-reference muted">Reference: ' + escapeHtml(d.reference) + '</p>';
     box.innerHTML = html;
 
@@ -467,8 +469,82 @@
       link.textContent = 'Sign in';
       box.appendChild(link);
     }
+    // An optional second action, for example "Clear filters" on an empty result.
+    var extra = model && model.secondary;
+    if (extra && extra.label && typeof extra.onClick === 'function') {
+      var second = document.createElement('button');
+      second.type = 'button';
+      second.className = 'btn-filter state-secondary';
+      second.textContent = extra.label;
+      second.addEventListener('click', extra.onClick);
+      box.appendChild(second);
+    }
     container.appendChild(box);
     return button;
+  }
+
+  /**
+   * The words a provider list (doctors, hospitals, pharmacies, ambulances) uses for each way it can have
+   * nothing to show. They are different on purpose: no matches (the filters are too narrow), no data (the
+   * list itself is empty) and an error (something broke, so Try again makes sense). None of them says or
+   * implies that a provider is live, open or available.
+   *   kind: 'loading' | 'no-results' | 'no-data' | 'error'
+   *   opts: { noun: 'doctors', error, onRetry, onReset }
+   */
+  function describeDirectory(kind, opts) {
+    var o = opts || {};
+    var noun = o.noun || 'results';
+    if (kind === 'loading') return { state: 'loading', message: 'Loading ' + noun + '...' };
+    if (kind === 'no-results') {
+      return {
+        state: 'empty',
+        title: 'No matching ' + noun,
+        message: 'No ' + noun + ' found matching your criteria. Try clearing a filter or searching for something else.',
+        emergency: true,
+        secondary: typeof o.onReset === 'function' ? { label: 'Clear search and filters', onClick: o.onReset } : null
+      };
+    }
+    if (kind === 'no-data') {
+      return {
+        state: 'empty',
+        title: 'No ' + noun + ' are listed right now',
+        message: 'Our list has no ' + noun + ' to show. That does not mean there are none nearby, so call ahead or ask locally.',
+        emergency: true
+      };
+    }
+    return {
+      state: 'error',
+      error: o.error || { reason: 'bad-answer', code: 'backend-unavailable' },
+      title: o.title || 'The list of ' + noun + ' could not be shown',
+      message: o.message,
+      emergency: true
+    };
+  }
+
+  function renderDirectory(container, kind, opts) {
+    return renderState(container, describeDirectory(kind, opts), opts && opts.onRetry);
+  }
+
+  /**
+   * Builds a list with fn(). If fn throws, the error state with a Try again button is shown instead of a
+   * half drawn list or a page that stops, the failure is logged (redacted), and Try again runs fn once more.
+   * Returns true when fn ran without throwing.
+   */
+  function guardList(container, fn, opts) {
+    var o = opts || {};
+    try {
+      fn();
+      return true;
+    } catch (error) {
+      logError(o.context || 'directory list', error);
+      renderDirectory(container, 'error', {
+        noun: o.noun,
+        error: { code: 'backend-unavailable', reason: 'bad-answer' },
+        message: 'Something went wrong while building this list. Try again.',
+        onRetry: function () { guardList(container, fn, o); }
+      });
+      return false;
+    }
   }
 
   return {
@@ -493,6 +569,9 @@
     diagnosticsText: diagnosticsText,
     degrade: degrade,
     describeState: describeState,
-    renderState: renderState
+    renderState: renderState,
+    describeDirectory: describeDirectory,
+    renderDirectory: renderDirectory,
+    guardList: guardList
   };
 });

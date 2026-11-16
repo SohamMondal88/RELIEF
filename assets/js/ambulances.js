@@ -147,9 +147,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    const R = window.ReliefResilience || null;
+
     // Display ambulance services
     function displayAmbulanceServices() {
         ambulanceList.innerHTML = '';
+
+        // An empty list is a gap in our data, not a sign that there is no ambulance. The emergency buttons above stay.
+        if (ambulanceServices.length === 0) {
+            if (R) R.renderDirectory(ambulanceList, 'no-data', { noun: 'ambulance services' });
+            else ambulanceList.innerHTML = '<p class="no-results">No ambulance services are listed right now. In an emergency call 112 or 108.</p>';
+            return;
+        }
 
         ambulanceServices.forEach(ambulance => {
             const ambulanceItem = document.createElement('div');
@@ -202,8 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Opening non-emergency medical transport request form');
     });
 
-    // Initialize the page
-    displayAmbulanceServices();
+    // Initialize the page. If building the list throws, the list shows an error with Try again and the rest keeps working.
+    if (R) R.guardList(ambulanceList, displayAmbulanceServices, { context: 'ambulances list', noun: 'ambulance services' });
+    else displayAmbulanceServices();
     initMap();
 });
 

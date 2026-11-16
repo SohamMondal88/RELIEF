@@ -114,6 +114,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
 
+    const R = window.ReliefResilience || null;
+
+    // Runs a function that builds the list. If it throws, the list shows an error with Try again
+    // instead of the page stopping half way (see ReliefResilience.guardList).
+    function guarded(fn) {
+        return function () {
+            if (R) R.guardList(pharmaciesList, fn, { context: 'pharmacies list', noun: 'pharmacies' });
+            else fn();
+        };
+    }
+
+    function clearFilters() {
+        searchInput.value = '';
+        pharmacyTypeFilter.value = '';
+        locationFilter.value = '';
+        servicesFilter.value = '';
+        filterPharmacies();
+        searchInput.focus();
+    }
+
+    // No matches (clear the filters) and no data at all are different states, and neither is an error.
+    function showEmpty() {
+        const noData = pharmacies.length === 0;
+        if (R) {
+            R.renderDirectory(pharmaciesList, noData ? 'no-data' : 'no-results', { noun: 'pharmacies', onReset: noData ? null : clearFilters });
+        } else {
+            pharmaciesList.innerHTML = '<p class="no-results">No pharmacies found matching your criteria.</p>';
+        }
+    }
+
+    // The map library comes from a CDN. When it did not load (offline, blocked, slow) the list still works,
+    // so say that the map is missing instead of failing.
+    function showMapUnavailable() {
+        map = null;
+        const mapElement = document.getElementById('map');
+        if (!mapElement || mapElement.hidden) return;
+        mapElement.hidden = true;
+        const note = document.createElement('p');
+        note.className = 'map-unavailable';
+        note.setAttribute('role', 'status');
+        note.textContent = 'The map could not be loaded, so it is not shown. The pharmacy list above still works.';
+        mapElement.parentNode.insertBefore(note, mapElement);
+    }
+
     // Initialize map
     let map;
     let markers = [];
@@ -127,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setUserMarker(location) {
+        if (!map) return;
         if (userMarker) {
             map.removeLayer(userMarker);
             userMarker = null;
@@ -144,21 +189,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initMap() {
-        // Use the saved location if there is one, otherwise a West Bengal overview
-        const userLocation = getUserLocation();
-        const center = userLocation || DEFAULT_CENTER;
+        if (typeof L === 'undefined') {
+            showMapUnavailable();
+            return;
+        }
+        try {
+            // Use the saved location if there is one, otherwise a West Bengal overview
+            const userLocation = getUserLocation();
+            const center = userLocation || DEFAULT_CENTER;
 
-        map = L.map('map').setView(center, userLocation ? 13 : 7);
+            map = L.map('map').setView(center, userLocation ? 13 : 7);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
-        // Add marker for user's location if available
-        setUserMarker(userLocation);
+            // Add marker for user's location if available
+            setUserMarker(userLocation);
+        } catch (error) {
+            if (R) R.logError('pharmacies map init', error);
+            showMapUnavailable();
+        }
     }
 
     function updateMapMarkers(pharmaciesToShow) {
+        if (!map) return;
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
@@ -203,6 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMapMarkers(filteredPharmacies);
     }
 
+    const filterPharmaciesGuarded = guarded(filterPharmacies);
+
     // Sort pharmacies
     function sortPharmacies(pharmaciesList, sortBy) {
         return [...pharmaciesList].sort((a, b) => {
@@ -229,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pharmaciesList.innerHTML = '';
 
         if (pharmaciesToDisplay.length === 0) {
-            pharmaciesList.innerHTML = '<p class="no-results">No pharmacies found matching your criteria.</p>';
+            showEmpty();
             return;
         }
 
@@ -310,14 +367,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listeners
-    searchInput.addEventListener('input', filterPharmacies);
-    filterButton.addEventListener('click', filterPharmacies);
-    sortSelect.addEventListener('change', () => {
-        filterPharmacies();
-    });
+    searchInput.addEventListener('input', filterPharmaciesGuarded);
+    filterButton.addEventListener('click', filterPharmaciesGuarded);
+    sortSelect.addEventListener('change', filterPharmaciesGuarded);
 
     // Initialize with all pharmacies
-    displayPharmacies(pharmacies);
+    guarded(() => displayPharmacies(pharmacies))();
     initMap();
     updateMapMarkers(pharmacies);
 });
