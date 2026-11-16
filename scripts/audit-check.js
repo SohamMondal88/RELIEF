@@ -59,6 +59,14 @@ function readAllowlist(file) {
   return Array.isArray(data.allow) ? data.allow : [];
 }
 
+// True only for a real calendar date written as YYYY-MM-DD. Date.parse would give NaN for month 13 (and
+// `NaN < now` is false, so the entry would never expire) or roll 2026-02-31 over to 2026-03-03.
+function validDate(text) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(text))) return false;
+  const d = new Date(text + 'T00:00:00Z');
+  return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === text;
+}
+
 function evaluate(report, allow, options) {
   const level = (options && options.level) || 'high';
   const now = (options && options.now) || new Date();
@@ -67,9 +75,9 @@ function evaluate(report, allow, options) {
 
   (allow || []).forEach((entry) => {
     const label = 'allowlist entry ' + (entry && entry.id ? entry.id : JSON.stringify(entry));
-    if (!entry || !advisoryId(entry.id) || !entry.reason || !/^\d{4}-\d{2}-\d{2}$/.test(String(entry.expires || ''))) {
-      problems.push(label + ' needs an id (GHSA-xxxx-xxxx-xxxx), a reason and an expires date (YYYY-MM-DD)');
-    } else if (Date.parse(entry.expires + 'T23:59:59Z') < now.getTime()) {
+    if (!entry || !advisoryId(entry.id) || !entry.reason || !validDate(entry.expires)) {
+      problems.push(label + ' needs an id (GHSA-xxxx-xxxx-xxxx), a reason and an expires date that is a real calendar day (YYYY-MM-DD)');
+    } else if (!(Date.parse(entry.expires + 'T23:59:59Z') >= now.getTime())) {
       problems.push(label + ' expired on ' + entry.expires + ': check it again, then fix the dependency or renew it with a new reason');
     } else {
       active.add(entry.id.toUpperCase());
@@ -136,4 +144,4 @@ function main(argv) {
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
 
-module.exports = { advisoryId, collectAdvisories, evaluate };
+module.exports = { advisoryId, collectAdvisories, evaluate, validDate };

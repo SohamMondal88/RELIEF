@@ -64,6 +64,22 @@ test('an expired allowlist entry stops working and is reported', () => {
   assert.match(result.problems.join(' '), /expired on 2026-11-09/);
 });
 
+test('an expiry date that is not a real calendar day does not count, so it cannot silence an advisory forever', () => {
+  ['2026-13-01', '2026-00-10', '2026-02-31', '2026-04-31', '2027-02-29', '2026-11-00', '2026-11-32', '9999-99-99'].forEach((expires) => {
+    const result = A.evaluate(report(), [{ id: CRITICAL, reason: 'looks fine', expires }], { now: NOW });
+    assert.strictEqual(result.ok, false, expires);
+    assert.deepStrictEqual(result.findings.map((a) => a.id), [CRITICAL], expires);
+    assert.match(result.problems.join(' '), /real calendar day/, expires);
+  });
+});
+
+test('real calendar days are accepted, including 29 February in a leap year', () => {
+  ['2026-12-31', '2028-02-29', '2026-11-10'].forEach((expires) => assert.strictEqual(A.validDate(expires), true, expires));
+  ['', null, undefined, 'tomorrow', '2026-1-1', '2026-02-31', '2026-13-01'].forEach((v) => assert.strictEqual(A.validDate(v), false, String(v)));
+  const result = A.evaluate(report(), [{ id: CRITICAL, reason: 'leap day', expires: '2028-02-29' }], { now: NOW });
+  assert.deepStrictEqual(result.problems, []);
+});
+
 test('an allowlist entry without a reason or an expiry does not count', () => {
   const result = A.evaluate(report(), [{ id: CRITICAL }], { now: NOW });
   assert.strictEqual(result.findings.length, 1);

@@ -57,7 +57,7 @@ Never switch a check off. Excuse the one finding and write down why.
 ] }
 ```
 
-An entry needs the advisory id, a reason and an expiry date. After the date it stops working and the check fails again, so a decision gets looked at again. Pick a date at most a few months away. Everything else at high or above still fails.
+An entry needs the advisory id, a reason and an expiry date written as `YYYY-MM-DD` that is a real calendar day (`2026-13-01` or `2026-02-31` are rejected, and the check fails until the entry is corrected). After the date it stops working and the check fails again, so a decision gets looked at again. Pick a date at most a few months away. Everything else at high or above still fails.
 
 To fix instead of excuse: `npm audit fix` for a fix inside the allowed range, otherwise bump the package, or use `overrides` in `package.json` to force a patched version of a transitive dependency, and run `npm test` and `npm run test:e2e` after.
 
