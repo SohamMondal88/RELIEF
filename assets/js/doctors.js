@@ -1,3 +1,31 @@
+// Builds one doctor card. Every value goes through escapeHtml / cssUrl so doctor data
+// (hardcoded here, but it will come from JSON) can never turn into markup.
+function buildDoctorCardHtml(doctor) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    const rating = Math.min(5, Math.max(0, Number(doctor.rating) || 0));
+    return `
+                <div class="doctor-image" style="background-image: ${H.escapeHtml(H.cssUrl(doctor.image))}"></div>
+                <div class="doctor-info">
+                    <h4 class="doctor-name">${H.escapeHtml(doctor.name)}</h4>
+                    <p class="doctor-specialty">${H.escapeHtml(doctor.specialty)}</p>
+                    <p class="doctor-location"><i class="fas fa-map-marker-alt"></i> ${H.escapeHtml(doctor.location)}</p>
+                    <div class="doctor-rating">
+                        <div class="stars">
+                            ${'<i class="fas fa-star"></i>'.repeat(Math.floor(rating))}
+                            ${rating % 1 >= 0.5 ? '<i class="fas fa-star-half-alt"></i>' : ''}
+                            ${'<i class="far fa-star"></i>'.repeat(5 - Math.ceil(rating))}
+                        </div>
+                        <span class="reviews">(${H.escapeHtml(doctor.reviews)} reviews)</span>
+                    </div>
+                    <p class="doctor-bio">${H.escapeHtml(doctor.bio)}</p>
+                    <div class="doctor-availability">
+                        <span class="availability-badge">${H.escapeHtml(doctor.availability)}</span>
+                        <button class="btn-book" data-id="${H.escapeHtml(doctor.id)}">Book Appointment</button>
+                    </div>
+                </div>
+            `;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Mock doctor data
     const doctors = [
@@ -170,27 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedDoctors.forEach(doctor => {
             const doctorCard = document.createElement('div');
             doctorCard.className = 'doctor-card';
-            doctorCard.innerHTML = `
-                <div class="doctor-image" style="background-image: url('${doctor.image}')"></div>
-                <div class="doctor-info">
-                    <h4 class="doctor-name">${doctor.name}</h4>
-                    <p class="doctor-specialty">${doctor.specialty}</p>
-                    <p class="doctor-location"><i class="fas fa-map-marker-alt"></i> ${doctor.location}</p>
-                    <div class="doctor-rating">
-                        <div class="stars">
-                            ${'<i class="fas fa-star"></i>'.repeat(Math.floor(doctor.rating))}
-                            ${doctor.rating % 1 >= 0.5 ? '<i class="fas fa-star-half-alt"></i>' : ''}
-                            ${'<i class="far fa-star"></i>'.repeat(5 - Math.ceil(doctor.rating))}
-                        </div>
-                        <span class="reviews">(${doctor.reviews} reviews)</span>
-                    </div>
-                    <p class="doctor-bio">${doctor.bio}</p>
-                    <div class="doctor-availability">
-                        <span class="availability-badge">${doctor.availability}</span>
-                        <button class="btn-book" data-id="${doctor.id}">Book Appointment</button>
-                    </div>
-                </div>
-            `;
+            doctorCard.innerHTML = buildDoctorCardHtml(doctor);
             doctorsList.appendChild(doctorCard);
         });
 

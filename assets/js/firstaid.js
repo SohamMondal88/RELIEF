@@ -1,3 +1,19 @@
+// Builds one guide in the accordion. The title is escaped. guide.content is the one place that
+// keeps trusted rich HTML on purpose: it is written in this file, reviewed with the guide
+// (docs/FIRST_AID_REVIEW_CHECKLIST.md) and must never come from user input or a server.
+function buildGuideItemHtml(guide) {
+    const H = typeof ReliefSafeHtml !== 'undefined' ? ReliefSafeHtml : require('./safe-html.js');
+    return `
+                <div class="guide-header">
+                    <h4>${H.escapeHtml(guide.title)}</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="guide-content">
+                    ${guide.content}
+                </div>
+            `;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // First aid guide data
     const firstAidGuides = [
@@ -174,15 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         guidesToDisplay.forEach(guide => {
             const guideItem = document.createElement('div');
             guideItem.className = 'guide-item';
-            guideItem.innerHTML = `
-                <div class="guide-header">
-                    <h4>${guide.title}</h4>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="guide-content">
-                    ${guide.content}
-                </div>
-            `;
+            guideItem.innerHTML = buildGuideItemHtml(guide);
             guidesAccordion.appendChild(guideItem);
 
             // Add click event to toggle accordion
