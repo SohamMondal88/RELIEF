@@ -201,6 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
     populateZones();
     syncScheduleMode();
 
+    // Empties this tab's copy after the data was deleted here or in another tab. dataDeleted makes
+    // render() skip persist(), so nothing is written back until the user changes something.
+    function dropLocalState() {
+        dataDeleted = true;
+        reminders = [];
+        history.length = 0;
+        bannerMessages.innerHTML = '';
+        banner.hidden = true;
+        resetForm();
+        render();
+    }
+
     // Due reminders always show in the in-app banner. A browser notification is added only when the
     // user turned it on here AND the browser allows it, and it says only "a reminder is due" unless
     // they chose to show medicine names (see notification-prefs.js).
@@ -223,7 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (JSON.stringify(fresh) === JSON.stringify(reminders)) return;
             reminders = fresh;
             render();
-        }
+        },
+        // Another tab removed the reminders (for example "Delete my account and data"). Follow it
+        // instead of saving this tab's older copy back.
+        onRemoved: dropLocalState
     }) : null;
 
     // Shows what will actually happen: the user's choice combined with the browser's permission.
@@ -275,13 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('relief:data-deleted', (e) => {
         if (!e.detail || (e.detail.local && e.detail.local.state === 'unavailable')) return;
-        dataDeleted = true;
-        reminders = [];
-        history.length = 0;
-        bannerMessages.innerHTML = '';
-        banner.hidden = true;
-        resetForm();
-        render();
+        dropLocalState();
     });
 
     notifyBtn?.addEventListener('click', () => {

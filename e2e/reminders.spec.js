@@ -141,6 +141,26 @@ test.describe('medicine reminders', () => {
     await other.close();
   });
 
+  test('data deleted in another tab is not written back by a tab that still shows it', async ({ page, context }) => {
+    await addReminder(page, { medicine: 'Zinc', time: '18:00' });
+    const other = await context.newPage();
+    await other.goto('/pages/dashboard.html');
+    await expect(item(other, 'Zinc')).toBeVisible();
+
+    // The other tab deletes the data the way "Delete my account and data" does: the keys go away.
+    await other.evaluate(() => {
+      localStorage.removeItem('relief_reminders_v1');
+      localStorage.removeItem('relief_history_v1');
+    });
+
+    // The first tab follows the deletion and leaves storage empty.
+    await expect(page.locator('#reminder-list')).toContainText('No reminders yet.');
+    await expect(page.locator('#timeline')).not.toContainText('Medication reminder created');
+    const keys = await page.evaluate(() => [localStorage.getItem('relief_reminders_v1'), localStorage.getItem('relief_history_v1')]);
+    expect(keys).toEqual([null, null]);
+    await other.close();
+  });
+
   test('the page says what reminders are not (no medical advice)', async ({ page }) => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });

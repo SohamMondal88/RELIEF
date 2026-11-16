@@ -260,6 +260,123 @@ test('when the browser refuses to save, the reminder still fires once and the pa
   sch.stop();
 });
 
+test('a pending mark is retried on later checks once storage works again, even with nothing else due', (t) => {
+  const base = storageWith([reminder()]);
+  let blocked = true;
+  const writes = [];
+  const storage = {
+    getItem: base.getItem,
+    setItem: (k, v) => {
+      if (blocked) throw new Error('QuotaExceededError');
+      writes.push(k);
+      base.setItem(k, v);
+    }
+  };
+  const s = setup(t, null, { storage });
+  const changes = [];
+  // Like the dashboard: onChange tries to save too, and that fails as well while storage is blocked.
+  const sch = s.make({ onChange: (list, saved) => changes.push(saved) });
+  sch.start();
+  t.mock.timers.tick(2 * HOUR);
+  assert.deepStrictEqual(s.delivered, [['r1']]);
+  assert.strictEqual(stored(base).lastNotifiedOn, undefined);
+
+  // Still blocked: later checks stay quiet (no second delivery, no change notification).
+  t.mock.timers.tick(HOUR);
+  assert.deepStrictEqual(s.delivered, [['r1']]);
+  assert.deepStrictEqual(changes, [false]);
+
+  // Storage comes back. The reminder is not due any more, but the mark still gets saved.
+  blocked = false;
+  t.mock.timers.tick(HOUR);
+  assert.strictEqual(stored(base)[0].lastNotifiedOn, '2026-03-10');
+  assert.deepStrictEqual(changes, [false, true]);
+  assert.deepStrictEqual(s.delivered, [['r1']]);
+
+  // Saved once, not retried on every later check.
+  const before = writes.length;
+  t.mock.timers.tick(HOUR);
+  assert.strictEqual(writes.length, before);
+
+  // A reload (new scheduler on the same storage) does not deliver it again the same day.
+  sch.stop();
+  const again = s.make({});
+  again.start();
+  assert.deepStrictEqual(s.delivered, [['r1']]);
+  again.stop();
+});
+
+test('a pending mark for a reminder that was deleted meanwhile is dropped, not written back', (t) => {
+  const base = storageWith([reminder()]);
+  let blocked = true;
+  const storage = {
+    getItem: base.getItem,
+    setItem: (k, v) => { if (blocked) throw new Error('blocked'); base.setItem(k, v); }
+  };
+  const s = setup(t, null, { storage });
+  const sch = s.make({});
+  sch.start();
+  t.mock.timers.tick(2 * HOUR);
+  assert.deepStrictEqual(s.delivered, [['r1']]);
+
+  base.removeItem(R.REMINDERS_KEY);
+  blocked = false;
+  t.mock.timers.tick(HOUR);
+  assert.strictEqual(base.getItem(R.REMINDERS_KEY), null);
+  sch.stop();
+});
+
+test('a removal from another tab never makes this tab write its old copy back', (t) => {
+  const base = storageWith([reminder()]);
+  const writes = [];
+  const storage = { getItem: base.getItem, setItem: (k, v) => { writes.push(k); base.setItem(k, v); } };
+  const s = setup(t, null, { storage });
+  let removed = 0;
+  const changes = [];
+  const sch = s.make({ onRemoved: () => { removed += 1; }, onChange: (list) => changes.push(list) });
+  sch.start();
+
+  // Another tab deletes the data: the key is gone and a storage event with newValue null arrives.
+  base.removeItem(R.REMINDERS_KEY);
+  s.winTarget.emit('storage', { key: R.REMINDERS_KEY, newValue: null });
+  assert.strictEqual(removed, 1);
+  assert.deepStrictEqual(changes, []);
+
+  // The time the reminder was due passes: nothing is saved or delivered, the key stays gone.
+  t.mock.timers.tick(3 * HOUR);
+  assert.deepStrictEqual(writes, []);
+  assert.deepStrictEqual(s.delivered, []);
+  assert.strictEqual(base.getItem(R.REMINDERS_KEY), null);
+
+  // clear() in the other tab arrives as key null / newValue null and is treated the same way.
+  s.winTarget.emit('storage', { key: null, newValue: null });
+  assert.strictEqual(removed, 2);
+  sch.stop();
+});
+
+test('a removal event also forgets marks that were still unsaved', (t) => {
+  const base = storageWith([reminder()]);
+  let blocked = true;
+  const storage = {
+    getItem: base.getItem,
+    setItem: (k, v) => { if (blocked) throw new Error('blocked'); base.setItem(k, v); }
+  };
+  const s = setup(t, null, { storage });
+  const sch = s.make({ onRemoved: () => {} });
+  sch.start();
+  t.mock.timers.tick(2 * HOUR);
+
+  // Data deleted elsewhere, then the user adds the same reminder again after storage works.
+  base.removeItem(R.REMINDERS_KEY);
+  s.winTarget.emit('storage', { key: R.REMINDERS_KEY, newValue: null });
+  blocked = false;
+  base.setItem(R.REMINDERS_KEY, JSON.stringify([reminder({ time: '23:00' })]));
+  t.mock.timers.tick(HOUR);
+  // The old mark must not be applied to the new reminder (it is not due yet at 10:00).
+  assert.strictEqual(stored(base)[0].lastNotifiedOn, undefined);
+  sch.stop();
+});
+
 test('with nothing due, nothing is written and nothing is delivered', (t) => {
   const writes = [];
   const base = storageWith([reminder()]);
@@ -296,6 +413,9 @@ test('the dashboard loads the scheduler between reminders.js and dashboard.js an
   const js = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'dashboard.js'), 'utf8');
   assert.doesNotMatch(js, /setInterval\(checkDue/);
   assert.match(js, /scheduler\.start\(\)/);
+  // A removal in another tab empties this tab's copy through the same path as relief:data-deleted.
+  assert.match(js, /onRemoved: dropLocalState/);
+  assert.match(js, /function dropLocalState\(\)\s*\{\s*dataDeleted = true;/);
 });
 
 test('the scheduling doc describes the two tab behaviour and keeps the dashboard open note', () => {

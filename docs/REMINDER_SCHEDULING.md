@@ -47,7 +47,9 @@ for a time that passed while the tab was closed appears when the tab is next ope
   the start, and saves "fired today" **before** it shows the banner or the browser notification.
 - If the browser refuses the write (storage full or blocked), the reminder still fires once and the scheduler
   remembers it until a save works, so it does not repeat every 30 seconds. The page shows the existing
-  "could not save" message.
+  "could not save" message. Every later check tries the save again, even when no reminder is due, so a mark
+  is not lost if storage works again while the tab stays open. A mark for a reminder that was deleted in
+  the meantime is dropped.
 
 ## More than one tab
 
@@ -55,6 +57,11 @@ With the dashboard open in more than one tab, the first tab to check after the t
 reminder as fired in `localStorage` and shows it. The other tabs read that mark on their next check and stay
 quiet, so one reminder is one banner and one notification. A tab also takes over the list when another tab
 changes it (the `storage` event), so it does not write an older `lastNotifiedOn` back later.
+
+If another tab removes the reminders (for example "Delete my account and data", or clearing site data), the
+`storage` event arrives with no new value. The tab then empties its own list and timeline and writes nothing,
+the same as after the `relief:data-deleted` event, so deleted data does not come back. It saves again only
+after the user changes something on the page.
 
 Two tabs checking in the very same instant could in theory both read before either writes, because
 `localStorage` has no lock. The window is a few microseconds and the checks run at different moments, so this is

@@ -29,6 +29,9 @@
      *   deliver(due, now)         called with the reminders that just became due, after they are saved.
      *   onChange(reminders, saved) called with the reminders read from storage, so the page can drop
      *                              its older copy. saved is false when the browser refused the write.
+     *   onRemoved()   called when another tab removed the reminders (or cleared all site data). The
+     *                 scheduler writes nothing after that and forgets any unsaved marks; the page should
+     *                 empty its own copy without saving it back.
      *   intervalMs    time between checks (default 30 s).
      *   now           () => Date, the clock.
      *   setInterval / clearInterval  timer functions.
@@ -55,11 +58,27 @@
         function loadFresh() {
             let list = R.loadReminders(storage);
             unsaved.forEach((mark, id) => {
-                if (list.some((r) => r.id === id && r.lastNotifiedOn !== mark.date)) {
+                const current = list.find((r) => r.id === id);
+                if (!current) {
+                    // Deleted in the meantime: nothing left to mark.
+                    unsaved.delete(id);
+                } else if (current.lastNotifiedOn === mark.date) {
+                    // Another tab (or an earlier retry) already saved this mark.
+                    unsaved.delete(id);
+                } else {
                     list = R.markNotified(list, id, mark.date, mark.at);
                 }
             });
             return list;
+        }
+
+        // Marks that could not be saved when they fired are tried again on later checks, so a
+        // storage that comes back (or was only full for a while) does not lose them on a reload.
+        function retryUnsaved(list) {
+            if (!unsaved.size) return;
+            if (!R.saveReminders(storage, list)) return;
+            unsaved.clear();
+            if (typeof opts.onChange === 'function') opts.onChange(list, true);
         }
 
         /** Reads storage, marks and saves what is due, then delivers it. Returns the due reminders. */
@@ -67,7 +86,10 @@
             const now = getNow();
             let list = loadFresh();
             const due = R.getDueReminders(list, now, opts.timeZone);
-            if (!due.length) return [];
+            if (!due.length) {
+                retryUnsaved(list);
+                return [];
+            }
 
             due.forEach((r) => {
                 const date = R.getLocalParts(now, R.getEffectiveTimeZone(r, opts.timeZone)).date;
@@ -93,8 +115,15 @@
         }
 
         // Another tab changed the reminders: take its copy so this tab does not write an older one back.
+        // A removal (another tab deleted the data, or cleared site data) must never be answered with a
+        // write, or this tab would bring back what the other one just deleted.
         function onStorage(event) {
             if (event && event.key !== null && event.key !== R.REMINDERS_KEY) return;
+            if (event && event.newValue === null) {
+                unsaved.clear();
+                if (typeof opts.onRemoved === 'function') opts.onRemoved();
+                return;
+            }
             if (typeof opts.onChange === 'function') opts.onChange(loadFresh(), true);
         }
 
