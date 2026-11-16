@@ -156,8 +156,9 @@
 
                     <div class="form-group">
                         <label for="symptoms">What symptoms are you experiencing?</label>
-                        <p class="field-hint">Use plain, everyday language (e.g. headache, mild fever, cough, stomach pain).</p>
-                        <textarea id="symptoms" maxlength="1000" placeholder="Describe what you are experiencing in your own words" rows="4"></textarea>
+                        <p class="field-hint" id="symptoms-hint">Use plain, everyday language (e.g. headache, mild fever, cough, stomach pain).</p>
+                        <p class="field-hint" id="symptoms-language-note">Free-text screening only understands English. If you write in another language, warning signs in your text are not picked up, so tick any that apply in the checklist above. In an emergency call your local emergency number (112, 911 or 999) without waiting for the result.</p>
+                        <textarea id="symptoms" aria-describedby="symptoms-hint symptoms-language-note" maxlength="1000" placeholder="Describe what you are experiencing in your own words" rows="4"></textarea>
                     </div>
                     <div class="form-group">
                         <label>How long have you had these symptoms?</label>
@@ -239,6 +240,9 @@
                             </div>
                         </div>
 
+                        <!-- 1b. Result notice: emergency, uncertain or general wording from the evaluation -->
+                        <p id="safety-notice" class="safety-notice" role="note" style="display: none;"></p>
+
                         <!-- 2. Prominent Safety Disclaimer & Clinical Limitations Box (Always Visible) -->
                         <div class="safety-limitations-box" role="region" aria-label="Clinical limitations">
                             <div class="safety-limitations-header">
@@ -266,7 +270,7 @@
                         <!-- 4. General Educational Topics to Discuss with a Doctor -->
                         <div id="topics-section" class="topics-section">
                             <h3>General Health Topics to Discuss with Your Doctor</h3>
-                            <p class="section-desc">Based on the symptoms you reported, here is general educational information. These are topics you may wish to discuss during a clinical consultation, not confirmed conclusions.</p>
+                            <p class="section-desc" id="topics-desc">Based on the symptoms you reported, here is general educational information. These are topics you may wish to discuss during a clinical consultation, not confirmed conclusions.</p>
                             <div class="conditions-list" id="conditions-list">
                                 <!-- Populated by JavaScript -->
                             </div>

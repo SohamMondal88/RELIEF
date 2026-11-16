@@ -49,7 +49,7 @@ The following red-flag scenarios are treated as potential medical emergencies:
 To prevent false-alarm escalations while preserving high-sensitivity safety:
 1. **Negation Detection:** Free-text descriptions are screened for negation prefixes (`no`, `not`, `without`, `denies`, `negative for`, `never`, `free of`). For example, "mild cough, no chest pain" does not trigger a false chest pain alarm.
 2. **Clause and Conjunction Boundaries:** If a contrastive conjunction or punctuation boundary (`but`, `however`, `,`, `.`, `;`) occurs between the negation word and the symptom (e.g., "no fever, but severe chest pain"), the negation scope is terminated, ensuring the true emergency indicator is promptly detected.
-3. **Keyword Matching Limitation:** Keyword screening is inherently heuristic. The system explicitly discloses that automated keyword detection cannot rule out emergencies, and users experiencing severe or rapidly deteriorating symptoms are directed to seek emergency services regardless of keyword match results.
+3. **Keyword Matching Limitation:** Keyword screening is inherently heuristic and the keyword lists are English only (see 4.3 for how text in other languages is handled). The system explicitly discloses that automated keyword detection cannot rule out emergencies, and users experiencing severe or rapidly deteriorating symptoms are directed to seek emergency services regardless of keyword match results.
 
 ### 3.3 Escalation Protocol
 1. **Immediate Detection:** Red flags are checked via structured options in Step 1 and real-time keyword analysis on user text.
@@ -76,6 +76,10 @@ To prevent false-alarm escalations while preserving high-sensitivity safety:
 - If a user provides incomplete inputs (e.g. skips duration or severity), the system does not crash or block the user with intrusive alerts.
 - Missing fields are recorded and presented as **"Incomplete Responses Noted"**, highlighting that clinical uncertainty is increased.
 - If user input is empty, ambiguous, or unparseable, the system communicates high uncertainty, refrains from falsely assuring the user, and reminds them that lack of reported symptoms is not proof of safety.
+- **Text with no recognised symptom term is an uncertain outcome.** If the free text is not empty or a filler word but contains none of the symptom terms the tool knows (random letters, an unusual description, or any text in another language), `evaluateSymptomSafety` returns `isAmbiguous: true` with `uncertainReason` set to `unmatched` (Latin script) or `non-english` (any other script). The notice says the tool could not match the text, that this does not mean the person is safe, and that free-text screening only understands English. Empty or very short input uses `insufficient`. The old generic "multi-cause" topic is gone: it read like a normal result.
+- **Same-day and one-week advice still apply.** An uncertain result keeps the "more than a week" and "rated severe" recommendations, so a person who rated their symptoms as severe is not sent away with only a general note.
+- **The result notice is shown.** `evaluation.safetyNotice` is rendered at the top of the results (`#safety-notice` in `pages/symptoms.html`) for emergency, uncertain and general results. Uncertain and emergency results are styled differently from the general one.
+- **English-only limit is shown before typing.** A note under the symptom box (`#symptoms-language-note`, read out as part of the box description) says free-text screening only understands English and that the warning-sign checklist is the reliable path in any language. The emergency call buttons (112, 911, 999) are hard-coded in the page and do not depend on the text.
 
 ### 4.4 Medicine Reminders (Dashboard)
 - Reminders are a convenience tool. They only repeat the medicine name, note, time and dates that the user typed in. RELIEF does not suggest medicines, doses or schedules, and the form says so.
