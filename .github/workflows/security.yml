@@ -1,0 +1,70 @@
+name: Security scans
+
+# Runs on every pull request, on main, and once a week (new advisories appear without any code change).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+          echo "ba6dbb656933921c775ee5a2d1c13a91046e7952e9d919f9bac4cec61d628e7d  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+
+      - name: Scan for committed secrets
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # A pull request is scanned for the commits it adds. Pushes to main and the weekly run scan the whole history.
+          args=(detect --source . --config .gitleaks.toml --redact --no-banner --report-format json --report-path gitleaks-report.json)
+          if [ -n "$BASE_SHA" ]; then
+            args+=(--log-opts "$BASE_SHA..$HEAD_SHA")
+          fi
+          status=0
+          ./gitleaks "${args[@]}" || status=$?
+          if [ "$status" -eq 1 ] && [ -s gitleaks-report.json ]; then
+            echo "A possible secret was committed. The value is hidden in this log on purpose."
+            echo "If it is real: revoke it first, then follow docs/SECURITY_SCANNING.md. If it is a false positive: allow-list it as described there."
+            jq -r '.[] | "::error file=\(.File),line=\(.StartLine)::\(.RuleID) in commit \(.Commit[0:8]), fingerprint \(.Fingerprint). See docs/SECURITY_SCANNING.md"' gitleaks-report.json
+          fi
+          exit $status
+
+  dependencies:
+    name: Dependency audit (npm audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit the lockfile
+        run: |
+          # npm audit exits non-zero when it finds something; audit-check.js decides what counts.
+          # It also fails when the registry could not be reached, so an outage is never a pass.
+          npm audit --json > npm-audit.json || true
+          node scripts/audit-check.js npm-audit.json

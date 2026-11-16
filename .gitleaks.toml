@@ -1,0 +1,15 @@
+# Settings for the secret scan in .github/workflows/security.yml. Explained in docs/SECURITY_SCANNING.md.
+title = "RELIEF secret scan"
+
+[extend]
+# Keep every rule gitleaks ships with and only add the exceptions below.
+useDefault = true
+
+# Each exception names the exact text it excuses. Never excuse a whole folder or a whole rule.
+[allowlist]
+description = "Known false positives"
+regexes = [
+  # localStorage key names that the generic-api-key rule takes for a key because of the word "KEY".
+  # They are names, not credentials: assets/js/notification-prefs.js and assets/js/privacy-data.js.
+  '''relief_notification_prefs_v1''',
+]
