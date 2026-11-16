@@ -21,7 +21,7 @@ Current version: **1**
 | `lat`, `lng` | no | numbers | Give both or neither. Latitude -90 to 90, longitude -180 to 180. `0,0` is rejected. A point outside West Bengal is accepted with a warning |
 | `verified` | no | `true` / `false` | `true` needs `source` and `lastChecked` |
 | `source` | no | text or `null` | Where the information came from, up to 300 characters |
-| `lastChecked` | no | `YYYY-MM-DD` | A real date, not in the future |
+| `lastChecked` | no | `YYYY-MM-DD` | A real date, not in the future. "Future" means after today's date in Asia/Kolkata, where the data is maintained (not the UTC date, not the visitor's zone) |
 
 Missing, `null` and absent optional fields are all fine. The directory shows "Not verified",
 omits unknown contact details and sorts facilities without coordinates last.

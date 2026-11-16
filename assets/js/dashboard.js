@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
 
     function logHistory(event, status) {
-        history.unshift({ date: new Date().toISOString().slice(0, 10), event, status });
+        history.unshift({ date: R.getTodayInZone(new Date(), timeZone), event, status });
     }
 
     const reminderStatus = document.getElementById('reminder-status');

@@ -116,6 +116,19 @@ test.describe('medicine reminders', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('the timeline is dated with the local day, also between midnight and 05:30 in India', async ({ page }) => {
+    // 02:00 on 24 Oct in Asia/Kolkata (the project's test zone) is still 23 Oct in UTC.
+    await page.clock.install({ time: new Date('2026-10-24T02:00:00+05:30') });
+    await page.reload();
+    await addReminder(page, { medicine: 'Vitamin D', time: '08:00' });
+
+    const firstRow = page.locator('#timeline tr').first();
+    await expect(firstRow).toContainText('Medication reminder created');
+    await expect(firstRow.locator('td').first()).toHaveText('2026-10-24');
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('relief_history_v1'))[0].date);
+    expect(saved).toBe('2026-10-24');
+  });
+
   test('the page says what reminders are not (no medical advice)', async ({ page }) => {
     await expect(page.locator('#reminder-disclaimer')).toContainText('does not suggest medicines, doses or schedules');
   });

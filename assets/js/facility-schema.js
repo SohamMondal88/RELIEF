@@ -46,6 +46,13 @@
   const REGION = { latMin: 21.4, latMax: 27.4, lngMin: 85.7, lngMax: 89.95 };
 
   const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+  // lastChecked is a calendar date written by whoever maintains the data, which is done in India.
+  // "Not in the future" is therefore judged against today's date in that zone, not the UTC date
+  // (which is yesterday in India until 05:30) and not the visitor's zone (which would make a
+  // record checked today in India look like it is from the future for visitors further west).
+  const DATA_TIME_ZONE = 'Asia/Kolkata';
+
   const PHONE = /^\+?[\d\s\-().]+$/;
 
   function isText(value) {
@@ -60,6 +67,25 @@
     if (!DATE_ONLY.test(text)) return false;
     const date = new Date(text + 'T00:00:00Z');
     return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
+  }
+
+  /**
+   * Today's date 'YYYY-MM-DD' in an IANA time zone. Same rule as getTodayInZone in reminders.js,
+   * written out here because this file is saved offline on its own and must not depend on it
+   * (tests/local-dates.test.js checks the two agree). An unknown zone falls back to the data zone.
+   */
+  function todayInZone(now, timeZone) {
+    const at = new Date(now !== undefined ? now : Date.now());
+    const instant = Number.isNaN(at.getTime()) ? new Date() : at;
+    let formatter;
+    try {
+      formatter = new Intl.DateTimeFormat('en-CA', { timeZone: timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+    } catch (e) {
+      formatter = new Intl.DateTimeFormat('en-CA', { timeZone: DATA_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+    const parts = formatter.formatToParts(instant);
+    const get = function (type) { return parts.find(function (p) { return p.type === type; }).value; };
+    return get('year') + '-' + get('month') + '-' + get('day');
   }
 
   function digitCount(text) {
@@ -85,10 +111,11 @@
   }
 
   /**
-   * Checks one record.
+   * Checks one record. `now` (a Date or milliseconds) and `timeZone` only matter for the lastChecked
+   * "not in the future" rule; the zone defaults to the one the data is maintained in (Asia/Kolkata).
    * @returns {{valid: boolean, errors: string[], warnings: string[]}}
    */
-  function validateFacility(record, now) {
+  function validateFacility(record, now, timeZone) {
     const errors = [];
     const warnings = [];
 
@@ -170,7 +197,7 @@
       errors.push('verified must be true or false');
     }
     if (record.lastChecked !== undefined && record.lastChecked !== null) {
-      const today = new Date(now !== undefined ? now : Date.now()).toISOString().slice(0, 10);
+      const today = todayInZone(now, timeZone || DATA_TIME_ZONE);
       if (typeof record.lastChecked !== 'string' || !isRealDate(record.lastChecked)) {
         errors.push('lastChecked must be a real date written YYYY-MM-DD');
       } else if (record.lastChecked > today) {
@@ -197,7 +224,7 @@
    *   warnings: {index:number, id:string|null, warnings:string[]}[]
    * }}
    */
-  function validateDataset(data, now) {
+  function validateDataset(data, now, timeZone) {
     const result = { ok: false, schemaVersion: null, problems: [], accepted: [], quarantined: [], warnings: [] };
 
     let list = null;
@@ -224,7 +251,7 @@
 
     const seen = {};
     list.forEach(function (record, index) {
-      const check = validateFacility(record, now);
+      const check = validateFacility(record, now, timeZone);
       const id = record && typeof record === 'object' && record.id !== undefined && record.id !== null ? String(record.id) : null;
       const errors = check.errors.slice();
 
@@ -251,6 +278,7 @@
     REQUIRED_FIELDS: REQUIRED_FIELDS,
     OPTIONAL_FIELDS: OPTIONAL_FIELDS,
     LIMITS: LIMITS,
+    DATA_TIME_ZONE: DATA_TIME_ZONE,
     validateFacility: validateFacility,
     validateDataset: validateDataset
   };

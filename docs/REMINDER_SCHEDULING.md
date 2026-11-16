@@ -33,6 +33,23 @@ A reminder is due when all of these are true:
 The dashboard checks every 30 seconds. Reminders **only fire while** the dashboard is open in a tab. A reminder
 for a time that passed while the tab was closed appears when the tab is next open, once.
 
+## Dates shown as "today"
+
+A date the person reads as "today", such as the date stamped on a timeline entry, is the calendar date in
+the device's time zone, from `getTodayInZone(now, timeZone)` in `reminders.js`. It is not
+`new Date().toISOString().slice(0, 10)`: that is the UTC date, which in Asia/Kolkata is still yesterday between
+00:00 and 05:30 (and runs a day ahead in the evening in the Americas). Do not use the UTC slice for a date
+someone will read.
+
+A date-only value such as a start date, an end date or `lastChecked` is a calendar date with no time and no zone.
+It is compared as text with another calendar date (`YYYY-MM-DD` sorts correctly) and is never turned into an
+instant, so it cannot shift by a day when it is saved, reloaded or shown. Impossible dates such as 2026-02-30
+are rejected, not rolled forward.
+
+`tests/local-dates.test.js` runs the helper for Asia/Kolkata, America/Los_Angeles, Pacific/Kiritimati and UTC one
+second either side of local midnight, across the US and UK daylight saving changes, and in child processes
+with different `TZ` values.
+
 ## Saving a reminder for a time that has passed
 
 If a reminder is saved (or its schedule edited) for a time that has already passed today, the first
