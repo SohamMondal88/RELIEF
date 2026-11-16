@@ -111,6 +111,7 @@ New markup can use the `ds-` classes. Existing pages get the same result through
 | Form field | `.ds-field`, `__hint`, `__error` | `.form-group`, `.search-box`, `.search-guides`, `.filter-group`, `.sort-options`, inputs in `main` |
 | Alert | `.ds-alert`, `--danger`, `--warning`, `--success` | `.emergency-banner`, `.data-note`, `.demo-notice`, `#form-message` |
 | Empty, loading, error state | `.ds-state`, `--loading`, `--error` | `.no-results`, `.loading-state`, `.error-state`, `.saved-empty` |
+| Card actions | n/a | `.btn-call` (filled), `.btn-directions`, `.btn-save`, `.btn-correct` |
 | Badge | `.ds-badge` | `.service-tag` |
 | Skip link | n/a | `.skip-link` |
 

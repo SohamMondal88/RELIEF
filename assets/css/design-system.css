@@ -325,6 +325,32 @@
 .ds .step-number { background: var(--ds-primary); color: var(--ds-on-primary); }
 .ds .category-card { cursor: pointer; }
 
+/* Actions on a facility card. Call is the main one and keeps a filled button, the rest are quieter. */
+.ds .hospital-actions { border-top-color: var(--ds-border); }
+.ds .btn-call, .ds .btn-directions, .ds .btn-save, .ds .btn-correct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--ds-touch);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-sm);
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.ds .btn-call { background: var(--ds-primary); color: var(--ds-on-primary); border: 2px solid var(--ds-primary); }
+.ds .btn-call:hover { background: var(--ds-primary-hover); border-color: var(--ds-primary-hover); color: var(--ds-on-primary); }
+.ds .btn-directions, .ds .btn-save {
+  background: var(--ds-surface);
+  color: var(--ds-primary);
+  border: 2px solid var(--ds-primary);
+}
+.ds .btn-directions:hover, .ds .btn-save:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+.ds .btn-save.is-saved { background: var(--ds-warning-soft); color: var(--ds-warning-ink); border-color: var(--ds-warning-ink); }
+.ds .btn-correct { background: none; color: var(--ds-info-ink); border: 0; text-decoration: underline; text-underline-offset: 3px; }
+.ds .btn-correct:hover { color: var(--ds-primary-hover); }
+
 /* ---------- Forms ---------- */
 .ds label { color: var(--ds-ink); font-weight: 600; }
 .ds .ds-field input, .ds .ds-field select, .ds .ds-field textarea,
