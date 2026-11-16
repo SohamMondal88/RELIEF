@@ -99,9 +99,9 @@
                         </select>
                     </div>
                     <div class="filter-group" id="accessibility-group" hidden>
-                        <label for="accessibility">Accessibility</label>
+                        <label for="accessibility" data-i18n="hospitals.accessibility">Accessibility</label>
                         <select id="accessibility">
-                            <option value="">Any</option>
+                            <option value="" data-i18n="hospitals.accessibility.any">Any</option>
                         </select>
                     </div>
                     <div class="filter-group filter-checkbox">
@@ -110,15 +110,15 @@
                     </div>
                     <div class="filter-group filter-checkbox filter-open-now">
                         <input type="checkbox" id="open-now" aria-describedby="open-now-hint" disabled>
-                        <label for="open-now">Open now</label>
+                        <label for="open-now" data-i18n="hospitals.opennow">Open now</label>
                         <p class="filter-hint" id="open-now-hint">Not available yet: no facility has verified opening hours.</p>
                     </div>
                     <button type="button" class="btn-filter"><i class="fas fa-filter" aria-hidden="true"></i> <span data-i18n="hospitals.filter">Filter</span></button>
                     <button type="button" class="btn-filter" id="use-my-location"><i class="fas fa-location-crosshairs" aria-hidden="true"></i> <span data-i18n="hospitals.usemyloc">Use my location</span></button>
                 </div>
                 <div class="active-filters" id="active-filters" hidden>
-                    <ul class="active-filters-list" id="active-filters-list" aria-label="Active filters"></ul>
-                    <button type="button" class="btn-reset-filters" id="reset-filters">Reset all filters</button>
+                    <ul class="active-filters-list" id="active-filters-list" aria-label="Active filters" data-i18n-attr="aria-label:hospitals.active.label"></ul>
+                    <button type="button" class="btn-reset-filters" id="reset-filters" data-i18n="hospitals.reset">Reset all filters</button>
                 </div>
             </div>
 

@@ -349,19 +349,31 @@
 
   var FILTER_KEYS = ['search', 'type', 'district', 'service', 'accessibility', 'verifiedOnly', 'openNow'];
 
+  // Fills {name} placeholders. Used with the i18n layer, whose translations carry the placeholders.
+  function formatMessage(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, function (m, name) {
+      return vars && vars[name] != null ? String(vars[name]) : m;
+    });
+  }
+
+  // English fallback for the translator the page passes in: (key, fallback, vars) => text.
+  function defaultTranslate(key, fallback, vars) { return formatMessage(fallback, vars); }
+
   // One entry per filter that is switched on: { key, label }, in the order the controls appear.
-  function describeActiveFilters(criteria, typeLabels) {
+  // `tr` is optional (the page passes its i18n translator), so the labels follow the selected language.
+  function describeActiveFilters(criteria, typeLabels, tr) {
     var c = criteria || {};
     var types = typeLabels || FACILITY_TYPES;
+    var say = typeof tr === 'function' ? tr : defaultTranslate;
     var out = [];
     var term = String(c.search || '').trim();
-    if (term) out.push({ key: 'search', label: 'Search: "' + term + '"' });
-    if (c.type) out.push({ key: 'type', label: 'Type: ' + (types[c.type] || c.type) });
-    if (c.district) out.push({ key: 'district', label: 'Area: ' + c.district });
-    if (c.service) out.push({ key: 'service', label: 'Service: ' + c.service });
-    if (c.accessibility) out.push({ key: 'accessibility', label: 'Accessibility: ' + c.accessibility });
-    if (c.verifiedOnly) out.push({ key: 'verifiedOnly', label: 'Verified only' });
-    if (c.openNow) out.push({ key: 'openNow', label: 'Open now' });
+    if (term) out.push({ key: 'search', label: say('hospitals.chip.search', 'Search: "{value}"', { value: term }) });
+    if (c.type) out.push({ key: 'type', label: say('hospitals.chip.type', 'Type: {value}', { value: types[c.type] || c.type }) });
+    if (c.district) out.push({ key: 'district', label: say('hospitals.chip.area', 'Area: {value}', { value: c.district }) });
+    if (c.service) out.push({ key: 'service', label: say('hospitals.chip.service', 'Service: {value}', { value: c.service }) });
+    if (c.accessibility) out.push({ key: 'accessibility', label: say('hospitals.chip.accessibility', 'Accessibility: {value}', { value: c.accessibility }) });
+    if (c.verifiedOnly) out.push({ key: 'verifiedOnly', label: say('hospitals.verified', 'Verified only') });
+    if (c.openNow) out.push({ key: 'openNow', label: say('hospitals.opennow', 'Open now') });
     return out;
   }
 
@@ -375,8 +387,8 @@
    * For an empty result: which single filter, if removed, would bring results back.
    * [{ key, label, count }] with the biggest gain first. Filters that would still leave nothing are left out.
    */
-  function suggestRemovals(facilities, criteria, typeLabels) {
-    return describeActiveFilters(criteria, typeLabels).map(function (f) {
+  function suggestRemovals(facilities, criteria, typeLabels, tr) {
+    return describeActiveFilters(criteria, typeLabels, tr).map(function (f) {
       return { key: f.key, label: f.label, count: filterFacilities(facilities, withoutFilter(criteria, f.key)).length };
     }).filter(function (s) { return s.count > 0; })
       .sort(function (a, b) { return b.count - a.count; });
@@ -443,6 +455,7 @@
     parseHours: parseHours,
     openNowStatus: openNowStatus,
     hasOpenNowData: hasOpenNowData,
+    formatMessage: formatMessage,
     describeActiveFilters: describeActiveFilters,
     withoutFilter: withoutFilter,
     suggestRemovals: suggestRemovals,

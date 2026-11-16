@@ -132,6 +132,24 @@ test('describeActiveFilters lists only what is switched on, in control order', (
   assert.deepStrictEqual(active.map((f) => f.label), ['Search: "bank"', 'Type: Hospital', 'Area: Howrah', 'Service: Surgery', 'Accessibility: Ramp', 'Verified only', 'Open now']);
 });
 
+test('describeActiveFilters and suggestRemovals use the translator when one is passed', () => {
+  const seen = [];
+  const tr = (key, fallback, vars) => { seen.push(key); return '[' + key + ']' + JSON.stringify(vars || {}); };
+  const active = U.describeActiveFilters({ search: 'x', type: 'hospital', district: 'Howrah', service: 'Surgery', accessibility: 'Ramp', verifiedOnly: true, openNow: true }, null, tr);
+  assert.deepStrictEqual(seen, ['hospitals.chip.search', 'hospitals.chip.type', 'hospitals.chip.area', 'hospitals.chip.service', 'hospitals.chip.accessibility', 'hospitals.verified', 'hospitals.opennow']);
+  assert.strictEqual(active[2].label, '[hospitals.chip.area]{"value":"Howrah"}');
+  // the translated label is carried into the suggestions
+  const out = U.suggestRemovals(LIST, { service: 'Nothing like this' }, null, tr);
+  assert.strictEqual(out[0].label, '[hospitals.chip.service]{"value":"Nothing like this"}');
+  assert.strictEqual(out[0].key, 'service');
+});
+
+test('formatMessage fills placeholders and leaves unknown ones alone', () => {
+  assert.strictEqual(U.formatMessage('Remove {label} ({count} facility)', { label: 'Area: Howrah', count: 1 }), 'Remove Area: Howrah (1 facility)');
+  assert.strictEqual(U.formatMessage('{count} left, {other}', { count: 0 }), '0 left, {other}');
+  assert.strictEqual(U.formatMessage('plain'), 'plain');
+});
+
 test('suggestRemovals names the filters whose removal brings results back, best first', () => {
   const criteria = { service: 'Emergency Care', accessibility: 'Accessible toilet', district: 'Kolkata', now: AT_10 };
   assert.deepStrictEqual(ids(U.filterFacilities(LIST, criteria)), []);

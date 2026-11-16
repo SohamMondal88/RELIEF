@@ -92,3 +92,45 @@ describe('language choice', () => {
         assert.strictEqual(i18n.pickLanguage(undefined, undefined), 'en');
     });
 });
+
+describe('text built by JavaScript on the hospitals page', () => {
+    const src = f => fs.readFileSync(path.join(root, 'assets', 'js', f), 'utf8');
+    // Every tr('key', 'English fallback') / say('key', 'English fallback') call in the two scripts.
+    const calls = [];
+    ['hospitals.js', 'facility-utils.js'].forEach(f => {
+        src(f).replace(/\b(?:tr|say)\(\s*'([\w.]+)'\s*,\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g, (_, key, lit) => {
+            calls.push({ file: f, key, fallback: lit.slice(1, -1).replace(/\\'/g, "'").replace(/\\"/g, '"') });
+        });
+    });
+
+    it('finds the generated strings', () => {
+        assert.ok(calls.length >= 25, 'found only ' + calls.length);
+    });
+
+    it('every key exists in en.json and bn.json', () => {
+        calls.forEach(c => {
+            assert.ok(c.key in en, c.file + ': ' + c.key + ' missing in en.json');
+            assert.ok(c.key in bn, c.file + ': ' + c.key + ' missing in bn.json');
+        });
+    });
+
+    it('the English fallback in the code matches en.json', () => {
+        calls.forEach(c => assert.strictEqual(c.fallback, en[c.key], c.key));
+    });
+
+    it('Bengali keeps the same {placeholders} as English', () => {
+        const ph = s => (s.match(/\{\w+\}/g) || []).sort().join(',');
+        calls.forEach(c => assert.strictEqual(ph(bn[c.key]), ph(en[c.key]), c.key));
+    });
+
+    it('the new static labels on the page are marked for translation', () => {
+        const html = fs.readFileSync(path.join(root, 'pages', 'hospitals.html'), 'utf8');
+        ['hospitals.accessibility', 'hospitals.accessibility.any', 'hospitals.opennow', 'hospitals.reset', 'hospitals.active.label']
+            .forEach(k => assert.ok(html.includes('"' + k + '"') || html.includes(':' + k + '"'), k));
+    });
+
+    it('a missing Bengali key falls back to English, then to the code fallback', () => {
+        assert.strictEqual(i18n.translate({ en }, 'bn', 'hospitals.reset', 'x'), en['hospitals.reset']);
+        assert.strictEqual(i18n.translate({}, 'bn', 'hospitals.reset', 'Reset all filters'), 'Reset all filters');
+    });
+});

@@ -168,3 +168,50 @@ test.describe('services, accessibility and open now (sample records)', () => {
     await expect(page.locator('.hospital-name')).toHaveText(['Sample Always Open Clinic']);
   });
 });
+
+test.describe('filter text in Bengali', () => {
+  const BN_NONE = 'আপনার দেওয়া শর্তে কোনো প্রতিষ্ঠান পাওয়া যায়নি।';
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem('relief_lang', 'bn'); } catch (e) { /* ignore */ } });
+  });
+
+  test('labels, chips, hint, notes and the empty state follow the selected language', async ({ page }) => {
+    await useSampleData(page, MORNING);
+    await page.goto('/pages/hospitals.html');
+    await expect(cards(page)).toHaveCount(6);
+    await expect(page.locator('label[for="accessibility"]')).toHaveText('প্রবেশগম্যতা');
+    await expect(page.locator('label[for="open-now"]')).toHaveText('এখন খোলা');
+    await expect(page.locator('#accessibility option').first()).toHaveText('যেকোনো');
+    await expect(page.locator('#location option').first()).toHaveText('সব এলাকা');
+    await expect(page.locator('#open-now-hint')).toContainText('যাচাইকৃত খোলার সময়');
+
+    await page.locator('#open-now').check();
+    await expect(page.locator('.filter-chip')).toHaveText(['এখন খোলা ×']);
+    await expect(page.locator('#reset-filters')).toHaveText('সব ফিল্টার সরান');
+    await expect(page.locator('#active-filters-list')).toHaveAttribute('aria-label', 'চালু ফিল্টার');
+    await expect(status(page)).toContainText('3টি প্রতিষ্ঠানের যাচাইকৃত খোলার সময় নেই');
+
+    await page.locator('#accessibility').selectOption('Accessible toilet');
+    await page.locator('#location').selectOption('Kolkata');
+    await expect(cards(page)).toHaveCount(0);
+    const empty = page.locator('.no-results');
+    await expect(empty).toContainText(BN_NONE);
+    await expect(empty).toContainText('একটি ফিল্টার সরিয়ে দেখুন:');
+    await expect(empty.getByRole('button', { name: /সরান \(\d+টি প্রতিষ্ঠান\)/ }).first()).toBeVisible();
+    await expect(empty.getByRole('button', { name: 'সব ফিল্টার সরান' })).toBeVisible();
+    await expect(empty).not.toContainText('No facilities');
+  });
+
+  test('switching language while filters are on re-labels the chips and keeps the selection', async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem('relief_lang', 'en'); } catch (e) { /* ignore */ } });
+    await useSampleData(page, MORNING);
+    await page.goto('/pages/hospitals.html');
+    await page.locator('#location').selectOption('Kolkata');
+    await expect(page.locator('.filter-chip')).toHaveText(['Area: Kolkata ×']);
+    await page.locator('#relief-lang').selectOption('bn');
+    await expect(page.locator('.filter-chip')).toHaveText(['এলাকা: Kolkata ×']);
+    await expect(page.locator('#location')).toHaveValue('Kolkata');
+    await expect(page.locator('#location option').first()).toHaveText('সব এলাকা');
+  });
+});
