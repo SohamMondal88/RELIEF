@@ -122,6 +122,25 @@ test.describe('responsive navigation', () => {
     expect(await exposedLinkNames(page)).not.toContain('Ambulances');
   });
 
+  test('an in-page link outside the menu closes it and the drawer is inert again', async ({ page }) => {
+    await page.goto('/pages/about.html');
+    const burger = page.locator('.hamburger');
+    const lists = page.locator('.nav-links');
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await expect(lists.first()).not.toHaveAttribute('inert', '');
+
+    // "Explore Our Journey" is a link in the page, not in the drawer. The drawer can cover it, so click it from the script.
+    await page.locator('a[href="#our-story"]').evaluate((el) => el.click());
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(burger).not.toHaveClass(/active/);
+    for (let i = 0; i < await lists.count(); i++) {
+      await expect(lists.nth(i)).not.toHaveClass(/active/);
+      await expect(lists.nth(i)).toHaveAttribute('inert', '');
+    }
+    expect(await exposedLinkNames(page)).not.toContain('Login');
+  });
+
   test('going to a desktop width closes the open menu and gives the navbar back', async ({ page }) => {
     await openHome(page);
     const burger = page.locator('.hamburger');

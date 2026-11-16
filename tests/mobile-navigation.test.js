@@ -182,6 +182,31 @@ test('choosing a destination closes the menu on a phone but not on desktop', () 
   assert.ok(isOpen(desktop), 'the close-on-link rule is for the drawer only');
 });
 
+test('an in-page link outside the menu closes it through the same path: state, both lists and inert', () => {
+  const p = buildPage({ width: 375 });
+  initMobileNavigation(p.doc);
+  p.click(p.hamburger);
+  assert.ok(isOpen(p));
+  assert.ok(!isInert(p.navLeft) && !isInert(p.navRight));
+  // like "Explore Our Journey" (#our-story) on the about page: a link in the page, not in the drawer
+  const inPageLink = p.outside.append(new FakeElement('a', { attrs: { href: '#our-story' } }));
+  p.click(inPageLink);
+  assert.ok(!isOpen(p));
+  assert.ok(!p.hamburger.classes.has('active'));
+  assert.ok(!p.navLeft.classes.has('active') && !p.navRight.classes.has('active'), 'neither list is left active');
+  assert.ok(isInert(p.navLeft) && isInert(p.navRight), 'the closed drawer is inert again');
+});
+
+test('only initMobileNavigation changes the menu state, the smooth-scroll handler no longer closes it by hand', () => {
+  const source = fs.readFileSync(path.join(root, 'assets/js/main.js'), 'utf8');
+  const start = source.indexOf('function initMobileNavigation');
+  const end = source.indexOf('\nfunction ', start + 10);
+  assert.ok(start > 0 && end > start, 'found initMobileNavigation');
+  const outside = source.slice(0, start) + source.slice(end);
+  assert.ok(!/\.nav-links\.active/.test(outside), 'no other code reads or clears the open drawer by its class');
+  assert.ok(!/menuButton/.test(outside), 'no other code writes the hamburger state');
+});
+
 test('the Services toggle opens its sub menu and leaves the drawer open', () => {
   const p = buildPage();
   initMobileNavigation(p.doc);

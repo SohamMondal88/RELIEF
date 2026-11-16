@@ -183,16 +183,8 @@ if (typeof document !== 'undefined') {
                     behavior: reliefPrefersReducedMotion() ? 'instant' : 'smooth'
                 });
 
-                // Close mobile menu if open
-                const openMenu = document.querySelector('.nav-links.active');
-                const menuButton = document.querySelector('.hamburger');
-                if (openMenu) {
-                    openMenu.classList.remove('active');
-                    if (menuButton) {
-                        menuButton.classList.remove('active');
-                        menuButton.setAttribute('aria-expanded', 'false');
-                    }
-                }
+                // An open menu is closed by initMobileNavigation (a click outside the menu, or on one of its links),
+                // so the state, aria-expanded and inert stay in one place.
             }
         });
     });
