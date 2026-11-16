@@ -35,6 +35,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+| `e2e/shared-layout.spec.js` | Shared header and footer (Issue #104): the Emergency link on all 24 pages at 375px with no sign-in or location, the phone menu with the keyboard (closed menu out of the tab order, focus on open, tab order, Escape, nothing off screen, upright and sideways), every header link reachable by mouse at 1280 and 1440px, the current-page mark, links that answer 200 from three folder depths, the 404 page, skip links, the compact pages without JavaScript. See `docs/SHARED_LAYOUT.md` |
 
 ## Network helpers
 
@@ -99,7 +100,6 @@ These are real behaviours the tests found. They are skipped, listed in the repor
 | Test | What is wrong |
 |---|---|
 | `auth.spec.js` signed-out visitor opens the dashboard | `pages/dashboard.html` has no sign-in check, so there is no protected page to test yet |
-| `navigation.spec.js` Services menu at 1280px | The logo image covers the Services link (logo x 555 to 725, link x 548 to 669), so the mouse cannot reach the menu |
 | `navigation.spec.js` no horizontal scrolling at 375px | The language switcher sticks out 2px past the viewport |
 | `sos.spec.js` ambulances page without page errors | `ambulances.js` calls Leaflet (`L`) when the CDN script did not load and throws "L is not defined" |
 | `network-resilience.spec.js` first aid is readable while an outside stylesheet is still pending | A stylesheet in `<head>` that never answers (Font Awesome) stops the parser, so not even the `<h1>` is in the page until the browser gives up |

@@ -12,23 +12,32 @@
     
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
+<!-- shared-layout:head begin compact | generated from layout/head.tpl, edit that file and run: node scripts/shared-layout.js -->
+<link rel="stylesheet" href="../assets/css/shared-layout.css">
+<!-- shared-layout:head end -->
 </head>
 <body>
+<!-- shared-layout:header begin compact | generated from layout/compact-header.tpl, edit that file and run: node scripts/shared-layout.js -->
 <a href="#main-content" class="skip-link" data-i18n="nav.skip">Skip to main content</a>
 <header class="topbar">
     <div class="wrap nav">
         <div class="brand">
-            <img src="../assets/images/logo.jpg" alt="Relief">
-            <strong>RELIEF Dashboard</strong>
+            <img src="../assets/images/logo.jpg" alt="">
+            <strong>RELIEF</strong>
         </div>
-        <nav aria-label="Dashboard navigation">
-            <a href="../index.html">Home</a>
-            <a href="./symptoms.html">Symptom Checker</a>
-            <a href="./subscription.html">Subscription</a>
-            <a href="./ambulances.html">SOS</a>
+        <nav aria-label="Main navigation">
+            <a href="../index.html" data-i18n="nav.home">Home</a>
+            <a href="../pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a>
+            <a href="../pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a>
+            <a href="../pages/doctors.html" data-i18n="nav.doctors">Doctors</a>
+            <a href="../pages/health-events.html">Health camps &amp; events</a>
+            <a href="../pages/about.html" data-i18n="nav.about">About Us</a>
+            <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+            <a href="../pages/ambulances.html" class="nav-emergency" data-i18n="nav.emergency">Emergency</a>
         </nav>
     </div>
 </header>
+<!-- shared-layout:header end -->
 
 <main class="wrap dashboard-main" id="main-content" data-protected tabindex="-1">
     <section class="hero hero-gradient">
@@ -180,7 +189,19 @@
     </section>
 </main>
 
-<footer class="wrap footer">Medical disclaimer: RELIEF provides decision support, not diagnosis. In emergencies call local emergency services immediately.</footer>
+<!-- shared-layout:footer begin compact | generated from layout/compact-footer.tpl, edit that file and run: node scripts/shared-layout.js -->
+<footer class="wrap footer" aria-label="Footer">
+    <p class="footer-disclaimer">Medical disclaimer: RELIEF provides decision support, not diagnosis, and does not replace a licensed clinician. In an emergency, call your local emergency number.</p>
+    <nav aria-label="Legal and contact">
+        <a href="../pages/privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+        <a href="../pages/accessibility.html">Accessibility</a>
+        <a href="../pages/terms-of-service.html" data-i18n="footer.terms">Terms of Service</a>
+        <a href="../pages/cookie-policy.html" data-i18n="footer.cookies">Cookie Policy</a>
+        <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+    </nav>
+    <p>&copy; 2026 RELIEF</p>
+</footer>
+<!-- shared-layout:footer end -->
 
 <script src="../assets/js/storage-schema.js"></script>
 <script src="../assets/js/reminders.js"></script>

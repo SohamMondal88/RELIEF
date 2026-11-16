@@ -12,23 +12,32 @@
     
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
+<!-- shared-layout:head begin compact | generated from layout/head.tpl, edit that file and run: node scripts/shared-layout.js -->
+<link rel="stylesheet" href="../assets/css/shared-layout.css">
+<!-- shared-layout:head end -->
 </head>
 <body>
+<!-- shared-layout:header begin compact | generated from layout/compact-header.tpl, edit that file and run: node scripts/shared-layout.js -->
 <a href="#main-content" class="skip-link" data-i18n="nav.skip">Skip to main content</a>
 <header class="topbar">
     <div class="wrap nav">
         <div class="brand">
-            <img src="../assets/images/logo.jpg" alt="Relief">
-            <strong>RELIEF Subscription</strong>
+            <img src="../assets/images/logo.jpg" alt="">
+            <strong>RELIEF</strong>
         </div>
-        <nav aria-label="Subscription navigation">
-            <a href="../index.html">Home</a>
-            <a href="./dashboard.html">Dashboard</a>
-            <a href="./doctors.html">Doctors</a>
-            <a href="./contact.html">Contact</a>
+        <nav aria-label="Main navigation">
+            <a href="../index.html" data-i18n="nav.home">Home</a>
+            <a href="../pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a>
+            <a href="../pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a>
+            <a href="../pages/doctors.html" data-i18n="nav.doctors">Doctors</a>
+            <a href="../pages/health-events.html">Health camps &amp; events</a>
+            <a href="../pages/about.html" data-i18n="nav.about">About Us</a>
+            <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+            <a href="../pages/ambulances.html" class="nav-emergency" data-i18n="nav.emergency">Emergency</a>
         </nav>
     </div>
 </header>
+<!-- shared-layout:header end -->
 
 <main class="wrap subscription-main" id="main-content" tabindex="-1">
     <section class="hero subscription-hero">
@@ -116,9 +125,23 @@
             <p><strong>How is my data protected?</strong><br>We follow secure, encrypted storage best practices.</p>
         </article>
     </section>
+<p class="page-note">Need enterprise or clinic plans? Contact RELIEF support for custom pricing.</p>
 </main>
+<!-- shared-layout:footer begin compact | generated from layout/compact-footer.tpl, edit that file and run: node scripts/shared-layout.js -->
+<footer class="wrap footer" aria-label="Footer">
+    <p class="footer-disclaimer">Medical disclaimer: RELIEF provides decision support, not diagnosis, and does not replace a licensed clinician. In an emergency, call your local emergency number.</p>
+    <nav aria-label="Legal and contact">
+        <a href="../pages/privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+        <a href="../pages/accessibility.html">Accessibility</a>
+        <a href="../pages/terms-of-service.html" data-i18n="footer.terms">Terms of Service</a>
+        <a href="../pages/cookie-policy.html" data-i18n="footer.cookies">Cookie Policy</a>
+        <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+    </nav>
+    <p>&copy; 2026 RELIEF</p>
+</footer>
+<!-- shared-layout:footer end -->
 
-<footer class="wrap footer">Need enterprise or clinic plans? Contact RELIEF support for custom pricing.</footer>
+
 
 <script src="../assets/js/session-guard.js"></script>
 <script src="../assets/js/main.js"></script>

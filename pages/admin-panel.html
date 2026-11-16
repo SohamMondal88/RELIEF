@@ -1,9 +1,32 @@
 <!doctype html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/leaflet@1.7.1/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com/leaflet@1.7.1/dist/leaflet.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.googleapis.com/; font-src 'self' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/ https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com/leaflet@1.7.1/dist/images/ https://encrypted-tbn0.gstatic.com https://jovialjourneys.co.in https://kalyaniinfrastructure.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-src https://www.google.com/maps/embed; worker-src 'self'; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin / Doctor Panel | RELIEF</title><link rel="stylesheet" href="../assets/css/professional-pages.css"><link rel="stylesheet" href="../assets/css/admin-corrections.css"><link rel="stylesheet" href="../assets/css/health-events.css">
     <!-- Vercel Web Analytics -->
     <script src="../assets/js/vercel-analytics.js"></script>
+<!-- shared-layout:head begin compact | generated from layout/head.tpl, edit that file and run: node scripts/shared-layout.js -->
+<link rel="stylesheet" href="../assets/css/shared-layout.css">
+<!-- shared-layout:head end -->
 </head><body>
-<header class="topbar"><div class="wrap nav"><div class="brand"><img src="../assets/images/logo.jpg" alt="Relief"><strong>RELIEF Admin/Doctor Panel</strong></div><nav><a href="../index.html">Home</a><a href="./dashboard.html">Dashboard</a><a href="./contact.html">Contact</a></nav></div></header>
-<main class="wrap"><section class="hero"><h1>Operational Control Center</h1><p class="muted">For hackathon demo: triage queue, provider verification, and response analytics.</p></section>
+<!-- shared-layout:header begin compact | generated from layout/compact-header.tpl, edit that file and run: node scripts/shared-layout.js -->
+<a href="#main-content" class="skip-link" data-i18n="nav.skip">Skip to main content</a>
+<header class="topbar">
+    <div class="wrap nav">
+        <div class="brand">
+            <img src="../assets/images/logo.jpg" alt="">
+            <strong>RELIEF</strong>
+        </div>
+        <nav aria-label="Main navigation">
+            <a href="../index.html" data-i18n="nav.home">Home</a>
+            <a href="../pages/symptoms.html" data-i18n="nav.symptoms">Symptom-checker</a>
+            <a href="../pages/hospitals.html" data-i18n="nav.hospitals">Hospitals</a>
+            <a href="../pages/doctors.html" data-i18n="nav.doctors">Doctors</a>
+            <a href="../pages/health-events.html">Health camps &amp; events</a>
+            <a href="../pages/about.html" data-i18n="nav.about">About Us</a>
+            <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+            <a href="../pages/ambulances.html" class="nav-emergency" data-i18n="nav.emergency">Emergency</a>
+        </nav>
+    </div>
+</header>
+<!-- shared-layout:header end -->
+<main class="wrap" id="main-content" tabindex="-1"><section class="hero"><h1>Operational Control Center</h1><p class="muted">For hackathon demo: triage queue, provider verification, and response analytics.</p></section>
 <section class="alert" id="admin-demo-banner" role="note" style="margin-top:16px" aria-labelledby="admin-demo-title"><strong id="admin-demo-title">Demo interface, not a real admin console.</strong> There is no sign-in or role check on this page. Anyone who opens the link sees it, and hiding a link or a button would not change that. Only a server can decide who may approve or change anything (see docs/ADMIN_ACCESS.md). The triage queue, provider list and metrics are made-up sample data, not verified healthcare information, so their buttons are switched off.</section>
 <div class="grid"><article class="card"><h2>Triage Queue (sample)</h2><table class="table"><tr><th>Patient</th><th>Risk</th><th>Action</th></tr><tr><td>P-1032</td><td>High</td><td><button class="btn btn-danger" type="button" disabled aria-disabled="true" title="Demo only: not connected to anything">Escalate SOS</button></td></tr><tr><td>P-2210</td><td>Moderate</td><td><button class="btn btn-primary" type="button" disabled aria-disabled="true" title="Demo only: not connected to anything">Assign Doctor</button></td></tr></table></article>
 <article class="card"><h2>Provider Verification (sample)</h2><p>Review newly onboarded doctors and pharmacies. Nothing below was checked by anyone.</p><ul><li>Sample doctor A - documents shown as verified</li><li>Sample pharmacy B - license upload shown as pending</li></ul></article>
@@ -70,8 +93,22 @@
   <p id="event-moderation-message" role="status" aria-live="polite" data-tone=""></p>
   <div id="event-queue" aria-live="polite"></div>
 </section>
-<section class="alert" style="margin-top:16px">Sample data only. These numbers and names are not measured and not verified healthcare information.</section></main>
-<footer class="wrap footer">Access should be role-protected in production using server-side authorization.</footer>
+<section class="alert" style="margin-top:16px">Sample data only. These numbers and names are not measured and not verified healthcare information.</section><p class="page-note">Access should be role-protected in production using server-side authorization.</p>
+</main>
+<!-- shared-layout:footer begin compact | generated from layout/compact-footer.tpl, edit that file and run: node scripts/shared-layout.js -->
+<footer class="wrap footer" aria-label="Footer">
+    <p class="footer-disclaimer">Medical disclaimer: RELIEF provides decision support, not diagnosis, and does not replace a licensed clinician. In an emergency, call your local emergency number.</p>
+    <nav aria-label="Legal and contact">
+        <a href="../pages/privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+        <a href="../pages/accessibility.html">Accessibility</a>
+        <a href="../pages/terms-of-service.html" data-i18n="footer.terms">Terms of Service</a>
+        <a href="../pages/cookie-policy.html" data-i18n="footer.cookies">Cookie Policy</a>
+        <a href="../pages/contact.html" data-i18n="nav.contact">Contact</a>
+    </nav>
+    <p>&copy; 2026 RELIEF</p>
+</footer>
+<!-- shared-layout:footer end -->
+
     <script src="../assets/js/auth-mode.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/facility-utils.js"></script>
