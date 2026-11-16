@@ -1,0 +1,87 @@
+/*
+ * RELIEF design tokens (issue #130). Values only, no selectors other than :root.
+ * Documented in docs/DESIGN_SYSTEM.md. Every colour pair is measured by scripts/design-contrast.js
+ * and guarded by tests/design-system.test.js, so change a colour here and run `node scripts/design-contrast.js`.
+ * The ds- prefix keeps these apart from the older --primary-color style variables that each page stylesheet still defines.
+ */
+:root {
+  /* Surfaces */
+  --ds-bg: #f4f7f6;
+  --ds-surface: #ffffff;
+  --ds-surface-2: #eaf1ef;
+
+  /* Text */
+  --ds-ink: #15302b;
+  --ds-ink-muted: #46595a;
+
+  /* Lines */
+  --ds-border: #d3dfdb;
+  --ds-border-strong: #6f8580;
+
+  /* Brand: calm clinical green */
+  --ds-primary: #00695a;
+  --ds-primary-hover: #004d42;
+  --ds-primary-soft: #dcf0ec;
+  --ds-on-primary: #ffffff;
+
+  /* Emergency: used for SOS and nothing decorative */
+  --ds-danger: #b3261e;
+  --ds-danger-hover: #8c1d18;
+  --ds-on-danger: #ffffff;
+
+  /* Status messages */
+  --ds-danger-ink: #8c1d18;
+  --ds-danger-soft: #fdeceb;
+  --ds-warning-ink: #5f4200;
+  --ds-warning-soft: #fff3d1;
+  --ds-success-ink: #14532d;
+  --ds-success-soft: #e3f5e9;
+  --ds-info-ink: #0b4f86;
+  --ds-info-soft: #e5f0fb;
+
+  /* Footer */
+  --ds-footer-bg: #0f2622;
+  --ds-footer-ink: #d6e4e0;
+  --ds-footer-link: #ffffff;
+
+  /* Focus */
+  --ds-focus: #1a4fd6;
+  --ds-focus-on-dark: #ffd166;
+
+  /* Type */
+  --ds-font: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ds-text-xs: 0.8125rem;
+  --ds-text-sm: 0.9375rem;
+  --ds-text-base: 1rem;
+  --ds-text-lg: 1.125rem;
+  --ds-text-xl: 1.375rem;
+  --ds-text-2xl: 1.75rem;
+  --ds-text-3xl: clamp(1.875rem, 1.4rem + 2vw, 2.75rem);
+  --ds-leading: 1.6;
+  --ds-leading-tight: 1.25;
+
+  /* Spacing (4px base) */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.5rem;
+  --ds-space-6: 2rem;
+  --ds-space-7: 3rem;
+  --ds-space-8: 4.5rem;
+
+  /* Shape and depth */
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 18px;
+  --ds-radius-pill: 999px;
+  --ds-shadow-1: 0 1px 2px rgba(21, 48, 43, 0.08), 0 1px 3px rgba(21, 48, 43, 0.06);
+  --ds-shadow-2: 0 4px 12px rgba(21, 48, 43, 0.1);
+  --ds-shadow-3: 0 12px 28px rgba(21, 48, 43, 0.14);
+
+  /* Layout and motion */
+  --ds-container: 1120px;
+  --ds-touch: 44px;
+  --ds-header-h: 64px;
+  --ds-ease: 160ms ease;
+}

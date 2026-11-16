@@ -1,0 +1,529 @@
+/*
+ * RELIEF shared component layer (issue #130). See docs/DESIGN_SYSTEM.md.
+ *
+ * How it is used: load design-tokens.css, then the page's own stylesheet, then this file, and put class="ds" on <body>.
+ * Everything here is scoped under .ds, so a page that has not been migrated is not touched. Because this file loads
+ * last and every selector starts with .ds, it wins over the older per-page rules without !important
+ * (the one exception is the inline background the old pages put on .main-content, see below).
+ *
+ * Two parts:
+ *   1. Components with their own ds- classes, for new markup: .ds-btn, .ds-card, .ds-field, .ds-alert, .ds-state.
+ *   2. A mapping of the existing class names (navbar, footer, .btn-primary, .hospital-card, .auth-form ...) onto the same
+ *      tokens, so pages get the new look without their markup or scripts changing.
+ * Motion is limited to short colour/shadow transitions and all of it stops under prefers-reduced-motion.
+ */
+
+/* ---------- Base ---------- */
+.ds {
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-base);
+  line-height: var(--ds-leading);
+  color: var(--ds-ink);
+  background: var(--ds-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The old pages paint a blue-grey gradient inline on this wrapper. The inline style is removed from migrated pages,
+   this keeps a page that still has it from showing the old gradient. */
+.ds .main-content { background: var(--ds-bg) !important; }
+
+.ds h1, .ds h2, .ds h3, .ds h4, .ds h5, .ds h6 {
+  font-family: var(--ds-font);
+  color: var(--ds-ink);
+  line-height: var(--ds-leading-tight);
+  font-weight: 700;
+  text-shadow: none;
+}
+.ds h1 { font-size: var(--ds-text-3xl); letter-spacing: -0.01em; }
+.ds h2 { font-size: var(--ds-text-2xl); }
+.ds h3 { font-size: var(--ds-text-xl); }
+.ds h4 { font-size: var(--ds-text-lg); }
+.ds p { color: var(--ds-ink-muted); }
+
+.ds a { color: var(--ds-primary); transition: color var(--ds-ease), background-color var(--ds-ease); }
+/* style.css turns every link white on hover, which made text links vanish on a light page. */
+.ds a:hover { color: var(--ds-primary-hover); }
+
+.ds .container { max-width: var(--ds-container); padding-left: var(--ds-space-5); padding-right: var(--ds-space-5); }
+
+/* ---------- Focus (WCAG 2.4.7 and 2.4.11) ---------- */
+.ds :focus-visible {
+  outline: 3px solid var(--ds-focus);
+  outline-offset: 3px;
+  border-radius: var(--ds-radius-sm);
+}
+.ds .footer :focus-visible,
+.ds .ds-on-dark :focus-visible { outline-color: var(--ds-focus-on-dark); }
+.ds main[tabindex="-1"]:focus { outline: none; }
+
+.ds .skip-link {
+  background: var(--ds-primary);
+  color: var(--ds-on-primary) !important;
+  border-radius: var(--ds-radius-sm);
+}
+.ds .skip-link:focus, .ds .skip-link:focus-visible { outline: 3px solid var(--ds-focus-on-dark); outline-offset: 2px; }
+
+/* ---------- Buttons ---------- */
+.ds .ds-btn,
+.ds .btn,
+.ds .btn-primary,
+.ds .btn-secondary,
+.ds .btn-secondary1,
+.ds .btn-emergency,
+.ds .btn-filter,
+.ds .auth-form button[type="submit"],
+.ds .form-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  min-height: var(--ds-touch);
+  padding: 0.625rem 1.25rem;
+  border: 2px solid var(--ds-primary);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-base);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--ds-shadow-1);
+  transform: none;
+  animation: none;
+  transition: background-color var(--ds-ease), border-color var(--ds-ease), box-shadow var(--ds-ease);
+}
+.ds .btn::before, .ds .btn-secondary1::before, .ds .btn-emergency::before { display: none; }
+.ds .ds-btn:hover,
+.ds .btn:hover,
+.ds .btn-primary:hover,
+.ds .btn-secondary:hover,
+.ds .btn-secondary1:hover,
+.ds .btn-filter:hover,
+.ds .auth-form button[type="submit"]:hover,
+.ds .form-submit:hover {
+  background: var(--ds-primary-hover);
+  border-color: var(--ds-primary-hover);
+  color: var(--ds-on-primary);
+  transform: none;
+  box-shadow: var(--ds-shadow-2);
+}
+/* Secondary and outline buttons are quieter than the primary action. */
+.ds .ds-btn--outline,
+.ds .btn-secondary,
+.ds .btn-secondary1 {
+  background: var(--ds-surface);
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+  box-shadow: none;
+}
+.ds .ds-btn--outline:hover,
+.ds .btn-secondary:hover,
+.ds .btn-secondary1:hover {
+  background: var(--ds-primary-soft);
+  color: var(--ds-primary-hover);
+  border-color: var(--ds-primary-hover);
+}
+/* Emergency actions keep a stronger colour on purpose. Nothing else on the site uses this red. */
+.ds .ds-btn--danger,
+.ds .btn-emergency {
+  background: var(--ds-danger);
+  border-color: var(--ds-danger);
+  color: var(--ds-on-danger);
+}
+.ds .ds-btn--danger:hover,
+.ds .btn-emergency:hover {
+  background: var(--ds-danger-hover);
+  border-color: var(--ds-danger-hover);
+  color: var(--ds-on-danger);
+}
+.ds .ds-btn:disabled, .ds .btn:disabled, .ds button:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+
+/* ---------- Header and navigation ---------- */
+.ds .healthcare-quote {
+  background: var(--ds-primary-soft);
+  color: var(--ds-primary-hover);
+  font-size: var(--ds-text-sm);
+  font-weight: 500;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  text-shadow: none;
+}
+.ds .healthcare-quote p { color: inherit; margin: 0; }
+.ds .healthcare-quote::after { display: none; }
+
+.ds .navbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: auto;
+  min-height: var(--ds-header-h);
+  margin: 0;
+  background: var(--ds-surface);
+  border-bottom: 1px solid var(--ds-border);
+  box-shadow: none;
+  z-index: 1000;
+}
+.ds .navbar .container {
+  max-width: var(--ds-container);
+  padding: var(--ds-space-2) var(--ds-space-5);
+  gap: var(--ds-space-4);
+  justify-content: flex-start;
+}
+/* The old 170px logo hung over the page content. It now sits in the bar as the first item. */
+.ds .navbar-center { order: -1; flex: 0 0 auto; }
+.ds .navbar-left { flex: 1 1 auto; }
+.ds .navbar-right { display: flex; align-items: center; gap: var(--ds-space-2); flex: 0 0 auto; }
+.ds .logo {
+  position: static;
+  transform: none;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.ds .logo img {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border: 1px solid var(--ds-border);
+}
+.ds .nav-links li { margin: 0 var(--ds-space-1); align-items: center; }
+.ds .nav-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ds-touch);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-ink);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.ds .nav-links a:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); text-decoration: none; }
+.ds .nav-links a[aria-current="page"] { color: var(--ds-primary); box-shadow: inset 0 -3px 0 var(--ds-primary); border-radius: 0; }
+
+.ds .btn-login,
+.ds .btn-signup,
+.ds .btn-tour-nav {
+  min-height: var(--ds-touch);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-sm);
+  font-weight: 600;
+  margin: 0;
+}
+.ds .nav-links a.btn-login, .ds .btn-tour-nav { background: var(--ds-surface); color: var(--ds-primary); border: 2px solid var(--ds-primary); }
+.ds .nav-links a.btn-login:hover, .ds .btn-tour-nav:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+.ds .nav-links a.btn-signup { background: var(--ds-primary); color: var(--ds-on-primary); border: 2px solid var(--ds-primary); }
+.ds .nav-links a.btn-signup:hover { background: var(--ds-primary-hover); border-color: var(--ds-primary-hover); color: var(--ds-on-primary); }
+
+.ds .dropdown-menu {
+  background: var(--ds-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-3);
+}
+.ds .dropdown-menu::before { display: none; }
+.ds .dropdown-menu li:hover { background: transparent; }
+.ds .dropdown-menu a { color: var(--ds-ink); }
+.ds .dropdown-menu a:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+
+.ds .hamburger {
+  width: var(--ds-touch);
+  height: var(--ds-touch);
+  padding: 13px 10px;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+}
+.ds .hamburger span { display: block; background: var(--ds-ink); height: 2px; border-radius: 2px; }
+.ds .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.ds .hamburger.active span:nth-child(2) { opacity: 0; }
+.ds .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+@media (max-width: 992px) {
+  .ds .hamburger { display: flex; flex-direction: column; justify-content: space-between; }
+  .ds .nav-links { background: var(--ds-surface); box-shadow: none; }
+  .ds .nav-links.active { border-left: 1px solid var(--ds-border); box-shadow: var(--ds-shadow-3); }
+  .ds .navbar .container { padding-left: var(--ds-space-4); padding-right: var(--ds-space-4); }
+}
+/* The language switch used to hang 54px outside the right edge of the bar on a phone. It now sits in the bar. */
+.ds .relief-lang-switch select {
+  min-height: var(--ds-touch);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-sm);
+}
+@media (max-width: 992px) {
+  .ds .navbar-right .relief-lang-switch { position: static; margin: 0; }
+}
+@media (max-width: 768px) {
+  .ds .nav-links { top: var(--ds-header-h); height: calc(100vh - var(--ds-header-h)); }
+  .ds .navbar-right { margin-left: auto; }
+}
+
+/* ---------- Page hero (home) ---------- */
+.ds .main-content .hero {
+  padding: var(--ds-space-8) 0 var(--ds-space-7);
+  background: var(--ds-bg);
+}
+.ds .main-content .hero h1 { font-size: var(--ds-text-3xl); }
+.ds .hero p, .ds .hero .lead { color: var(--ds-ink-muted); font-size: var(--ds-text-lg); }
+.ds .hero-image img { border-radius: var(--ds-radius-lg); box-shadow: var(--ds-shadow-3); -webkit-mask-image: none; mask-image: none; }
+.ds .hero-search { background: var(--ds-surface); border: 1px solid var(--ds-border-strong); border-radius: var(--ds-radius-md); box-shadow: var(--ds-shadow-1); }
+.ds .hero-search input { color: var(--ds-ink); background: transparent; }
+.ds .hero-search button { background: var(--ds-primary); color: var(--ds-on-primary); border-radius: var(--ds-radius-sm); }
+.ds .hero-search button:hover { background: var(--ds-primary-hover); }
+.ds .stat-number { color: var(--ds-primary); }
+.ds .stat-label { color: var(--ds-ink-muted); }
+@media (max-width: 768px) {
+  .ds .main-content .hero { padding: var(--ds-space-6) 0; }
+}
+
+.ds .section-title { color: var(--ds-ink); }
+.ds .section-subtitle { color: var(--ds-ink-muted); }
+
+/* ---------- Page sections that used a flat grey ---------- */
+.ds .firstaid-guide, .ds .hospital-finder { background: transparent; }
+.ds .firstaid-guide h1, .ds .hospital-finder h1 { color: var(--ds-ink); font-size: var(--ds-text-3xl); }
+.ds .firstaid-guide p, .ds .hospital-finder p { color: var(--ds-ink-muted); }
+
+/* ---------- Cards ---------- */
+.ds .ds-card,
+.ds .feature-card,
+.ds .testimonial-card,
+.ds .hospital-card,
+.ds .category-card,
+.ds .card,
+.ds .step,
+.ds .stat-item {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-1);
+  color: var(--ds-ink);
+  transition: box-shadow var(--ds-ease), border-color var(--ds-ease);
+}
+.ds .feature-card:hover,
+.ds .testimonial-card:hover,
+.ds .hospital-card:hover,
+.ds .category-card:hover,
+.ds .ds-card--interactive:hover {
+  transform: none;
+  border-color: var(--ds-border-strong);
+  box-shadow: var(--ds-shadow-2);
+}
+.ds .feature-card h3, .ds .hospital-name, .ds .category-card h4 { color: var(--ds-ink); }
+.ds .feature-icon, .ds .category-icon { color: var(--ds-primary); background: var(--ds-primary-soft); }
+.ds .feature-link { color: var(--ds-primary); font-weight: 600; }
+.ds .feature-link:hover { color: var(--ds-primary-hover); }
+.ds .step-number { background: var(--ds-primary); color: var(--ds-on-primary); }
+.ds .category-card { cursor: pointer; }
+
+/* Actions on a facility card. Call is the main one and keeps a filled button, the rest are quieter. */
+.ds .hospital-actions { border-top-color: var(--ds-border); }
+.ds .btn-call, .ds .btn-directions, .ds .btn-save, .ds .btn-correct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--ds-touch);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-sm);
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.ds .btn-call { background: var(--ds-primary); color: var(--ds-on-primary); border: 2px solid var(--ds-primary); }
+.ds .btn-call:hover { background: var(--ds-primary-hover); border-color: var(--ds-primary-hover); color: var(--ds-on-primary); }
+.ds .btn-directions, .ds .btn-save {
+  background: var(--ds-surface);
+  color: var(--ds-primary);
+  border: 2px solid var(--ds-primary);
+}
+.ds .btn-directions:hover, .ds .btn-save:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+.ds .btn-save.is-saved { background: var(--ds-warning-soft); color: var(--ds-warning-ink); border-color: var(--ds-warning-ink); }
+.ds .btn-correct { background: none; color: var(--ds-info-ink); border: 0; text-decoration: underline; text-underline-offset: 3px; }
+.ds .btn-correct:hover { color: var(--ds-primary-hover); }
+
+/* ---------- Forms ---------- */
+.ds label { color: var(--ds-ink); font-weight: 600; }
+.ds .ds-field input, .ds .ds-field select, .ds .ds-field textarea,
+.ds .form-group input, .ds .form-group select, .ds .form-group textarea,
+.ds .search-guides input, .ds .search-box input, .ds .filter-group select,
+.ds .sort-options select, .ds .newsletter-form input,
+.ds main input[type="text"], .ds main input[type="email"], .ds main input[type="password"],
+.ds main input[type="search"], .ds main input[type="tel"], .ds main select, .ds main textarea {
+  min-height: var(--ds-touch);
+  padding: 0.625rem 0.875rem;
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  font-family: var(--ds-font);
+  font-size: var(--ds-text-base);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  box-shadow: none;
+}
+.ds input::placeholder, .ds textarea::placeholder { color: var(--ds-ink-muted); opacity: 1; }
+.ds input:focus-visible, .ds select:focus-visible, .ds textarea:focus-visible {
+  outline: 3px solid var(--ds-focus);
+  outline-offset: 1px;
+  border-color: var(--ds-focus);
+}
+.ds input[aria-invalid="true"], .ds select[aria-invalid="true"], .ds textarea[aria-invalid="true"] {
+  border-color: var(--ds-danger);
+  border-width: 2px;
+}
+.ds input[type="checkbox"], .ds input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--ds-primary);
+}
+.ds .search-guides button, .ds .search-box button {
+  min-width: var(--ds-touch);
+  min-height: var(--ds-touch);
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+}
+.ds .search-guides button:hover, .ds .search-box button:hover { background: var(--ds-primary-hover); }
+.ds .error-message, .ds .ds-field__error { color: var(--ds-danger-ink); font-size: var(--ds-text-sm); font-weight: 500; }
+.ds .ds-field__hint { color: var(--ds-ink-muted); font-size: var(--ds-text-sm); }
+
+/* ---------- Alerts and notices ---------- */
+.ds .ds-alert,
+.ds .emergency-banner,
+.ds .data-note,
+.ds .demo-notice,
+.ds #form-message {
+  border: 1px solid var(--ds-border);
+  border-left-width: 6px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-info-soft);
+  color: var(--ds-info-ink);
+  border-color: var(--ds-info-ink);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  box-shadow: none;
+}
+.ds .ds-alert--danger, .ds .emergency-banner, .ds #form-message[role="alert"] {
+  background: var(--ds-danger-soft); color: var(--ds-danger-ink); border-color: var(--ds-danger-ink);
+}
+.ds .ds-alert--warning { background: var(--ds-warning-soft); color: var(--ds-warning-ink); border-color: var(--ds-warning-ink); }
+.ds .ds-alert--success { background: var(--ds-success-soft); color: var(--ds-success-ink); border-color: var(--ds-success-ink); }
+.ds .emergency-banner h3, .ds .emergency-banner i { color: var(--ds-danger-ink); }
+.ds .data-note { font-size: var(--ds-text-sm); }
+.ds .data-note, .ds .hospital-finder p.data-note, .ds .demo-notice { background: var(--ds-warning-soft); color: var(--ds-warning-ink); border-color: var(--ds-warning-ink); }
+
+/* ---------- Empty, loading and error states ---------- */
+.ds .ds-state,
+.ds .no-results,
+.ds .loading-state,
+.ds .error-state,
+.ds .saved-empty {
+  display: block;
+  padding: var(--ds-space-6) var(--ds-space-5);
+  text-align: center;
+  background: var(--ds-surface-2);
+  border: 1px dashed var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-ink-muted);
+}
+.ds .ds-state--error, .ds .error-state {
+  background: var(--ds-danger-soft);
+  border: 1px solid var(--ds-danger-ink);
+  color: var(--ds-danger-ink);
+}
+.ds .ds-state__title { color: var(--ds-ink); font-weight: 700; font-size: var(--ds-text-lg); }
+.ds .ds-state--loading::before,
+.ds .loading-state::before {
+  content: "";
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: var(--ds-space-2);
+  vertical-align: -0.2em;
+  border: 3px solid var(--ds-border-strong);
+  border-top-color: var(--ds-primary);
+  border-radius: 50%;
+  animation: ds-spin 0.9s linear infinite;
+}
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Badges ---------- */
+.ds .ds-badge, .ds .service-tag {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-primary-soft);
+  color: var(--ds-primary);
+  font-size: var(--ds-text-xs);
+  font-weight: 600;
+}
+
+/* ---------- Footer ---------- */
+.ds .footer {
+  background: var(--ds-footer-bg);
+  color: var(--ds-footer-ink);
+  padding: var(--ds-space-7) var(--ds-space-5) var(--ds-space-5);
+  animation: none;
+}
+.ds .footer h3, .ds .footer h4 { color: var(--ds-footer-link); font-size: var(--ds-text-lg); }
+.ds .footer-section { animation: none; }
+.ds .footer-section:hover { transform: none; }
+.ds .footer-section h3::after { background: var(--ds-focus-on-dark); height: 2px; }
+.ds .footer p, .ds .footer li, .ds .footer-bottom { color: var(--ds-footer-ink); opacity: 1; }
+.ds .footer a { color: var(--ds-footer-link); text-decoration: underline; text-underline-offset: 3px; }
+.ds .footer a:hover { color: var(--ds-focus-on-dark); }
+.ds .footer .social-links a, .ds .footer .social-btn { text-decoration: none; }
+
+/* ---------- Auth pages ---------- */
+.ds .auth-container {
+  background: var(--ds-bg);
+  padding: var(--ds-space-6) var(--ds-space-4);
+}
+.ds .auth-form {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-2);
+  color: var(--ds-ink);
+}
+.ds .auth-form h1 { font-size: var(--ds-text-2xl); }
+.ds .auth-form h1::after { background: var(--ds-primary); }
+.ds .auth-image img { border-radius: var(--ds-radius-lg); }
+.ds .form-options a, .ds .auth-footer a { color: var(--ds-primary); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.ds .social-btn { border: 1px solid var(--ds-border-strong); background: var(--ds-surface); color: var(--ds-ink); border-radius: var(--ds-radius-sm); }
+
+/* ---------- Dashboard shell (professional-pages.css pages) ---------- */
+.ds .topbar { background: var(--ds-surface); border-bottom: 1px solid var(--ds-border); }
+.ds .nav a { color: var(--ds-ink); border-radius: var(--ds-radius-sm); padding: 0 var(--ds-space-2); }
+.ds .nav a:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+.ds .hero-gradient { background: var(--ds-surface); border: 1px solid var(--ds-border); }
+.ds .btn-danger { background: var(--ds-danger); border-color: var(--ds-danger); color: var(--ds-on-danger); }
+.ds .btn-danger:hover { background: var(--ds-danger-hover); border-color: var(--ds-danger-hover); }
+.ds .btn-outline { background: var(--ds-surface); color: var(--ds-primary); border: 2px solid var(--ds-primary); box-shadow: none; }
+.ds .btn-outline:hover { background: var(--ds-primary-soft); color: var(--ds-primary-hover); }
+.ds .kpi { color: var(--ds-primary); }
+.ds .muted { color: var(--ds-ink-muted); }
+.ds .table th { color: var(--ds-ink); background: var(--ds-surface-2); }
+.ds .table td, .ds .table th { border-bottom-color: var(--ds-border); }
+.ds .alert { background: var(--ds-danger-soft); color: var(--ds-danger-ink); border-left-color: var(--ds-danger-ink); }
+.ds footer.footer.wrap { background: transparent; color: var(--ds-ink-muted); padding: var(--ds-space-5) var(--ds-space-4); }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ds *, .ds *::before, .ds *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
