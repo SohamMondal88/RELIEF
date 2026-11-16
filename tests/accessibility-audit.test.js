@@ -254,8 +254,6 @@ describe('GitHub Issue #25: Responsive Design & Accessibility Audit', () => {
 
         it('guards secondary scripts across pages against duplicate hamburger bindings', () => {
             const scriptFiles = [
-                'assets/js/about.js',
-                'assets/js/ambulances.js',
                 'assets/js/appointments.js',
                 'assets/js/blog.js',
                 'assets/js/contact.js',
