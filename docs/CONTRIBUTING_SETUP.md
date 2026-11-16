@@ -80,7 +80,6 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
 - **Client-Side Scripts (`assets/js/`)**:
   - `main.js`: Global site behaviors (mobile navigation toggle, smooth scrolling, and alerts).
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
-  - `firebase-config.js`: Initializes the Firebase web client using configured project parameters.
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.
   - `dashboard.js`: Dashboard UI wiring (reminder form and list, timeline, chatbot).
   - `reminders.js`: Medicine reminder logic (validation, duplicates, edit/pause/complete, due checks) with no DOM access, persisted in browser `localStorage`. Tested by `tests/reminders.test.js`.
@@ -163,7 +162,7 @@ Also run `python3 .github/scripts/check-links.py` (`python` on Windows if that i
 The full list of what is saved, the offline limits, the install manifest, Vercel notes and the offline and update checks are in [OFFLINE_AND_INSTALL.md](OFFLINE_AND_INSTALL.md).
 
 - **What is cached:** only same-origin GET requests for the exact paths listed in `PAGE_PATHS` and `ASSET_PATHS` in `sw.js`. Every saved file is network-first (fresh copy when online, saved copy when offline). A page that is not saved and cannot be reached shows `pages/offline.html`.
-- **What is never cached:** dashboard, login, signup, account data, `api.js`/`firebase-config.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
+- **What is never cached:** dashboard, login, signup, account data, `api.js` calls, and every cross-origin request (Firebase, maps, CDN fonts and icons). Anything not on the allow-list goes straight to the network.
 - **Versioning and refresh:** the cache is named `relief-static-<CACHE_VERSION>`. When you change a cached file, bump `CACHE_VERSION` in `sw.js`. On activate, the worker deletes older `relief-static-*` caches. Pages refresh themselves on the next online visit.
 - **Cached vs live:** when the browser is offline, a banner at the top says the page is a saved copy and shows when it was last loaded online (stored in `localStorage` under `relief_last_online_sync`).
 - **Onboarding preferences:** first-visit onboarding status (completed or dismissed/skipped) is stored in `localStorage` under `relief_onboarding_status`. No account, login, or geolocation permissions are required. Visitors can revisit the tour at any time via the Tour button in the navigation or footer.
@@ -176,7 +175,7 @@ The current code references several external integrations. A static preview can 
 
 | Integration or setting | What contributors should know |
 |---|---|
-| Firebase | `assets/js/api.js` and `assets/js/firebase-config.js` contain placeholder configuration values. Real project configuration is required for Firebase-backed authentication and Firestore operations. |
+| Firebase | `assets/js/api.js` contains placeholder configuration values (or set `window.RELIEF_FIREBASE_CONFIG`, see [FIREBASE_SECURITY.md](FIREBASE_SECURITY.md)). Real project configuration is required for Firebase-backed authentication and Firestore operations. With placeholders, or without the SDK, sign-in reports that it is unavailable. |
 | OpenStreetMap / Nominatim | Location searches make requests to Nominatim. Results depend on network access, service availability, and the service's usage policy. |
 | Rasa | The chatbot configuration points to `http://localhost:5005`. A compatible Rasa service must be running locally for that endpoint to respond. |
 | Symptom analysis | `assets/js/symptoms.js` references an external symptom-analysis API. Verify its current endpoint, access requirements, and configuration before relying on it. |
@@ -196,10 +195,10 @@ The current code references several external integrations. A static preview can 
 RELIEF is currently an entirely client-side static web application. It runs directly in the browser and does not have a Node.js runtime, build step (such as Vite or Webpack), or server process:
 
 - **No runtime `.env` support:** Browsers cannot read `.env` files or `process.env`. The application does not load or process environment variables.
-- **Browser-side configuration:** All service configurations and API endpoints are loaded directly in client-side JavaScript files (`assets/js/api.js`, `assets/js/firebase-config.js`, `assets/js/contact.js`, and `assets/js/symptoms.js`).
+- **Browser-side configuration:** All service configurations and API endpoints are loaded directly in client-side JavaScript files (`assets/js/api.js`, `assets/js/contact.js`, and `assets/js/symptoms.js`).
 - **Client exposure risk:** Any value included in frontend JavaScript files or loaded via the browser DOM is publicly visible to anyone inspecting network requests or page source. **Never place private keys, database administrative credentials, secret tokens, or payment gateway secrets in frontend code.**
 - **Existing in-code placeholders:** The repository intentionally uses dummy placeholders for development demonstration:
-  - `assets/js/firebase-config.js` and `assets/js/api.js`: `apiKey: "your_api_key"`, `projectId: "your_project"`, etc.
+  - `assets/js/api.js`: `apiKey: "your_firebase_api_key"`, `projectId: "your_project"`, etc.
   - `assets/js/contact.js`: `key=YOUR_API_KEY`
   - `assets/js/symptoms.js`: `YOUR_INFERMEDICA_APP_ID`, `YOUR_INFERMEDICA_APP_KEY` (with automatic fallback to local mock results)
 - **Do not commit `.env` or `.env.example`:** Because the static site does not use environment variables, do not add an `.env` or `.env.example` file to the repository. If the project architecture is later upgraded with a build tool or backend service that introduces environment-variable injection, configuration should then be documented with safe placeholder names (e.g., `FIREBASE_API_KEY=your_placeholder_key`) without exposing secrets.

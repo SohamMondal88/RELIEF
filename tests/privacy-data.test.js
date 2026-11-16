@@ -365,7 +365,7 @@ describe('ReliefAPI.deleteAccount (api.js with a fake Firebase)', () => {
             }
         });
         const auth = () => ({ currentUser: user, signOut: async () => {} });
-        return { fb: { apps: [{}], initializeApp() {}, auth, firestore: Object.assign(firestore, { FieldValue: { serverTimestamp: () => 0 } }) }, state };
+        return { fb: { apps: [{ options: { apiKey: 'k', authDomain: 'd.firebaseapp.com', projectId: 'p', appId: 'a' } }], initializeApp() {}, auth, firestore: Object.assign(firestore, { FieldValue: { serverTimestamp: () => 0 } }) }, state };
     }
 
     it('is exposed on the public API', () => {
