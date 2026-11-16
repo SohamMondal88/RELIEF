@@ -4,31 +4,17 @@ function reliefPrefersReducedMotion() {
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile Menu Toggle
-    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-    const mobileMenu = document.querySelector('.mobile-menu');
-
-    mobileMenuBtn.addEventListener('click', function() {
-        mobileMenu.classList.toggle('active');
-    });
-
-    // Close mobile menu when clicking on a link
-    const mobileLinks = document.querySelectorAll('.mobile-menu a');
-    mobileLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            mobileMenu.classList.remove('active');
-        });
-    });
-
     // Navbar scroll effect
     const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-    });
+    if (navbar) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    }
 
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -91,10 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Newsletter Form Submission
     const newsletterForm = document.querySelector('.newsletter-form');
-    if (newsletterForm) {
-        const newsletterInput = newsletterForm.querySelector('input');
-        const newsletterButton = newsletterForm.querySelector('button');
-
+    const newsletterInput = newsletterForm && newsletterForm.querySelector('input');
+    const newsletterButton = newsletterForm && newsletterForm.querySelector('button');
+    if (newsletterInput && newsletterButton) {
         newsletterButton.addEventListener('click', function(e) {
             e.preventDefault();
 
@@ -111,10 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Search Functionality
     const searchBar = document.querySelector('.search-bar');
-    if (searchBar) {
-        const searchInput = searchBar.querySelector('input');
-        const searchButton = searchBar.querySelector('button');
-
+    const searchInput = searchBar && searchBar.querySelector('input');
+    const searchButton = searchBar && searchBar.querySelector('button');
+    if (searchInput && searchButton) {
         searchButton.addEventListener('click', function() {
             if (searchInput.value.trim() === '') {
                 alert('Please enter a search term');

@@ -166,7 +166,26 @@ const SMOKE_ROUTES = [
   { name: 'firstaid', path: '/pages/firstaid.html', ready: 'main' },
   { name: 'symptoms', path: '/pages/symptoms.html', ready: 'main' },
   { name: 'login', path: '/pages/login.html', ready: 'main' },
-  { name: 'signup', path: '/pages/signup.html', ready: 'main' }
+  { name: 'signup', path: '/pages/signup.html', ready: 'main' },
+  { name: 'accessibility', path: '/pages/accessibility.html', ready: 'main' },
+  { name: 'admin-panel', path: '/pages/admin-panel.html', ready: 'main' },
+  { name: 'appointments', path: '/pages/appointments.html', ready: 'main' },
+  { name: 'blog', path: '/pages/blog.html', ready: 'main' },
+  { name: 'careers', path: '/pages/careers.html', ready: 'main' },
+  { name: 'cookie-policy', path: '/pages/cookie-policy.html', ready: 'main' },
+  { name: 'dashboard', path: '/pages/dashboard.html', ready: 'main' },
+  { name: 'donate', path: '/pages/donate.html', ready: 'main' },
+  { name: 'health-events', path: '/pages/health-events.html', ready: 'main' },
+  { name: 'home', path: '/pages/home.html', ready: 'main' },
+  { name: 'how-it-works', path: '/pages/how-it-works.html', ready: 'main' },
+  { name: 'offline', path: '/pages/offline.html', ready: 'main' },
+  { name: 'press', path: '/pages/press.html', ready: 'main' },
+  { name: 'privacy', path: '/pages/privacy.html', ready: 'main' },
+  { name: 'privacy-policy', path: '/pages/privacy-policy.html', ready: 'main' },
+  { name: 'subscription', path: '/pages/subscription.html', ready: 'main' },
+  { name: 'team', path: '/pages/team.html', ready: 'main' },
+  { name: 'terms-of-service', path: '/pages/terms-of-service.html', ready: 'main' },
+  { name: 'volunteer', path: '/pages/volunteer.html', ready: 'main' }
 ];
 
 // Open a route and wait until the page says it is ready and the network has gone quiet.

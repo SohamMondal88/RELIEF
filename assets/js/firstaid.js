@@ -232,8 +232,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!event.target.closest('.guide-header') && !event.target.closest('.guide-content')) {
             document.querySelectorAll('.guide-item').forEach(item => {
                 item.classList.remove('active');
-                item.querySelector('.guide-header i').classList.remove('fa-chevron-up');
-                item.querySelector('.guide-header i').classList.add('fa-chevron-down');
+                const icon = item.querySelector('.guide-header i');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
             });
         }
     });
