@@ -2,6 +2,19 @@
 const { test, expect } = require('./fixtures');
 const { openHome } = require('./helpers');
 
+// (Login and Ambulances only exist in the navbar; names like About Us repeat in the footer.)
+// Links the browser itself puts in the accessibility tree, asked over the DevTools protocol. Playwright's
+// own getByRole does not look at `inert`, so it cannot tell a hidden drawer from an open one.
+async function exposedLinkNames(page) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { nodes } = await cdp.send('Accessibility.getFullAXTree');
+    return nodes.filter((n) => !n.ignored && n.role && n.role.value === 'link').map((n) => n.name && n.name.value);
+  } finally {
+    await cdp.detach();
+  }
+}
+
 test.describe('landing page and primary navigation', () => {
   test('home page shows the hero, the skip link and the main navigation', async ({ page }) => {
     await openHome(page);
@@ -82,12 +95,169 @@ test.describe('responsive navigation', () => {
     await expect(links).not.toHaveClass(/active/);
   });
 
+  test('a closed drawer is out of the Tab order and the accessibility tree, an open one is in it', async ({ page }) => {
+    await openHome(page);
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    await expect(page.locator('#main-nav-links')).toHaveAttribute('inert', '');
+    expect(await exposedLinkNames(page)).not.toContain('Login');
+    expect(await exposedLinkNames(page)).not.toContain('Ambulances');
+
+    // Walk the first ten Tab stops from the top of the page: none of them may be a link in the off-screen drawer.
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    for (let i = 0; i < 10; i++) {
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => !!document.activeElement.closest('.nav-links'))).toBe(false);
+    }
+
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    await burger.click();
+    await expect(page.locator('#main-nav-links')).not.toHaveAttribute('inert', '');
+    expect(await exposedLinkNames(page)).toEqual(expect.arrayContaining(['Login', 'Ambulances']));
+    await nav.getByRole('link', { name: 'About Us' }).focus();
+    await expect(nav.getByRole('link', { name: 'About Us' })).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#main-nav-links')).toHaveAttribute('inert', '');
+    expect(await exposedLinkNames(page)).not.toContain('Login');
+    expect(await exposedLinkNames(page)).not.toContain('Ambulances');
+  });
+
+  test('going to a desktop width closes the open menu and gives the navbar back', async ({ page }) => {
+    await openHome(page);
+    const burger = page.locator('.hamburger');
+    const links = page.locator('#main-nav-links');
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(burger).not.toHaveClass(/active/);
+    await expect(links).not.toHaveClass(/active/);
+    await expect(links).not.toHaveAttribute('inert', '');
+    await expect(burger).toBeHidden();
+    await expect(links.getByRole('link', { name: 'About Us' })).toBeVisible();
+    expect(await exposedLinkNames(page)).toContain('Login');
+
+    // Back to a phone: the drawer starts closed and out of reach, and still opens.
+    await page.setViewportSize({ width: 375, height: 800 });
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(links).toHaveAttribute('inert', '');
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await expect(links).toHaveClass(/active/);
+  });
+
+  test('resizing within phone widths keeps the menu open', async ({ page }) => {
+    await openHome(page);
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    await burger.click();
+    await page.setViewportSize({ width: 420, height: 800 });
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#main-nav-links')).toHaveClass(/active/);
+  });
+
+  test('choosing a link closes the menu, opening Services does not', async ({ page }) => {
+    await openHome(page);
+    // Stop the browser from leaving the page, so the state after the click can be read.
+    await page.evaluate(() => document.addEventListener('click', (e) => e.preventDefault()));
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    const links = page.locator('#main-nav-links');
+
+    await burger.click();
+    await links.locator('.dropdown-toggle').focus();
+    await page.keyboard.press('Enter');
+    await expect(links.locator('.dropdown')).toHaveClass(/active/);
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+
+    await links.getByRole('link', { name: 'About Us' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(links).not.toHaveClass(/active/);
+    await expect(links.locator('.dropdown')).not.toHaveClass(/active/);
+    await expect(links).toHaveAttribute('inert', '');
+  });
+
+  // These two pages used to carry a second toggle of their own next to the one in main.js.
+  for (const url of ['/pages/about.html', '/pages/ambulances.html']) {
+    test(`one click opens and one click closes the menu on ${url}`, async ({ page }) => {
+      await page.goto(url);
+      await expect(page.locator('.main-content')).toBeVisible({ timeout: 8000 });
+      const burger = page.locator('.hamburger');
+      const links = page.locator('#main-nav-links');
+      await expect(links).toHaveAttribute('inert', '');
+      await burger.click();
+      await expect(burger).toHaveAttribute('aria-expanded', 'true');
+      await expect(links).toHaveClass(/active/);
+      await expect(links).not.toHaveAttribute('inert', '');
+      await burger.click();
+      await expect(burger).toHaveAttribute('aria-expanded', 'false');
+      await expect(links).not.toHaveClass(/active/);
+    });
+  }
+
+  // Headless Chromium does not keep pages in the back/forward cache, so this sends the event the browser
+  // sends when it restores one.
+  test('a page restored from the back/forward cache comes back with the menu closed', async ({ page }) => {
+    await openHome(page);
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#main-nav-links')).not.toHaveClass(/active/);
+    await expect(page.locator('#main-nav-links')).toHaveAttribute('inert', '');
+  });
+
+  test('page scrolling is not locked while the menu is open or after it closes', async ({ page }) => {
+    await openHome(page);
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    const overflow = () => page.evaluate(() => [getComputedStyle(document.body).overflowY, getComputedStyle(document.documentElement).overflowY]);
+    const scrollDown = async () => {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.mouse.move(200, 400);
+      await page.mouse.wheel(0, 300);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    };
+
+    await burger.click();
+    expect((await overflow()).join()).not.toMatch(/hidden|clip/);
+    await scrollDown();
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.keyboard.press('Escape');
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    expect((await overflow()).join()).not.toMatch(/hidden|clip/);
+    await scrollDown();
+  });
+
   // Real bug found while writing these tests: at 375px the language switcher (.relief-lang-switch) sticks
   // out 2px past the viewport, so the page scrolls sideways. Remove .fixme once it is fixed.
   test.fixme('no horizontal scrolling on the home page at phone width', async ({ page }) => {
     await openHome(page);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
+  });
+});
+
+test.describe('responsive navigation on a touch screen', () => {
+  test.use({ viewport: { width: 375, height: 800 }, hasTouch: true });
+
+  test('tapping the hamburger opens the menu and tapping the page above it closes it', async ({ page }) => {
+    await openHome(page);
+    const burger = page.getByRole('button', { name: 'Mobile menu' });
+    await burger.tap();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#main-nav-links')).toHaveClass(/active/);
+
+    // The drawer starts under the top bar, so a tap on the quote banner is outside it.
+    await page.touchscreen.tap(180, 30);
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#main-nav-links')).not.toHaveClass(/active/);
+
+    await burger.tap();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await burger.tap();
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
   });
 });
 

@@ -234,6 +234,10 @@ if (typeof document !== 'undefined') {
 });
 }
 
+// Every stylesheet turns the nav into the hamburger drawer at this width (the 768px blocks only make the
+// drawer wider), so the script asks the same question instead of keeping its own guess.
+const MOBILE_NAV_MAX_WIDTH = 992;
+
 function initMobileNavigation(doc = (typeof document !== 'undefined' ? document : null)) {
     if (!doc) return false;
     const hamburger = doc.querySelector ? doc.querySelector('.hamburger') : null;
@@ -247,6 +251,8 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         hamburger.dataset.navInitialized = 'true';
     }
 
+    const win = doc.defaultView || (typeof window !== 'undefined' ? window : null);
+
     // Connect aria-controls to a valid target element
     const targetNav = (doc.getElementById && doc.getElementById('main-nav-links')) || (doc.querySelector && doc.querySelector('.nav-links'));
     if (targetNav) {
@@ -256,29 +262,58 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         hamburger.setAttribute('aria-controls', targetNav.id);
     }
 
+    const isMobileLayout = function() {
+        if (!win) return false;
+        if (typeof win.matchMedia === 'function') {
+            return win.matchMedia('(max-width: ' + MOBILE_NAV_MAX_WIDTH + 'px)').matches;
+        }
+        return win.innerWidth <= MOBILE_NAV_MAX_WIDTH;
+    };
+
+    const isMenuOpen = function() {
+        return hamburger.getAttribute('aria-expanded') === 'true';
+    };
+
+    // On a phone the closed drawer is only slid off the screen, so its links would still be in the Tab
+    // order and read out by a screen reader. `inert` takes it out of both until the menu is opened.
+    const syncDrawerAccess = function() {
+        const hide = isMobileLayout() && !isMenuOpen();
+        navLinksList.forEach(nav => {
+            if (!nav.setAttribute || !nav.removeAttribute) return;
+            if (hide) nav.setAttribute('inert', '');
+            else nav.removeAttribute('inert');
+        });
+    };
+
+    // The one place that changes the menu state. Every way of opening or closing it goes through here.
+    const setMenuOpen = function(open) {
+        hamburger.classList.toggle('active', open);
+        hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        navLinksList.forEach(nav => nav.classList && nav.classList.toggle('active', open));
+        if (!open && doc.querySelectorAll) {
+            doc.querySelectorAll('.dropdown.active').forEach(dropdown => {
+                dropdown.classList.remove('active');
+                const toggle = dropdown.querySelector ? dropdown.querySelector('.dropdown-toggle') : null;
+                if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            });
+        }
+        syncDrawerAccess();
+    };
+
     const closeMobileMenu = function() {
-        hamburger.classList.remove('active');
-        hamburger.setAttribute('aria-expanded', 'false');
-        navLinksList.forEach(nav => nav.classList && nav.classList.remove('active'));
+        setMenuOpen(false);
     };
 
-    const toggleMobileMenu = function() {
-        const isCurrentlyExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-        const willExpand = !isCurrentlyExpanded;
-
-        hamburger.classList.toggle('active', willExpand);
-        hamburger.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
-        navLinksList.forEach(nav => nav.classList && nav.classList.toggle('active', willExpand));
-    };
+    syncDrawerAccess();
 
     hamburger.addEventListener('click', function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        toggleMobileMenu();
+        setMenuOpen(!isMenuOpen());
     });
 
     // Close mobile menu on Escape key press and restore focus to hamburger
     doc.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && hamburger.classList.contains('active')) {
+        if (e.key === 'Escape' && isMenuOpen()) {
             closeMobileMenu();
             if (typeof hamburger.focus === 'function') {
                 hamburger.focus();
@@ -288,7 +323,7 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
 
     // Close mobile menu when clicking outside
     doc.addEventListener('click', function(e) {
-        if (hamburger.classList.contains('active') && hamburger.contains && !hamburger.contains(e.target)) {
+        if (isMenuOpen() && hamburger.contains && !hamburger.contains(e.target)) {
             let insideNav = false;
             navLinksList.forEach(nav => {
                 if (nav.contains && nav.contains(e.target)) insideNav = true;
@@ -299,11 +334,32 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         }
     });
 
+    if (win && win.addEventListener) {
+        // Going from a phone to a desktop width (or back) while the menu is open would leave the hamburger
+        // saying "expanded" and the menu classes on, so a change of layout always starts from closed.
+        let wasMobile = isMobileLayout();
+        win.addEventListener('resize', function() {
+            const nowMobile = isMobileLayout();
+            if (nowMobile !== wasMobile) {
+                wasMobile = nowMobile;
+                closeMobileMenu();
+            }
+        });
+
+        // A page restored from the back/forward cache comes back exactly as it was left, open menu
+        // included, and possibly at a different width.
+        win.addEventListener('pageshow', function() {
+            wasMobile = isMobileLayout();
+            closeMobileMenu();
+        });
+    }
+
     // Close mobile menu when a navigation anchor is clicked
     if (doc.querySelectorAll) {
         doc.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', function() {
-                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                // The Services toggle only opens its sub menu, it is not a destination
+                if (isMobileLayout() && !(link.classList && link.classList.contains('dropdown-toggle'))) {
                     closeMobileMenu();
                 }
             });
@@ -313,7 +369,7 @@ function initMobileNavigation(doc = (typeof document !== 'undefined' ? document 
         const dropdownToggles = doc.querySelectorAll('.dropdown-toggle');
         dropdownToggles.forEach(toggle => {
             toggle.addEventListener('click', function(e) {
-                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                if (isMobileLayout()) {
                     if (e && e.preventDefault) e.preventDefault();
                     const dropdown = this.closest ? this.closest('.dropdown') : null;
                     if (dropdown) {
