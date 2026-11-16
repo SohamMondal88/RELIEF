@@ -45,7 +45,7 @@ test.describe('home: pictures below the first screen load when you get there', (
     await scrollThrough(page);
     await page.waitForLoadState('networkidle');
     expect(names(seen)).toEqual(expect.arrayContaining([
-      'app-screens.png', 'app-store.png', 'google-play.png', 'hipaa-badge.webp', 'partner1.png', 'partner2.jpeg', 'partner3.png', 'partner4.png', 'ssl-badge.jpg'
+      'app-screens.png', 'app-store.png', 'google-play.png', 'hipaa-badge.webp', 'partner1.png', 'partner2-badge.jpeg', 'partner3.png', 'partner4.png', 'ssl-badge.jpg'
     ]));
   });
 

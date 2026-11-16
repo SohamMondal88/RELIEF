@@ -99,7 +99,7 @@ test('the heavy pictures stay small', () => {
     'logo.jpg': 30 * 1024,            // was 86,833
     'favicon.jpg': 30 * 1024,         // was 127,218
     'ssl-badge.jpg': 20 * 1024,       // was 31,515
-    'partner2.jpeg': 30 * 1024,       // was 169,102
+    'partner2-badge.jpeg': 30 * 1024, // home copy of partner2.jpeg (169,102), which the blog still uses
     'partner4.png': 60 * 1024         // was 65,316
   };
   Object.keys(budgets).forEach((file) => {
@@ -119,23 +119,38 @@ test('local pictures of the home page add up to less than 800 KB, and the first 
 
 test('the picture files are still real images of the expected type', () => {
   const magic = { '.gif': 'GIF8', '.png': '\x89PNG', '.jpg': '\xff\xd8\xff', '.jpeg': '\xff\xd8\xff' };
-  ['ambulance-icon.gif', 'logo.jpg', 'favicon.jpg', 'ssl-badge.jpg', 'partner2.jpeg', 'partner4.png'].forEach((file) => {
+  ['ambulance-icon.gif', 'logo.jpg', 'favicon.jpg', 'ssl-badge.jpg', 'partner2.jpeg', 'partner2-badge.jpeg', 'partner4.png'].forEach((file) => {
     const head = fs.readFileSync(path.join(root, 'assets/images/' + file)).slice(0, 4).toString('latin1');
     assert.ok(head.startsWith(magic[path.extname(file)]), file);
   });
 });
 
-test('the logo is still big enough for its largest use (170px, doubled for sharp screens)', () => {
-  const buf = fs.readFileSync(path.join(root, 'assets/images/logo.jpg'));
+// [width, height] of a JPEG, read from its frame header
+function jpegSize(file) {
+  const buf = fs.readFileSync(path.join(root, file));
   let i = 2;
-  let dims = null;
   while (i < buf.length) {
     if (buf[i] !== 0xff) { i++; continue; }
     const marker = buf[i + 1];
-    if (marker >= 0xc0 && marker <= 0xc3) { dims = [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)]; break; }
+    if (marker >= 0xc0 && marker <= 0xc3) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)];
     i += 2 + buf.readUInt16BE(i + 2);
   }
+  return null;
+}
+
+test('the logo is still big enough for its largest use (170px, doubled for sharp screens)', () => {
+  const dims = jpegSize('assets/images/logo.jpg');
   assert.ok(dims && dims[0] >= 340 && dims[1] >= 340, JSON.stringify(dims));
+});
+
+test('the blog keeps the full partner2.jpeg (its featured card shows it about 350px wide), only the home badge uses the small copy', () => {
+  const full = jpegSize('assets/images/partner2.jpeg');
+  assert.ok(full && full[0] >= 700 && full[1] >= 700, 'partner2.jpeg ' + JSON.stringify(full));
+  const badge = jpegSize('assets/images/partner2-badge.jpeg');
+  assert.ok(badge && badge[0] >= 200 && badge[1] >= 200, 'partner2-badge.jpeg ' + JSON.stringify(badge));
+  assert.match(read('pages/blog.html'), /src="\.\.\/assets\/images\/partner2\.jpeg"/);
+  assert.doesNotMatch(read('index.html'), /partner2\.jpeg/);
+  assert.match(read('index.html'), /partner2-badge\.jpeg/);
 });
 
 test('the measuring script and the document exist and agree', () => {
