@@ -94,6 +94,28 @@ test('an unknown zone or a broken instant falls back instead of throwing', () =>
   assert.match(R.getTodayInZone(undefined, 'UTC'), /^\d{4}-\d{2}-\d{2}$/);
 });
 
+test('the device zone is read at call time: a zone change while the page is open changes the stamp', () => {
+  // The dashboard stamps entries with getTodayInZone(new Date(), getLocalTimeZone()). Changing the
+  // device zone between two entries must change the second one even though nothing was reloaded.
+  const stamp = (instant) => R.getTodayInZone(new Date(instant), R.getLocalTimeZone());
+  const instant = '2026-11-15T20:00:00Z';
+  const before = process.env.TZ;
+  try {
+    process.env.TZ = 'America/Los_Angeles';
+    assert.strictEqual(R.getLocalTimeZone(), 'America/Los_Angeles');
+    assert.strictEqual(stamp(instant), '2026-11-15');
+    process.env.TZ = 'Asia/Kolkata';
+    assert.strictEqual(R.getLocalTimeZone(), 'Asia/Calcutta');
+    assert.strictEqual(stamp(instant), '2026-11-16');
+    process.env.TZ = 'Pacific/Kiritimati';
+    assert.strictEqual(stamp('2026-11-15T10:00:00Z'), '2026-11-16');
+  } finally {
+    if (before === undefined) delete process.env.TZ; else process.env.TZ = before;
+  }
+  // An explicit zone still wins, which is how the tests above stay machine independent.
+  assert.strictEqual(R.getTodayInZone(new Date(instant), 'UTC'), '2026-11-15');
+});
+
 test('the answer does not depend on the machine time zone', () => {
   // Runs the same call in child processes with different TZ values.
   const { execFileSync } = require('node:child_process');
@@ -167,7 +189,8 @@ test('a record from a different day in an invalid date is still rejected, not ro
 test('the dashboard timeline no longer stamps the UTC date, and stays on the same helper as reminders.js', () => {
   const js = read('assets', 'js', 'dashboard.js');
   assert.doesNotMatch(js, /toISOString\(\)\.slice\(0, 10\)/);
-  assert.match(js, /date: R\.getTodayInZone\(new Date\(\), timeZone\)/);
+  assert.match(js, /date: R\.getTodayInZone\(new Date\(\), R\.getLocalTimeZone\(\)\)/);
+  assert.doesNotMatch(js, /getTodayInZone\(new Date\(\), timeZone\)/, 'not the zone captured at page load');
   assert.doesNotMatch(read('assets', 'js', 'facility-schema.js'), /toISOString\(\)\.slice\(0, 10\);\s*\n\s*if \(typeof record\.lastChecked/);
 });
 

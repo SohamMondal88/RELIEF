@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const esc = (v) => (R ? R.escapeHtml(v) : String(v));
 
     function logHistory(event, status) {
-        history.unshift({ date: R.getTodayInZone(new Date(), timeZone), event, status });
+        // The device zone is read again on every entry, so a zone change while the tab stays open
+        // (travel, a changed system setting) dates the next entry in the new zone.
+        history.unshift({ date: R.getTodayInZone(new Date(), R.getLocalTimeZone()), event, status });
     }
 
     const reminderStatus = document.getElementById('reminder-status');
