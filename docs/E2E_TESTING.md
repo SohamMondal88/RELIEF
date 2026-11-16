@@ -35,6 +35,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | `e2e/smoke.spec.js` | Smoke check of home, ambulances, hospitals, doctors, appointments and dashboard: each opens with no uncaught error, no console error and no broken file of our own. Also tests the checker itself (see "Smoke checks" below) |
 | `e2e/firstaid-offline.spec.js` | First aid search and categories, opening a guide, the page working offline after one visit (service worker), account pages not cached |
 | `e2e/network-resilience.spec.js` | Bad connections (Issue #102): outside hosts (fonts, icon font, Leaflet) that abort, answer 503 or answer empty, going offline while a page is open, a slow or failing facility list, translation file and place lookup |
+| `e2e/saved-facilities.spec.js` | Saved facilities (Issue #54): the note about where the list lives (signed out, signed in, offline), save, remove and reload, no duplicates, broken or repeated stored entries, storage that refuses or cannot be read, a facility no longer in the directory, another tab, the keyboard on a 375px screen |
 
 ## Network helpers
 

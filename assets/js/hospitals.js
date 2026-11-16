@@ -24,99 +24,143 @@ document.addEventListener('DOMContentLoaded', function() {
     let markers = [];
     let userMarker = null;
 
-    // Saved facilities live in localStorage so they work offline
-    const SAVED_KEY = 'relief_saved_facilities';
+    // Saved facilities live in this browser only (ReliefSaved, assets/js/saved-facilities.js). There is no
+    // account sync, and the panel says so. The list works offline as a saved copy.
+    const S = window.ReliefSaved;
     const savedList = document.getElementById('saved-facilities-list');
+    const savedNotes = document.getElementById('saved-notes');
+    const savedStatus = document.getElementById('saved-status');
+    const savedHeading = document.getElementById('saved-heading');
+    // 'loading' until facilities.json answers, then 'ready' or 'failed'. It decides whether a saved
+    // facility can be compared with the directory.
+    let directoryState = 'loading';
 
-    function getSavedFacilities() {
+    function getStorage() {
+        try { return window.localStorage; } catch (error) { return null; }
+    }
+
+    function readSaved() {
+        const store = getStorage();
+        return store ? S.read(store) : { items: [], dropped: 0, unreadable: false, unavailable: true };
+    }
+
+    function setSavedStatus(message) {
+        if (savedStatus) savedStatus.textContent = message;
+    }
+
+    function isSignedIn() {
         try {
-            const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
-            return Array.isArray(parsed) ? parsed : [];
+            return Boolean(window.ReliefSession && window.ReliefSession.getCurrentSession && window.ReliefSession.getCurrentSession());
         } catch (error) {
-            return [];
+            return false;
         }
     }
 
-    function setSavedFacilities(items) {
-        try {
-            localStorage.setItem(SAVED_KEY, JSON.stringify(items));
-        } catch (error) {
-            console.error('Could not save facility:', error && error.name);
-        }
+    function addLine(parent, className, text) {
+        const p = document.createElement('p');
+        p.className = className;
+        p.textContent = text;
+        parent.appendChild(p);
+        return p;
     }
 
     function renderSavedFacilities() {
-        if (!savedList) return;
-        const items = getSavedFacilities();
+        if (!savedList || !S) return;
+        const saved = readSaved();
+        if (savedNotes) {
+            savedNotes.textContent = '';
+            S.syncNotes({ signedIn: isSignedIn(), online: navigator.onLine !== false, unavailable: saved.unavailable })
+                .forEach(line => addLine(savedNotes, 'saved-note', line));
+        }
         savedList.textContent = '';
+        if (saved.unreadable) {
+            addLine(savedList, 'saved-warning', 'Your saved list could not be read, so it is shown empty. Saving a facility again starts a fresh list.');
+        } else if (saved.dropped > 0) {
+            addLine(savedList, 'saved-warning', saved.dropped + (saved.dropped === 1 ? ' saved entry was broken or repeated and is not shown.' : ' saved entries were broken or repeated and are not shown.'));
+        }
 
-        if (items.length === 0) {
-            const empty = document.createElement('p');
-            empty.className = 'saved-empty';
-            empty.textContent = 'No saved facilities yet. Use Save on a hospital below.';
-            savedList.appendChild(empty);
+        if (saved.items.length === 0) {
+            addLine(savedList, 'saved-empty', 'No saved facilities yet. Use Save on a hospital below.');
             return;
         }
 
-        items.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'saved-item';
+        const rows = S.reconcile(saved.items, directoryState === 'ready' ? facilities : null);
+        rows.forEach(row => {
+            const item = row.item;
+            const el = document.createElement('div');
+            el.className = 'saved-item';
 
             const name = document.createElement('strong');
             name.textContent = item.name;
-            const location = document.createElement('div');
-            location.textContent = item.location;
-            const meta = document.createElement('div');
-            meta.className = 'saved-meta';
-            meta.textContent = 'Saved copy, added ' + new Date(item.savedAt).toLocaleDateString();
-
-            row.appendChild(name);
-            row.appendChild(location);
-            row.appendChild(meta);
+            el.appendChild(name);
+            if (item.location) {
+                const location = document.createElement('div');
+                location.textContent = item.location;
+                el.appendChild(location);
+            }
+            const when = item.savedAt ? ', added ' + new Date(item.savedAt).toLocaleDateString() : '';
+            addLine(el, 'saved-meta', 'Saved copy' + when + '. Details may have changed since.');
+            if (row.status === 'missing') {
+                addLine(el, 'saved-warning', 'No longer listed in the directory. The details below are your saved copy and may be out of date, so call to check before you travel.');
+            } else if (row.status === 'unchecked' && directoryState === 'failed') {
+                addLine(el, 'saved-warning', 'The directory could not be loaded, so this saved copy could not be checked against it.');
+            }
 
             if (item.phone) {
                 const call = document.createElement('a');
-                call.href = 'tel:' + item.phone;
+                call.href = 'tel:' + String(item.phone).replace(/[^\d+]/g, '');
                 call.textContent = 'Call ' + item.phone;
-                row.appendChild(call);
+                el.appendChild(call);
             }
 
             const remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'btn-save is-saved';
             remove.textContent = 'Remove';
-            remove.addEventListener('click', () => toggleSaved(String(item.id)));
-            row.appendChild(remove);
+            remove.setAttribute('aria-label', 'Remove ' + item.name + ' from saved facilities');
+            remove.addEventListener('click', () => removeSaved(String(item.id), item.name));
+            el.appendChild(remove);
 
-            savedList.appendChild(row);
+            savedList.appendChild(el);
         });
     }
 
-    function toggleSaved(id) {
-        const items = getSavedFacilities();
-        const exists = items.some(item => String(item.id) === id);
-        if (exists) {
-            setSavedFacilities(items.filter(item => String(item.id) !== id));
-        } else {
-            const facility = facilities.find(f => f.id === id);
-            if (!facility) return;
-            items.push({
-                id: facility.id,
-                name: facility.name,
-                location: facility.address || facility.district || '',
-                phone: facility.phone,
-                lat: facility.lat,
-                lng: facility.lng,
-                savedAt: Date.now()
-            });
-            setSavedFacilities(items);
-        }
+    function afterSavedChange() {
         renderSavedFacilities();
         updateSaveButtons();
     }
 
+    function toggleSaved(id) {
+        const facility = facilities.find(f => f.id === id);
+        const store = getStorage();
+        if (!facility) {
+            setSavedStatus('That facility is not in the list right now, so it could not be saved.');
+            return;
+        }
+        const result = store ? S.toggle(store, facility) : { ok: false };
+        if (!result.ok) {
+            setSavedStatus('Could not save ' + facility.name + ' on this device (the browser blocked storage or it is full). Your saved list was not changed.');
+        } else if (result.saved) {
+            setSavedStatus('Saved ' + facility.name + '. It is kept on this device only.');
+        } else {
+            setSavedStatus('Removed ' + facility.name + ' from your saved facilities.');
+        }
+        afterSavedChange();
+    }
+
+    function removeSaved(id, name) {
+        const store = getStorage();
+        const result = store ? S.remove(store, id) : { ok: false };
+        setSavedStatus(result.ok
+            ? 'Removed ' + name + ' from your saved facilities.'
+            : 'Could not remove ' + name + ' (the browser blocked storage). Your saved list was not changed.');
+        afterSavedChange();
+        // The button that was pressed is gone, so keep keyboard users in the panel.
+        if (savedHeading) savedHeading.focus();
+    }
+
     function updateSaveButtons() {
-        const savedIds = new Set(getSavedFacilities().map(item => String(item.id)));
+        const savedIds = new Set(readSaved().items.map(item => String(item.id)));
         document.querySelectorAll('.hospitals-list .btn-save').forEach(button => {
             const saved = savedIds.has(button.getAttribute('data-id'));
             button.classList.toggle('is-saved', saved);
@@ -253,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     (phoneHref
                         ? '<a class="btn-call" href="tel:' + U.escapeHtml(phoneHref) + '" aria-label="Call ' + U.escapeHtml(f.name) + '"><i class="fas fa-phone" aria-hidden="true"></i> Call</a>'
                         : '') +
-                    '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' for offline use">Save</button>' +
+                    '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' on this device">Save</button>' +
                     '<button type="button" class="btn-correct" data-id="' + U.escapeHtml(String(f.id)) + '" aria-label="Suggest a correction for ' + U.escapeHtml(f.name) + '">Suggest a correction</button>' +
                 '</div>' +
             '</div>';
@@ -418,6 +462,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 facilities = U.normalizeFacilities(checked ? checked.accepted : data);
                 reviewPolicy = U.getReviewPolicy(data);
+                directoryState = 'ready';
+                renderSavedFacilities();
                 populateFilters();
                 applyFilters();
                 // The correction form (facility-corrections-ui.js) fills its list from this.
@@ -425,6 +471,8 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 if (R) R.logError('hospitals load', error, { url: R.safeUrl(DATA_URL) });
+                directoryState = 'failed';
+                renderSavedFacilities();
                 showError(error);
             });
     }
@@ -457,6 +505,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (el) el.addEventListener('change', applyFilters);
     });
     if (locateButton) locateButton.addEventListener('click', locateUser);
+
+    // The same list is shown in the cards and in the panel, and another tab can change it, so follow the storage event.
+    window.addEventListener('storage', function(e) {
+        if (e.key === null || (S && e.key === S.KEY)) afterSavedChange();
+    });
+    window.addEventListener('online', renderSavedFacilities);
+    window.addEventListener('offline', renderSavedFacilities);
 
     renderSavedFacilities();
     initMap();
