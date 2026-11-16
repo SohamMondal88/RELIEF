@@ -80,7 +80,7 @@
                             <option value="cardiologist">Cardiologist</option>
                             <option value="dentist">Dentist</option>
                             <option value="dermatologist">Dermatologist</option>
-                            <option value="gp">General Practitioner</option>
+                            <option value="general practitioner">General Practitioner</option>
                             <option value="neurologist">Neurologist</option>
                             <option value="pediatrician">Pediatrician</option>
                             <option value="psychiatrist">Psychiatrist</option>
@@ -89,20 +89,11 @@
                     <div class="filter-group">
                         <label for="location">Location</label>
                         <select id="location">
-                            <option value="">Near Me</option>
+                            <option value="">Any area</option>
                             <option value="downtown">Downtown</option>
                             <option value="suburb">Suburb</option>
                             <option value="north">North Area</option>
                             <option value="south">South Area</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="availability">Availability</label>
-                        <select id="availability">
-                            <option value="">Any Time</option>
-                            <option value="today">Today</option>
-                            <option value="tomorrow">Tomorrow</option>
-                            <option value="week">This Week</option>
                         </select>
                     </div>
                     <button class="btn-filter"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
@@ -111,16 +102,17 @@
 
             <div class="doctor-results">
                 <div class="results-header">
-                    <h3>Available Doctors</h3>
+                    <h3>Doctors</h3>
                     <div class="sort-options">
                         <span>Sort by:</span>
-                        <select aria-label="Sort doctors by">
-                            <option value="distance">Distance</option>
-                            <option value="rating">Rating</option>
-                            <option value="availability">Availability</option>
+                        <select aria-label="Sort doctors by" aria-describedby="directory-status">
+                            <option value="name">Name (A to Z)</option>
+                            <option value="specialty">Specialty (A to Z)</option>
                         </select>
                     </div>
                 </div>
+
+                <p id="directory-status" class="directory-status" role="status" aria-live="polite"></p>
 
                 <div class="doctors-list">
                     <!-- Doctor cards will be populated by JavaScript -->
@@ -211,6 +203,7 @@
 
     <script src="../assets/js/session-guard.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/facility-utils.js"></script>
     <script src="../assets/js/doctors.js"></script>
 
     <script src="../assets/js/i18n.js"></script>

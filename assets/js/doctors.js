@@ -1,14 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Mock doctor data
+    // Sample doctor data. It has no ratings, review counts, availability or distances on purpose: none of that is known.
     const doctors = [
         {
             id: 1,
             name: "Dr. Sarah Johnson",
             specialty: "Cardiologist",
-            location: "Downtown Medical Center, 2.5 miles away",
-            rating: 4.8,
-            reviews: 124,
-            availability: "Available today",
+            location: "Downtown Medical Center",
             image: "../assets/images/doctor1.jpg",
             bio: "Board-certified cardiologist with 10 years of experience specializing in heart health and preventive care."
         },
@@ -16,10 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 2,
             name: "Dr. Michael Chen",
             specialty: "General Practitioner",
-            location: "Westside Clinic, 1.2 miles away",
-            rating: 4.6,
-            reviews: 89,
-            availability: "Available tomorrow",
+            location: "Westside Clinic",
             image: "../assets/images/doctor2.jpg",
             bio: "Primary care physician focused on family medicine and holistic patient care."
         },
@@ -27,10 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 3,
             name: "Dr. Emily Rodriguez",
             specialty: "Pediatrician",
-            location: "Children's Hospital, 3.1 miles away",
-            rating: 4.9,
-            reviews: 156,
-            availability: "Available this week",
+            location: "Children's Hospital",
             image: "../assets/images/doctor3.jpg",
             bio: "Pediatric specialist with expertise in child development and preventive care."
         },
@@ -38,10 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 4,
             name: "Dr. James Wilson",
             specialty: "Neurologist",
-            location: "Neuro Center, 4.3 miles away",
-            rating: 4.7,
-            reviews: 72,
-            availability: "Available next week",
+            location: "Neuro Center",
             image: "../assets/images/doctor4.jpg",
             bio: "Neurology expert with focus on migraine treatment and cognitive disorders."
         },
@@ -49,10 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 5,
             name: "Dr. Lisa Park",
             specialty: "Dermatologist",
-            location: "Skin Health Clinic, 1.8 miles away",
-            rating: 4.5,
-            reviews: 98,
-            availability: "Available today",
+            location: "Skin Health Clinic",
             image: "../assets/images/doctor5.jpg",
             bio: "Dermatology specialist with expertise in skin cancer prevention and cosmetic procedures."
         },
@@ -60,10 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 6,
             name: "Dr. Robert Taylor",
             specialty: "Psychiatrist",
-            location: "Mental Wellness Center, 2.7 miles away",
-            rating: 4.4,
-            reviews: 65,
-            availability: "Available tomorrow",
+            location: "Mental Wellness Center",
             image: "../assets/images/doctor6.jpg",
             bio: "Psychiatrist specializing in anxiety, depression, and cognitive behavioral therapy."
         }
@@ -74,9 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('.search-box input');
     const specialtyFilter = document.getElementById('specialty');
     const locationFilter = document.getElementById('location');
-    const availabilityFilter = document.getElementById('availability');
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
+    const statusEl = document.getElementById('directory-status');
+    const U = window.FacilityUtils || null;
+
+    function setStatus(message) {
+        if (statusEl) statusEl.textContent = message;
+    }
 
     // Display all doctors initially
     displayDoctors(doctors);
@@ -86,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchTerm = searchInput.value.toLowerCase();
         const specialty = specialtyFilter.value.toLowerCase();
         const location = locationFilter.value.toLowerCase();
-        const availability = availabilityFilter.value;
 
         const filteredDoctors = doctors.filter(doctor => {
             const matchesSearch =
@@ -96,62 +82,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const matchesSpecialty = !specialty || doctor.specialty.toLowerCase() === specialty;
             const matchesLocation = !location || doctor.location.toLowerCase().includes(location);
-            const matchesAvailability = !availability ||
-                (availability === 'today' && doctor.availability.toLowerCase().includes('today')) ||
-                (availability === 'tomorrow' && doctor.availability.toLowerCase().includes('tomorrow')) ||
-                (availability === 'week' && (doctor.availability.toLowerCase().includes('week') ||
-                                           doctor.availability.toLowerCase().includes('this week') ||
-                                           doctor.availability.toLowerCase().includes('next week')));
 
-            return matchesSearch && matchesSpecialty && matchesLocation && matchesAvailability;
+            return matchesSearch && matchesSpecialty && matchesLocation;
         });
 
         displayDoctors(filteredDoctors);
     }
 
-    // Sort doctors
-    function sortDoctors(doctorsList, sortBy) {
-        return [...doctorsList].sort((a, b) => {
-            if (sortBy === 'rating') {
-                return b.rating - a.rating;
-            } else if (sortBy === 'availability') {
-                // Enhanced sorting based on availability
-                const availabilityOrder = {
-                    'today': 1,
-                    'tomorrow': 2,
-                    'this week': 3,
-                    'next week': 4
-                };
-
-                const aAvail = a.availability.toLowerCase();
-                const bAvail = b.availability.toLowerCase();
-
-                const aOrder = availabilityOrder[
-                    aAvail.includes('today') ? 'today' :
-                    aAvail.includes('tomorrow') ? 'tomorrow' :
-                    aAvail.includes('this week') ? 'this week' :
-                    aAvail.includes('next week') ? 'next week' : 5
-                ];
-
-                const bOrder = availabilityOrder[
-                    bAvail.includes('today') ? 'today' :
-                    bAvail.includes('tomorrow') ? 'tomorrow' :
-                    bAvail.includes('this week') ? 'this week' :
-                    bAvail.includes('next week') ? 'next week' : 5
-                ];
-
-                return aOrder - bOrder;
-            } else {
-                // Default sort by distance (mock implementation)
-                const extractDistance = (location) => {
-                    const match = location.match(/(\d+\.?\d*)\s*miles/);
-                    return match ? parseFloat(match[1]) : Infinity;
-                };
-
-                const aDistance = extractDistance(a.location);
-                const bDistance = extractDistance(b.location);
-                return aDistance - bDistance;
+    // Sort doctors. Only fields that are really in the data are used, and the order is the same every time:
+    // equal values fall back to name and then id.
+    function sortDoctors(list, sortBy) {
+        const byName = U ? U.compareNames : (a, b) => a.name.localeCompare(b.name);
+        return [...list].sort((a, b) => {
+            if (sortBy === 'specialty') {
+                const bySpecialty = a.specialty.localeCompare(b.specialty, 'en', { sensitivity: 'base' });
+                if (bySpecialty !== 0) return bySpecialty;
             }
+            return byName(a, b);
         });
     }
 
@@ -161,11 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (doctorsToDisplay.length === 0) {
             doctorsList.innerHTML = '<p class="no-results">No doctors found matching your criteria.</p>';
+            setStatus('No doctors found.');
             return;
         }
 
-        const sortBy = sortSelect.value;
+        const sortBy = sortSelect.value === 'specialty' ? 'specialty' : 'name';
         const sortedDoctors = sortDoctors(doctorsToDisplay, sortBy);
+        setStatus(doctorsToDisplay.length + (doctorsToDisplay.length === 1 ? ' doctor found. ' : ' doctors found. ') +
+            (sortBy === 'specialty' ? 'Sorted by specialty, then name.' : 'Sorted by name, A to Z.'));
 
         sortedDoctors.forEach(doctor => {
             const doctorCard = document.createElement('div');
@@ -176,17 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h4 class="doctor-name">${doctor.name}</h4>
                     <p class="doctor-specialty">${doctor.specialty}</p>
                     <p class="doctor-location"><i class="fas fa-map-marker-alt"></i> ${doctor.location}</p>
-                    <div class="doctor-rating">
-                        <div class="stars">
-                            ${'<i class="fas fa-star"></i>'.repeat(Math.floor(doctor.rating))}
-                            ${doctor.rating % 1 >= 0.5 ? '<i class="fas fa-star-half-alt"></i>' : ''}
-                            ${'<i class="far fa-star"></i>'.repeat(5 - Math.ceil(doctor.rating))}
-                        </div>
-                        <span class="reviews">(${doctor.reviews} reviews)</span>
-                    </div>
                     <p class="doctor-bio">${doctor.bio}</p>
                     <div class="doctor-availability">
-                        <span class="availability-badge">${doctor.availability}</span>
                         <button class="btn-book" data-id="${doctor.id}">Book Appointment</button>
                     </div>
                 </div>
@@ -221,12 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     searchInput.addEventListener('input', filterDoctors);
     filterButton.addEventListener('click', filterDoctors);
-    sortSelect.addEventListener('change', () => {
-        const currentDoctors = Array.from(document.querySelectorAll('.doctor-card')).length > 0 ?
-            doctors :
-            JSON.parse(JSON.stringify(doctors));
-        displayDoctors(currentDoctors);
-    });
+    // Selects filter as soon as they change, like the hospitals page; the Filter button still works too.
+    [specialtyFilter, locationFilter].forEach(el => el.addEventListener('change', filterDoctors));
+    sortSelect.addEventListener('change', filterDoctors);
 
     // Initialize with filtered doctors
     filterDoctors();

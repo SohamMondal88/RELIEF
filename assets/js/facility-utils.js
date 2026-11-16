@@ -285,17 +285,55 @@
     });
   }
 
-  // sortBy: 'distance' or 'name'. Facilities without a distance go last.
+  // Text order that does not depend on the visitor's language settings: by name, then by id, so two
+  // records with the same name always come out in the same order.
+  function compareNames(a, b) {
+    var r = String((a && a.name) || '').localeCompare(String((b && b.name) || ''), 'en', { sensitivity: 'base', numeric: true });
+    if (r !== 0) return r;
+    return String(a && a.id != null ? a.id : '').localeCompare(String(b && b.id != null ? b.id : ''), 'en', { numeric: true });
+  }
+
+  // Opening hours count as listed only when a record has some text for them. The text is not checked or read.
+  function hasListedHours(facility) {
+    return !!facility && typeof facility.hours === 'string' && facility.hours.trim() !== '';
+  }
+
+  function isUsableLocation(location) {
+    return !!location && typeof location === 'object' && isValidCoord(location.lat, location.lng);
+  }
+
+  /**
+   * Which order will really be used, and what to tell the user. Distance needs a valid saved location;
+   * without one the list is sorted by name and the note says so. Returns { sortBy, note }.
+   */
+  function describeSort(sortBy, userLocation) {
+    if (sortBy === 'distance') {
+      if (isUsableLocation(userLocation)) {
+        return { sortBy: 'distance', note: 'Sorted by distance from your saved location. Entries without a valid position come last.' };
+      }
+      return { sortBy: 'name', note: 'Distance sorting needs your location, so the list is sorted A to Z.' };
+    }
+    if (sortBy === 'hours') return { sortBy: 'hours', note: 'Entries that list opening hours come first, then A to Z.' };
+    return { sortBy: 'name', note: '' };
+  }
+
+  // sortBy: 'distance', 'hours' or 'name' (anything else is read as name). The result is always the same
+  // for the same input: entries without a valid position go last when sorting by distance, entries
+  // without listed hours go last when sorting by hours, and ties are broken by name and then id.
   function sortFacilities(facilities, sortBy, userLocation) {
     var list = withDistance(facilities, userLocation);
+    var byDistance = sortBy === 'distance' && isUsableLocation(userLocation);
     list.sort(function (a, b) {
-      if (sortBy === 'distance' && userLocation && isValidCoord(userLocation.lat, userLocation.lng)) {
-        if (a.distanceKm == null && b.distanceKm == null) return a.name.localeCompare(b.name);
-        if (a.distanceKm == null) return 1;
-        if (b.distanceKm == null) return -1;
-        if (a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
+      if (byDistance) {
+        if (a.distanceKm == null && b.distanceKm != null) return 1;
+        if (a.distanceKm != null && b.distanceKm == null) return -1;
+        if (a.distanceKm != null && a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
+      } else if (sortBy === 'hours') {
+        var ah = hasListedHours(a);
+        var bh = hasListedHours(b);
+        if (ah !== bh) return ah ? -1 : 1;
       }
-      return a.name.localeCompare(b.name);
+      return compareNames(a, b);
     });
     return list;
   }
@@ -335,6 +373,9 @@
     matchesSearch: matchesSearch,
     filterFacilities: filterFacilities,
     sortFacilities: sortFacilities,
+    compareNames: compareNames,
+    hasListedHours: hasListedHours,
+    describeSort: describeSort,
     formatDistance: formatDistance,
     verificationLabel: verificationLabel
   };
