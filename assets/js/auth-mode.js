@@ -195,11 +195,20 @@
 
   // ---- public flow --------------------------------------------------------
 
+  // The page's localStorage, or null. Merely reading it throws when the browser blocks storage.
+  function defaultStorage() {
+    try {
+      return typeof localStorage !== 'undefined' ? localStorage : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function resolve(deps) {
     var d = deps || {};
     return {
       api: 'api' in d ? d.api : (typeof ReliefAPI !== 'undefined' ? ReliefAPI : null),
-      storage: d.storage || (typeof localStorage !== 'undefined' ? localStorage : null),
+      storage: d.storage || defaultStorage(),
       env: d.env || readEnv(),
       crypto: d.crypto || (typeof globalThis !== 'undefined' ? globalThis.crypto : null)
     };

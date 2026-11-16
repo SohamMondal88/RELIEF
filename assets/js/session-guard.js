@@ -461,8 +461,11 @@
     if (pageWatcher) return pageWatcher;
 
     const opts = options || {};
+    // Reading window.localStorage throws when the browser blocks storage; the watcher copes with null.
+    let pageStorage = null;
+    try { pageStorage = window.localStorage; } catch (e) { pageStorage = null; }
     pageWatcher = createSessionWatcher({
-      storage: window.localStorage,
+      storage: pageStorage,
       target: window,
       doc: document,
       config: opts.config,

@@ -211,8 +211,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // In a real app, this would redirect to a booking page or show a modal
         alert(`Booking appointment with ${doctor.name}\nSpecialty: ${doctor.specialty}\nLocation: ${doctor.location}`);
 
-        // For demo purposes, we'll store the selected doctor in localStorage
-        localStorage.setItem('selectedDoctor', JSON.stringify(doctor));
+        // For demo purposes, we'll store the selected doctor in localStorage. If storage is blocked
+        // or full the appointments page simply opens without a chosen doctor.
+        const S = window.ReliefSafeStorage;
+        S.setItem(S.getStorage(window), 'selectedDoctor', JSON.stringify(doctor));
 
         // Redirect to appointments page
         window.location.href = '../pages/appointments.html';

@@ -61,6 +61,15 @@
     };
   }
 
+  /** The page's localStorage, or null. Merely reading it throws when the browser blocks storage. */
+  function defaultBacking() {
+    try {
+      return typeof localStorage !== 'undefined' ? localStorage : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /** localStorage wrapper that never throws and falls back to memory (private mode, quota, etc.). */
   function createSafeStorage(backing) {
     const memory = {};
@@ -124,7 +133,7 @@
     const storage = createSafeStorage(
       runtime.storage !== undefined
         ? runtime.storage
-        : (typeof localStorage !== 'undefined' ? localStorage : null)
+        : defaultBacking()
     );
     const storageKey = STORAGE_PREFIX + formId;
 
