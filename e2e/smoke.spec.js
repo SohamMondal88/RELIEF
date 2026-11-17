@@ -14,28 +14,16 @@ test.beforeEach(async ({ page }) => {
 
 // Known problems per route, each tied to a real bug. Remove the entry in the pull request that fixes it.
 const KNOWN = {
-  // assets/css/style.css line 1120 has url('assets/images/pattern.png'), which resolves to
-  // /assets/css/assets/images/pattern.png. There is no pattern.png in assets/images either.
   // pages/index.html also loads one testimonial photo from www.amity.edu, which redirects to another host and is not in
   // the Content Security Policy on purpose (docs/SECURITY_HEADERS.md, "One refused image"). The browser logs the refusal.
   home: {
-    firstParty: [/^404 \/assets\/css\/assets\/images\/pattern\.png$/],
     console: [/^Loading the image 'https:\/\/www\.amity\.edu\//]
-  },
-  // These files are named in the page or its css, are not in the repository and return 404 on the live site too
-  // (checked with curl on 9 November 2026). Fixing them needs the artwork, so they are tracked here until it is added.
-  about: { firstParty: [/^404 \/assets\/images\/(cta-bg\.jpg|dots-pattern\.png|dots-pattern-white\.png|wave-divider-dark\.svg)$/] },
-  contact: { firstParty: [/^404 \/assets\/css\/images\/(contact-hero\.jpg|wave-pattern\.png|form-pattern\.svg|dots-pattern\.svg)$/] },
-  // Same Leaflet call as ambulances below, and pharmacy1.jpg to pharmacy6.jpg are not in assets/images.
-  pharmacies: {
-    pageErrors: [/^L is not defined$/],
-    firstParty: [/^404 \/assets\/images\/pharmacy[1-6]\.jpg$/]
   },
   // assets/js/ambulances.js calls Leaflet (L) without checking that the CDN script loaded, so with the CDN
   // blocked the page throws "L is not defined". The same bug is tracked by test.fixme in sos.spec.js.
   ambulances: { pageErrors: [/^L is not defined$/] },
-  // assets/js/doctors.js points at ../assets/images/doctor1.jpg to doctor6.jpg, none of which exist in the repository.
-  doctors: { firstParty: [/^404 \/assets\/images\/doctor[1-6]\.jpg$/] }
+  // Same Leaflet call as ambulances above.
+  pharmacies: { pageErrors: [/^L is not defined$/] }
 };
 
 test.describe('smoke: public routes open cleanly', () => {

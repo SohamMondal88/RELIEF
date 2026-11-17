@@ -722,6 +722,21 @@ a:hover {
     overflow: hidden;
 }
 
+.relief-marker {
+    box-sizing: border-box;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.relief-marker--user {
+    background-color: #1a73e8;
+}
+
+.relief-marker--ambulance {
+    background-color: #d32f2f;
+}
+
 .map-unavailable {
     margin: 0;
     padding: 1rem 1.25rem;
@@ -956,6 +971,12 @@ a:hover {
 
 .footer-badges img:hover {
     opacity: 1;
+}
+
+/* The file is 807x448, not the 2:1 that the width and height in the pages say, so without this the badge is 80px
+   wide until it loads and 72px after, and the badge next to it moves. */
+.footer-badges img[src$="hipaa-badge.webp"] {
+    aspect-ratio: 807 / 448;
 }
 
 /* Responsive Design */

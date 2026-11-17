@@ -15,8 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.5,
             lat: 40.7128,
-            lng: -74.0060,
-            image: "../assets/images/pharmacy1.jpg"
+            lng: -74.0060
         },
         {
             id: 2,
@@ -32,8 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.2,
             lat: 40.7328,
-            lng: -74.0260,
-            image: "../assets/images/pharmacy2.jpg"
+            lng: -74.0260
         },
         {
             id: 3,
@@ -49,8 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.7,
             lat: 40.7528,
-            lng: -74.0160,
-            image: "../assets/images/pharmacy3.jpg"
+            lng: -74.0160
         },
         {
             id: 4,
@@ -66,8 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.3,
             lat: 40.7028,
-            lng: -73.9960,
-            image: "../assets/images/pharmacy4.jpg"
+            lng: -73.9960
         },
         {
             id: 5,
@@ -83,8 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.1,
             lat: 40.7128,
-            lng: -74.0160,
-            image: "../assets/images/pharmacy5.jpg"
+            lng: -74.0160
         },
         {
             id: 6,
@@ -100,8 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             rating: 4.4,
             lat: 40.6928,
-            lng: -74.0360,
-            image: "../assets/images/pharmacy6.jpg"
+            lng: -74.0360
         }
     ];
 
@@ -240,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pharmacyCard = document.createElement('div');
             pharmacyCard.className = 'pharmacy-card';
             pharmacyCard.innerHTML = `
-                <div class="pharmacy-image" style="background-image: url('${pharmacy.image}')"></div>
+                <div class="pharmacy-image" aria-hidden="true"></div>
                 <div class="pharmacy-info">
                     <h4 class="pharmacy-name">${pharmacy.name}</h4>
                     <p class="pharmacy-type">${pharmacy.type}</p>

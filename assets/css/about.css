@@ -651,18 +651,6 @@ a:hover {
     overflow: hidden;
 }
 
-.our-story::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('../images/dots-pattern.png') repeat;
-    opacity: 0.03;
-    z-index: 0;
-}
-
 .timeline {
     position: relative;
     max-width: 1000px;
@@ -1035,34 +1023,11 @@ a:hover {
 /* CTA Section - Enhanced */
 .about-cta {
     padding: 140px 0;
-    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), url('../images/cta-bg.jpg') no-repeat center center/cover;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
     color: var(--white);
     text-align: center;
     position: relative;
     overflow: hidden;
-}
-
-.about-cta::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('../images/dots-pattern-white.png') repeat;
-    opacity: 0.1;
-}
-
-.about-cta::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100px;
-    background: url('../images/wave-divider-dark.svg') center bottom no-repeat;
-    background-size: cover;
-    z-index: 1;
 }
 
 .cta-content {
@@ -1565,6 +1530,12 @@ a:hover {
 
 .footer-badges img:hover {
     opacity: 1;
+}
+
+/* The file is 807x448, not the 2:1 that the width and height in the pages say, so without this the badge is 80px
+   wide until it loads and 72px after, and the badge next to it moves. */
+.footer-badges img[src$="hipaa-badge.webp"] {
+    aspect-ratio: 807 / 448;
 }
 
 /* Responsive Design */

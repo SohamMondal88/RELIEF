@@ -53,7 +53,7 @@ The following is a high-level map of the current repository. It is not an exhaus
 | `pages/` | Additional website pages, such as doctors, hospitals, appointments, login, and first aid |
 | `assets/css/` | Shared and page-specific stylesheets |
 | `assets/js/` | Client-side behavior and integration code |
-| `assets/images/` | Images and visual assets |
+| `assets/images/` | Images and visual assets. Only reference a file that exists here (`tests/media-references.test.js` reads every `<img>`, stylesheet `url()` and image path in a script and fails on a missing one). Every `<img>` needs `alt` (empty `alt=""` when it only repeats the text next to it) and `width` and `height` with the shape of the file, so the page does not move when the picture arrives. Do not name artwork that is not in the repository yet |
 | `profiles/` | Doctor, patient, ambulance, and pharmacy profile interfaces |
 | `docs/` | Project and contributor documentation |
 | `.github/` | GitHub repository configuration and the CI workflow |

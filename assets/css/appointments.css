@@ -1044,6 +1044,12 @@ a:hover {
     opacity: 1;
 }
 
+/* The file is 807x448, not the 2:1 that the width and height in the pages say, so without this the badge is 80px
+   wide until it loads and 72px after, and the badge next to it moves. */
+.footer-badges img[src$="hipaa-badge.webp"] {
+    aspect-ratio: 807 / 448;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .footer-grid {
