@@ -27,6 +27,25 @@ test.describe('first aid', () => {
     await expect(guide).toHaveClass(/active/);
     await expect(guide.locator('.guide-steps li').first()).toBeVisible();
   });
+
+  test('categories and guides work from the keyboard', async ({ page }) => {
+    await page.goto('/pages/firstaid.html');
+    const card = page.locator('.category-card[data-category="choking"]');
+    await card.focus();
+    await page.keyboard.press('Enter');
+    const header = page.locator('.guide-item').first().locator('.guide-header');
+    await expect(header).toHaveAttribute('aria-expanded', 'false');
+    await header.focus();
+    await page.keyboard.press('Enter');
+    await expect(header).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.guide-item').first()).toHaveClass(/active/);
+  });
+
+  test('a category without a guide says it is coming soon', async ({ page }) => {
+    await page.goto('/pages/firstaid.html');
+    await page.locator('.category-card[data-category="poisoning"]').click();
+    await expect(page.locator('.guides-accordion')).toContainText(/coming soon/i);
+  });
 });
 
 test.describe('offline first aid', () => {
