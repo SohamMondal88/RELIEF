@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Emergency call button
     call911Button.addEventListener('click', function() {
-        window.open('tel:911');
+        window.open('tel:112');
     });
 
     // Request non-emergency transport

@@ -23,3 +23,14 @@ test('hospitals page loads facility-utils.js before hospitals.js', () => {
   assert.ok(page !== -1, 'hospitals.js must be included');
   assert.ok(utils < page, 'facility-utils.js must come first');
 });
+
+test('home, ambulances and first-aid emergency actions dial 112, not 911', () => {
+  const read = (...p) => fs.readFileSync(path.join(root, ...p), 'utf8');
+  assert.match(read('index.html'), /href="tel:112" class="btn-emergency"/);
+  assert.ok(!read('assets', 'js', 'ambulances.js').includes("tel:911"));
+  assert.ok(!/Call 911/.test(read('pages', 'ambulances.html')));
+  for (const f of ['en.json', 'bn.json']) {
+    assert.ok(!/"firstaid\.banner":[^\n]*911/.test(read('assets', 'locales', f)), f);
+  }
+  assert.ok(!/911/.test(read('pages', 'firstaid.html')));
+});
