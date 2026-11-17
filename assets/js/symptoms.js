@@ -103,11 +103,11 @@ const EMERGENCY_KEYWORD_PATTERNS = [
         reason: 'Mentioned chest pain, chest tightness, or suspected heart attack'
     },
     {
-        pattern: /\b(shortness\s*of\s*breath|difficulty\s*breath(ing)?|struggling\s*to\s*breathe?|(can'?t|cannot|unable\s*to|hard\s*to|trouble)\s*(to\s+)?breath(e|ing)?|gasping(\s*for\s*(air|breath))?|choking|breathless(ness)?|blue\s*(lips|face|skin|fingers)|(lips|face|skin)\s*(turn(ed|ing)?\s*)?blue)\b/i,
+        pattern: /\b(shortness\s*of\s*breath|difficulty\s*breath(ing)?|struggling\s*to\s*breathe?|(can'?t|can\s*not|cannot|unable\s*to|not\s*able\s*to|hard\s*to|trouble)\s*(to\s+)?breath(e|ing)?|(not|stopped|stops)\s+breathing|no\s+pulse|gasping(\s*for\s*(air|breath))?|choking|breathless(ness)?|blue\s*(lips|face|skin|fingers)|(lips|face|skin)\s*(turn(ed|ing)?\s*)?blue)\b/i,
         reason: 'Mentioned severe breathing difficulty, choking, or shortness of breath'
     },
     {
-        pattern: /\b(stroke|face\s*droop(ing)?|facial\s*droop(ing)?|slurred\s*speech|slurring\s*(my\s+)?words|loss\s*of\s*speech|(can'?t|cannot|unable\s*to)\s*speak|(one\s*side(d)?\s*(weakness|numbness|paralysis))|((weakness|numbness|paralysis)\s+(in|on)\s+(one|my)\s+side)|facial\s*paralysis)\b/i,
+        pattern: /\b(stroke|face\s*droop(ing)?|facial\s*droop(ing)?|slurred\s*speech|slurring\s*(my\s+)?words|loss\s*of\s*speech|(can'?t|can\s*not|cannot|unable\s*to|not\s*able\s*to)\s*speak|(one\s*side(d)?\s*(weakness|numbness|paralysis))|((weakness|numbness|paralysis)\s+(in|on)\s+(one|my)\s+side)|facial\s*paralysis)\b/i,
         reason: 'Mentioned signs associated with stroke or sudden neurological deficit'
     },
     {
@@ -123,7 +123,7 @@ const EMERGENCY_KEYWORD_PATTERNS = [
         reason: 'Mentioned heavy or uncontrollable bleeding, or coughing/vomiting blood'
     },
     {
-        pattern: /\b(passed\s*out|fainted|fainting|blacked\s*out|blacking\s*out|collapsed|collapsing|loss\s*of\s*consciousness|unconscious|unresponsive|cannot\s*wake)\b/i,
+        pattern: /\b(passed\s*out|fainted|fainting|blacked\s*out|blacking\s*out|collapsed|collapsing|loss\s*of\s*consciousness|unconscious|unresponsive|not\s+responding|cannot\s*wake|can\s*not\s*wake|(unable|not\s*able)\s*to\s*wake(\s*up)?)\b/i,
         reason: 'Mentioned fainting, collapse, blacking out, or loss of consciousness'
     },
     {
@@ -192,7 +192,7 @@ function detectEmergencySigns({ symptomsText = '', selectedSigns = [] } = {}) {
     }
 
     // Check free-text keywords with negation and variation detection
-    const text = String(symptomsText || '').trim();
+    const text = String(symptomsText || '').trim().replace(/[‘’ʼ]/g, "'");
     if (text) {
         EMERGENCY_KEYWORD_PATTERNS.forEach(({ pattern, reason }) => {
             const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';

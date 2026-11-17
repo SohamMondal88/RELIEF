@@ -143,6 +143,24 @@ describe('GitHub Issue #20: Medically Cautious Symptom-Information Guidance', ()
             });
         });
 
+        it('detects curly apostrophes and bystander wordings of an emergency', () => {
+            [
+                'I can’t breathe',
+                'I cant breathe',
+                'I can not breathe',
+                'I am not able to breathe',
+                'he is not breathing',
+                'she stopped breathing',
+                'there is no pulse',
+                'he is not responding',
+                'he is unable to wake up',
+                'she can’t speak'
+            ].forEach(phrase => {
+                const detection = detectEmergencySigns({ symptomsText: phrase, selectedSigns: [] });
+                assert.strictEqual(detection.isEmergency, true, `Phrase "${phrase}" must be detected as an emergency`);
+            });
+        });
+
         it('detects diverse wording variations for emergency indicators', () => {
             const variationPhrases = [
                 { phrase: 'I have severe pain in my chest that radiates to my left arm', reasonMatch: /chest pain/i },
