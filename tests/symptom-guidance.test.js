@@ -200,6 +200,18 @@ describe('GitHub Issue #20: Medically Cautious Symptom-Information Guidance', ()
             });
         });
 
+        it('does not let an earlier negation hide an emergency joined by "and"', () => {
+            [
+                'I am not feeling well and have severe chest pain',
+                'my father is not feeling well and has chest pain',
+                'no fever and chest pain',
+                'he did not wake up and is vomiting blood'
+            ].forEach(phrase => {
+                const detection = detectEmergencySigns({ symptomsText: phrase, selectedSigns: [] });
+                assert.strictEqual(detection.isEmergency, true, `Phrase "${phrase}" must trigger emergency`);
+            });
+        });
+
         it('provides multi-regional emergency calling instructions without assuming one country', () => {
             const result = evaluateSymptomSafety({
                 symptomsText: 'chest tightness and difficulty breathing',
