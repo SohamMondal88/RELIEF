@@ -162,7 +162,7 @@ function isMatchNegated(fullText, matchIndex) {
 
     // If a clause boundary or contrastive conjunction exists between the negation and the term,
     // the negation scope is terminated (e.g. "no fever, but severe chest pain" -> chest pain is NOT negated).
-    const boundaryRegex = /\b(but|however|although|except|yet|still)\b|[,.;:!?]/i;
+    const boundaryRegex = /\b(but|however|although|except|yet|still|and|with|also|plus|then|now)\b|[,.;:!?]/i;
     if (boundaryRegex.test(afterNegation)) {
         return false;
     }
