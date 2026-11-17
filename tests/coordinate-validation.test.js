@@ -97,13 +97,21 @@ test('facilities with bad coordinates get no distance and are not valid map poin
   const bad = U.normalizeFacilities([
     { name: 'NaN', lat: NaN, lng: 88 },
     { name: 'Inf', lat: 22, lng: Infinity },
-    { name: 'Str', lat: '22', lng: '88' },
+    { name: 'Word', lat: 'north', lng: 'east' },
+    { name: 'Empty', lat: '', lng: '' },
     { name: 'Null', lat: null, lng: null },
-    { name: 'Range', lat: 22, lng: 400 }
+    { name: 'Range', lat: 22, lng: 400 },
+    { name: 'Zero', lat: 0, lng: 0 }
   ]);
-  assert.strictEqual(bad.length, 5);
+  assert.strictEqual(bad.length, 7);
   for (const f of bad) assert.strictEqual(U.isValidCoord(f.lat, f.lng), false, f.name);
   for (const f of U.sortFacilities(bad, 'distance', { lat: 22.5, lng: 88.3 })) assert.strictEqual(f.distanceKm, null, f.name);
+});
+
+test('facilities with numeric string coordinates are read as numbers (same rule as a saved location)', () => {
+  const [f] = U.normalizeFacilities([{ name: 'Str', lat: '22.5', lng: ' 88.3 ' }]);
+  assert.deepStrictEqual([f.lat, f.lng], [22.5, 88.3]);
+  assert.ok(U.isValidCoord(f.lat, f.lng));
 });
 
 test('SOS SMS fallback only includes a location when it is a valid position', () => {

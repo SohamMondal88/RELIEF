@@ -64,6 +64,16 @@
     return NaN;
   }
 
+  // The map location of a facility: { lat, lng } or null. Same as the check for a saved
+  // user location, except that 0,0 (open sea) is not a place a facility can be, so it is a
+  // broken value too. A null result means "no pin", never a pin somewhere else.
+  function facilityCoords(lat, lng) {
+    var a = toCoord(lat);
+    var b = toCoord(lng);
+    if (!isValidCoord(a, b) || (a === 0 && b === 0)) return null;
+    return { lat: a, lng: b };
+  }
+
   // Accepts the saved formats seen in the app: {lat, lng} or [lat, lng].
   function parseUserLocation(raw) {
     var value = raw;
@@ -112,6 +122,7 @@
     var state = REVIEW_STATES.indexOf(raw.reviewState) !== -1
       ? raw.reviewState
       : (raw.verified === true ? 'verified' : 'pending');
+    var coords = facilityCoords(raw.lat, raw.lng);
     return {
       id: raw.id != null ? String(raw.id) : String(raw.name),
       name: String(raw.name),
@@ -121,8 +132,8 @@
       phone: raw.phone || null,
       hours: raw.hours || null,
       services: Array.isArray(raw.services) ? raw.services.map(String) : [],
-      lat: typeof raw.lat === 'number' ? raw.lat : null,
-      lng: typeof raw.lng === 'number' ? raw.lng : null,
+      lat: coords ? coords.lat : null,
+      lng: coords ? coords.lng : null,
       reviewState: state,
       verified: state === 'verified',
       verifiedBy: raw.verifiedBy ? String(raw.verifiedBy) : null,
@@ -328,6 +339,7 @@
     escapeHtml: escapeHtml,
     haversineKm: haversineKm,
     isValidCoord: isValidCoord,
+    facilityCoords: facilityCoords,
     parseUserLocation: parseUserLocation,
     normalizeFacility: normalizeFacility,
     normalizeFacilities: normalizeFacilities,

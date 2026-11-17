@@ -18,7 +18,7 @@ Current version: **1**
 | `phone` | no | text or `null` | 7 to 15 digits; only digits, spaces, `+`, `-`, `(`, `)`, `.` |
 | `hours` | no | text or `null` | Up to 200 characters |
 | `services` | no | list of text | Up to 40 items, each 1 to 80 characters |
-| `lat`, `lng` | no | numbers | Give both or neither. Latitude -90 to 90, longitude -180 to 180. `0,0` is rejected. A point outside West Bengal is accepted with a warning |
+| `lat`, `lng` | no | numbers | Give both or neither. Latitude -90 to 90, longitude -180 to 180. Numeric strings such as `"22.57"` are converted. Anything else (empty, `null` on one side only, text, `NaN`, infinite, out of range, `0,0`) is not a quarantine reason: the record is listed without a map location, see below. A point outside West Bengal is accepted with a warning |
 | `verified` | no | `true` / `false` | `true` needs `source` and `lastChecked` |
 | `source` | no | text or `null` | Where the information came from, up to 300 characters |
 | `lastChecked` | no | `YYYY-MM-DD` | A real date, not in the future |
@@ -35,9 +35,10 @@ On the hospitals page each record is checked before it is used:
 - A record that breaks a rule is **quarantined**: it is left out of search results and the browser console lists its id and the reasons. The rest of the directory loads normally.
 - A repeated `id` quarantines the later record.
 - If the file itself is unusable (not a list, or a newer schema version than the site understands) the page shows its normal "could not be loaded" state with a retry button.
+- A record whose `lat`/`lng` cannot be used is **not** quarantined. It stays in the list with `lat` and `lng` set to `null`, gets a warning in the console, has no pin on the map and no Directions button, and its card has a "Map location: Not available" line. The status line under the search box counts these. The accepted values are the same ones `toCoord` accepts in `location-service.js` and `facility-utils.js`: a number or a non-empty numeric string. `null`, empty strings, booleans, lists and objects are never turned into `0`, and `0,0` is treated as broken for a facility.
 - An unknown `type` is shown, filterable by its own text, and reported as a warning.
 
-In CI the real dataset must have **no** quarantined records.
+In CI the real dataset must have **no** quarantined records and no record without a usable map location.
 
 ## Changing the contract
 
@@ -56,7 +57,7 @@ format it does not understand.
 `example.org` links). Do not put real people or real private numbers there.
 
 - `valid-realistic.json` has one of every type, a record with only required fields, and an unknown type
-- `invalid-records.json` lists broken records with the error each must produce
+- `invalid-records.json` lists broken records with the error each must produce (broken coordinates are not in it, they are warnings, see `tests/facility-coordinates.test.js`)
 
 Shared fake hospital, doctor, pharmacy and ambulance records for other tests live in `tests/fixtures/providers/`, see [PROVIDER_TEST_FIXTURES.md](PROVIDER_TEST_FIXTURES.md).
 

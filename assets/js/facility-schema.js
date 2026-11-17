@@ -3,7 +3,10 @@
  *
  * Defines what a facility record must look like and checks records before the
  * directory uses them. A record that breaks the contract is quarantined (kept out
- * of search results and listed with the reasons) instead of breaking the page.
+ * of search results and listed with the reasons) instead of breaking the page. The one
+ * exception is the map location: an unusable lat/lng only costs the record its map pin
+ * (it is reported as a warning and the coordinates are set to null), because the rest of the
+ * record is still worth showing in the list.
  *
  * Pure functions, no DOM, so they run in the browser and under node:test.
  * The contract is documented in docs/FACILITY_DATA_CONTRACT.md.
@@ -54,6 +57,43 @@
 
   function hasMarkup(value) {
     return /[<>]/.test(value);
+  }
+
+  // Same rule as toCoord in location-service.js and facility-utils.js: a number or a
+  // non-empty numeric string. null, '', booleans, lists and objects must never become 0.
+  function toCoord(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() !== '') return Number(value);
+    return NaN;
+  }
+
+  function isLat(n) { return Number.isFinite(n) && n >= -90 && n <= 90; }
+  function isLng(n) { return Number.isFinite(n) && n >= -180 && n <= 180; }
+
+  /**
+   * Decides what a record's map location is.
+   * @returns {{lat: number|null, lng: number|null, problems: string[]}} lat and lng are both
+   *   numbers (numeric strings are converted) or both null. problems says why they were dropped.
+   */
+  function readCoordinates(record) {
+    const noPin = { lat: null, lng: null, problems: [] };
+    const hasLat = record.lat !== undefined && record.lat !== null;
+    const hasLng = record.lng !== undefined && record.lng !== null;
+    if (!hasLat && !hasLng) return noPin;
+    if (hasLat !== hasLng) {
+      noPin.problems.push('lat and lng must be given together');
+      return noPin;
+    }
+    const lat = toCoord(record.lat);
+    const lng = toCoord(record.lng);
+    if (!isLat(lat)) noPin.problems.push('lat must be a number between -90 and 90');
+    if (!isLng(lng)) noPin.problems.push('lng must be a number between -180 and 180');
+    if (noPin.problems.length > 0) return noPin;
+    if (lat === 0 && lng === 0) {
+      noPin.problems.push('coordinates 0,0 are not a real location');
+      return noPin;
+    }
+    return { lat: lat, lng: lng, problems: [] };
   }
 
   function isRealDate(text) {
@@ -141,28 +181,14 @@
       }
     }
 
-    // Coordinates: both or neither, valid numbers.
-    const hasLat = record.lat !== undefined && record.lat !== null;
-    const hasLng = record.lng !== undefined && record.lng !== null;
-    if (hasLat !== hasLng) {
-      errors.push('lat and lng must be given together');
-    } else if (hasLat) {
-      let coordsOk = true;
-      if (typeof record.lat !== 'number' || !Number.isFinite(record.lat) || record.lat < -90 || record.lat > 90) {
-        errors.push('lat must be a number between -90 and 90');
-        coordsOk = false;
-      }
-      if (typeof record.lng !== 'number' || !Number.isFinite(record.lng) || record.lng < -180 || record.lng > 180) {
-        errors.push('lng must be a number between -180 and 180');
-        coordsOk = false;
-      }
-      if (coordsOk) {
-        if (record.lat === 0 && record.lng === 0) {
-          errors.push('coordinates 0,0 are not a real location');
-        } else if (record.lat < REGION.latMin || record.lat > REGION.latMax || record.lng < REGION.lngMin || record.lng > REGION.lngMax) {
-          warnings.push('coordinates are outside West Bengal');
-        }
-      }
+    // Coordinates: an unusable pair does not reject the record, it only loses its map pin.
+    const coords = readCoordinates(record);
+    coords.problems.forEach(function (problem) {
+      warnings.push(problem + ', so it has no map location');
+    });
+    if (coords.lat !== null &&
+        (coords.lat < REGION.latMin || coords.lat > REGION.latMax || coords.lng < REGION.lngMin || coords.lng > REGION.lngMax)) {
+      warnings.push('coordinates are outside West Bengal');
     }
 
     // Verification must be backed by evidence.
@@ -237,7 +263,11 @@
         result.quarantined.push({ index: index, id: id, errors: errors });
         return;
       }
-      result.accepted.push(record);
+      // Hand on a copy with a usable map location or none, so no reader sees a string, 0,0
+      // or an out-of-range value.
+      const coords = readCoordinates(record);
+      const hadCoords = (record.lat !== undefined && record.lat !== null) || (record.lng !== undefined && record.lng !== null);
+      result.accepted.push(hadCoords ? Object.assign({}, record, { lat: coords.lat, lng: coords.lng }) : record);
       if (check.warnings.length > 0) result.warnings.push({ index: index, id: id, warnings: check.warnings });
     });
 
@@ -252,6 +282,7 @@
     OPTIONAL_FIELDS: OPTIONAL_FIELDS,
     LIMITS: LIMITS,
     validateFacility: validateFacility,
+    readCoordinates: readCoordinates,
     validateDataset: validateDataset
   };
 });
