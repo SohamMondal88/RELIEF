@@ -8,21 +8,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const mobileMenu = document.querySelector('.mobile-menu');
 
-    mobileMenuBtn.addEventListener('click', function() {
-        mobileMenu.classList.toggle('active');
-    });
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+    }
 
     // Close mobile menu when clicking on a link
     const mobileLinks = document.querySelectorAll('.mobile-menu a');
     mobileLinks.forEach(link => {
         link.addEventListener('click', function() {
-            mobileMenu.classList.remove('active');
+            if (mobileMenu) mobileMenu.classList.remove('active');
         });
     });
 
     // Navbar scroll effect
     const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', function() {
+    if (navbar) window.addEventListener('scroll', function() {
         if (window.scrollY > 50) {
             navbar.classList.add('scrolled');
         } else {
