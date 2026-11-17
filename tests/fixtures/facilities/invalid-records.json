@@ -167,65 +167,6 @@
     "error": "services[1] must be non-empty"
   },
   {
-    "label": "lat without lng",
-    "record": {
-      "id": "x",
-      "name": "A",
-      "type": "hospital",
-      "district": "D",
-      "lat": 22.5
-    },
-    "error": "lat and lng must be given together"
-  },
-  {
-    "label": "coordinates as strings",
-    "record": {
-      "id": "x",
-      "name": "A",
-      "type": "hospital",
-      "district": "D",
-      "lat": "22.5",
-      "lng": "88.3"
-    },
-    "error": "lat must be a number"
-  },
-  {
-    "label": "latitude out of range",
-    "record": {
-      "id": "x",
-      "name": "A",
-      "type": "hospital",
-      "district": "D",
-      "lat": 95,
-      "lng": 88.3
-    },
-    "error": "lat must be a number between"
-  },
-  {
-    "label": "longitude out of range",
-    "record": {
-      "id": "x",
-      "name": "A",
-      "type": "hospital",
-      "district": "D",
-      "lat": 22.5,
-      "lng": 190
-    },
-    "error": "lng must be a number between"
-  },
-  {
-    "label": "coordinates 0,0",
-    "record": {
-      "id": "x",
-      "name": "A",
-      "type": "hospital",
-      "district": "D",
-      "lat": 0,
-      "lng": 0
-    },
-    "error": "0,0"
-  },
-  {
     "label": "verified is a string",
     "record": {
       "id": "x",

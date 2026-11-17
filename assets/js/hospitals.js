@@ -243,6 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     (f.district ? U.escapeHtml(f.district) : notAvailable) + '</p>' +
                 distance +
                 '<p class="hospital-detail"><strong>Address:</strong> ' + (f.address ? U.escapeHtml(f.address) : notAvailable) + '</p>' +
+                (hasCoords
+                    ? ''
+                    : '<p class="hospital-detail map-location"><strong>Map location:</strong> <span class="not-available">Not available</span> (no pin on the map and no Directions button)</p>') +
                 '<p class="hospital-detail"><strong>Phone:</strong> ' + (f.phone ? U.escapeHtml(f.phone) : notAvailable) + '</p>' +
                 '<p class="hospital-detail"><strong>Hours:</strong> ' + (f.hours ? U.escapeHtml(f.hours) : notAvailable) + '</p>' +
                 '<div class="hospital-services">' + services + '</div>' +
@@ -277,7 +280,12 @@ document.addEventListener('DOMContentLoaded', function() {
             hospitalsList.appendChild(card);
         });
         const count = list.length + (list.length === 1 ? ' facility found.' : ' facilities found.');
-        setStatus(note ? count + ' ' + note : count);
+        // Facilities without a usable location stay in the list but get no pin, so say so.
+        const unmapped = list.filter(f => !U.isValidCoord(f.lat, f.lng)).length;
+        const unmappedNote = unmapped > 0
+            ? (unmapped === 1 ? '1 has no map location.' : unmapped + ' have no map location.')
+            : '';
+        setStatus([count, unmappedNote, note].filter(Boolean).join(' '));
         updateSaveButtons();
         updateMapMarkers(list);
     }

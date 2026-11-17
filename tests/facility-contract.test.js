@@ -39,6 +39,13 @@ test('[dataset] every record in assets/data/facilities.json meets the contract',
   assert.strictEqual(result.accepted.length, real.facilities.length);
 });
 
+test('[dataset] every record has a usable map location (nothing is silently listed without a pin)', () => {
+  const result = Schema.validateDataset(real, NOW);
+  const noPin = result.warnings.filter((w) => w.warnings.some((t) => /no map location/.test(t)));
+  assert.deepStrictEqual(noPin, [], JSON.stringify(noPin));
+  result.accepted.forEach((f) => assert.ok(U.isValidCoord(f.lat, f.lng), f.id + ' has no usable lat/lng'));
+});
+
 test('[dataset] ids are unique', () => {
   const ids = real.facilities.map((f) => String(f.id));
   const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
@@ -231,12 +238,15 @@ test('[coordinates] a point outside West Bengal is accepted with a warning (like
   assert.match(result.warnings[0].warnings[0], /outside West Bengal/);
 });
 
-test('[coordinates] boundaries of the allowed ranges', () => {
-  assert.strictEqual(Schema.validateFacility(base({ lat: 90, lng: 180 }), NOW).valid, true);
-  assert.strictEqual(Schema.validateFacility(base({ lat: -90, lng: -180 }), NOW).valid, true);
-  assert.strictEqual(Schema.validateFacility(base({ lat: 90.0001, lng: 0.1 }), NOW).valid, false);
-  assert.strictEqual(Schema.validateFacility(base({ lat: 10, lng: 180.0001 }), NOW).valid, false);
-  assert.strictEqual(Schema.validateFacility(base({ lat: NaN, lng: 10 }), NOW).valid, false);
+test('[coordinates] boundaries of the allowed ranges: the edge is kept, just past it loses the pin', () => {
+  const usable = (extra) => Schema.readCoordinates(extra).lat !== null;
+  assert.strictEqual(usable({ lat: 90, lng: 180 }), true);
+  assert.strictEqual(usable({ lat: -90, lng: -180 }), true);
+  assert.strictEqual(usable({ lat: 90.0001, lng: 0.1 }), false);
+  assert.strictEqual(usable({ lat: 10, lng: 180.0001 }), false);
+  assert.strictEqual(usable({ lat: NaN, lng: 10 }), false);
+  // The record itself is still valid; only the map location is dropped (see facility-coordinates.test.js).
+  assert.strictEqual(Schema.validateFacility(base({ lat: 90.0001, lng: 0.1 }), NOW).valid, true);
 });
 
 test('[dates] today is allowed, tomorrow is not', () => {
