@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="doctor-bio">${doctor.bio}</p>
                     <div class="doctor-availability">
                         <span class="availability-badge">${doctor.availability}</span>
-                        <button class="btn-book" data-id="${doctor.id}">Book Appointment</button>
+                        <button class="btn-book" data-id="${doctor.id}" aria-label="Request an appointment with ${doctor.name}">Request Appointment</button>
                     </div>
                 </div>
             `;
@@ -198,23 +198,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.btn-book').forEach(button => {
             button.addEventListener('click', function() {
                 const doctorId = this.getAttribute('data-id');
-                bookAppointment(doctorId);
+                startRequest(doctorId);
             });
         });
     }
 
-    // Book appointment function
-    function bookAppointment(doctorId) {
+    // Choosing a doctor only starts a request. Nothing is booked here, and nothing is booked on the
+    // next page either: the provider confirms a real time later. So there is no pop-up that sounds
+    // like a booking, the person just lands on the request form with the doctor filled in.
+    function startRequest(doctorId) {
         const doctor = doctors.find(d => d.id == doctorId);
         if (!doctor) return;
 
-        // In a real app, this would redirect to a booking page or show a modal
-        alert(`Booking appointment with ${doctor.name}\nSpecialty: ${doctor.specialty}\nLocation: ${doctor.location}`);
-
-        // For demo purposes, we'll store the selected doctor in localStorage
+        // The request form reads the chosen doctor from here.
         localStorage.setItem('selectedDoctor', JSON.stringify(doctor));
 
-        // Redirect to appointments page
         window.location.href = '../pages/appointments.html';
     }
 

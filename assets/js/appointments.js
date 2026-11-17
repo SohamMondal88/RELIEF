@@ -144,8 +144,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     var SUMMARY_ID = 'appointment-error-summary';
 
+    // What is on screen right now: field key to message, and whether the summary is showing.
+    // Checking one field as the person leaves it re-draws from this, so it never wipes the
+    // messages of other fields and keeps an open summary in step with the fields.
+    var shownErrors = {};
+    var summaryShown = false;
+
     function clearErrors() {
         FormErrors.clearErrors(document, { fields: ERROR_FIELDS, summaryId: SUMMARY_ID });
+        shownErrors = {};
+        summaryShown = false;
     }
 
     // Shows inline errors and a summary for the given keys. Returns the first key with a problem.
@@ -163,7 +171,72 @@ document.addEventListener('DOMContentLoaded', function() {
             focus: false
         });
         lastErrorCount = shown.count;
+        shownErrors = subset;
+        summaryShown = shown.count > 0;
         return shown.first;
+    }
+
+    function drawShownErrors() {
+        var shown = FormErrors.applyErrors(document, shownErrors, {
+            fields: ERROR_FIELDS,
+            order: Request.FIELD_ORDER,
+            // Only an open summary is redrawn: a message under a field is enough while the
+            // person is still filling the form in, and a new alert box would interrupt them.
+            summaryId: summaryShown ? SUMMARY_ID : undefined,
+            title: 'Please fix the following',
+            focus: false
+        });
+        lastErrorCount = shown.count;
+        if (shown.count === 0) summaryShown = false;
+    }
+
+    // Checks one field with the same rules as Next and Submit (validateRequest) and shows or
+    // clears just that field's message. What was typed is never changed.
+    function validateField(key) {
+        if (!ERROR_FIELDS[key]) return;
+        var message = Request.validateRequest(readInput()).errors[key];
+        if (message) {
+            shownErrors[key] = message;
+        } else {
+            delete shownErrors[key];
+        }
+        drawShownErrors();
+    }
+
+    // The field a form control belongs to, or null for controls that are not validated.
+    function fieldKeyFor(el) {
+        if (!el) return null;
+        if (el.name === 'time-window') return 'timeWindow';
+        var keys = Object.keys(ERROR_FIELDS);
+        for (var i = 0; i < keys.length; i++) {
+            if (FIELDS[keys[i]].focus === el.id) return keys[i];
+        }
+        return null;
+    }
+
+    // Leaving a field checks it, and so does picking a value. Once a field shows a message it is
+    // checked while the person types, so the message goes as soon as the value is fine. The one
+    // cross-field rule (a time window that has ended today) is rechecked when the date changes.
+    function bindFieldChecks() {
+        var area = document.querySelector('.booking-form');
+        if (!area) return;
+        area.addEventListener('focusout', function(event) {
+            var el = event.target;
+            // Radios and the checkbox are checked when picked (change), not when tabbed past.
+            if (el.type === 'radio' || el.type === 'checkbox') return;
+            var key = fieldKeyFor(el);
+            if (key) validateField(key);
+        });
+        area.addEventListener('change', function(event) {
+            var key = fieldKeyFor(event.target);
+            if (!key) return;
+            validateField(key);
+            if (key === 'date' && (selectedWindow() || shownErrors.timeWindow)) validateField('timeWindow');
+        });
+        area.addEventListener('input', function(event) {
+            var key = fieldKeyFor(event.target);
+            if (key && shownErrors[key]) validateField(key);
+        });
     }
 
     // One problem: go to its field. Several: go to the summary, which links to each field.
@@ -252,10 +325,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // The earliest and latest date follow the clock, so a page left open overnight does not keep
+    // offering yesterday. Called on load and again whenever the form gets focus.
+    function refreshDateLimits() {
+        var today = new Date();
+        var min = Request.toDateString(today);
+        var max = Request.toDateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + Request.MAX_DAYS_AHEAD));
+        if (dateInput.min !== min) dateInput.min = min;
+        if (dateInput.max !== max) dateInput.max = max;
+    }
+
     // Initialize the page
-    var today = new Date();
-    dateInput.min = Request.toDateString(today);
-    dateInput.max = Request.toDateString(new Date(today.getFullYear(), today.getMonth(), today.getDate() + Request.MAX_DAYS_AHEAD));
+    refreshDateLimits();
+    var bookingForm = document.querySelector('.booking-form');
+    if (bookingForm) bookingForm.addEventListener('focusin', refreshDateLimits);
+    bindFieldChecks();
     displayDoctorInfo();
     showStep(currentStep);
 
