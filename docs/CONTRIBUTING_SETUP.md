@@ -79,6 +79,7 @@ When changing a page, inspect its HTML and the CSS and JavaScript files it refer
   - Page-specific stylesheets (`auth.css`, `doctors.css`, `hospitals.css`, `onboarding.css`, `symptoms.css`, `dashboard.css`, etc.): Specialized UI rules and section layouts for individual feature pages.
 - **Client-Side Scripts (`assets/js/`)**:
   - `main.js`: Global site behaviors (mobile navigation toggle, smooth scrolling, and alerts).
+    - One owner per behavior. The hamburger menu is wired only by `initMobileNavigation()` in `main.js` (guarded by `data-nav-initialized`, so calling it twice is safe), and `main.js` does not bind submit listeners to the login, signup or symptom forms: `login.js`, `signup.js` and `symptoms.js` own their forms. Do not add a second hamburger or form handler to a page script. `tests/duplicate-listeners.test.js` fails if one appears.
   - `api.js`: Centralized client-side API layer managing endpoints (OpenStreetMap/Nominatim, OpenMRS, Rasa) and Firebase SDK wrappers.
   - `firebase-config.js`: Initializes the Firebase web client using configured project parameters.
   - `symptoms.js`: Multi-step questionnaire navigation, client-side input validation, and fallback mock symptom analysis.

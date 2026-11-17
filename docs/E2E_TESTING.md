@@ -27,6 +27,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | File | Journey |
 |---|---|
 | `e2e/navigation.spec.js` | Landing page, primary navigation, hamburger menu on a phone width (open, close, Escape, focus), Relief Assistant on the dashboard (greeting, routing, urgent escalation, medical advice refusal, clear chat) |
+| `e2e/duplicate-listeners.spec.js` | One action, one handler (Issue #192): a short password on signup shows its message once, a short password on login gets only the sign in answer, and the hamburger opens and closes the menu with one click each on every page that has one |
 | `e2e/admin-panel.spec.js` | Admin panel is labelled a demo with its sample buttons off, and the moderation queue in each state: demo host, normal host with no backend, signed out, not a moderator, moderator |
 | `e2e/auth.spec.js` | Demo signup, validation errors, duplicate email, login (right and wrong password), navbar Dashboard and Logout, logout clears the session, no plain text password in storage |
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |

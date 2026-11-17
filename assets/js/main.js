@@ -454,98 +454,6 @@ function updateAuthUI(user) {
     }
 }
 
-// Form Validation for Login/Signup
-function validateForm(formId) {
-    const form = document.getElementById(formId);
-    if (!form) return;
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        let isValid = true;
-
-        // Validate email
-        const email = form.querySelector('input[type="email"]');
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-            isValid = false;
-            if (email.nextElementSibling) {
-                email.nextElementSibling.textContent = 'Please enter a valid email address';
-            }
-        } else if (email && email.nextElementSibling) {
-            email.nextElementSibling.textContent = '';
-        }
-
-        // Validate password (for login/signup)
-        const password = form.querySelector('input[type="password"]');
-        if (password && password.value.length < 6) {
-            isValid = false;
-            if (password.nextElementSibling) {
-                password.nextElementSibling.textContent = 'Password must be at least 6 characters';
-            }
-        } else if (password && password.nextElementSibling) {
-            password.nextElementSibling.textContent = '';
-        }
-
-        // Validate password confirmation (for signup)
-        const confirmPassword = form.querySelector('input[name="confirm-password"]');
-        if (confirmPassword && confirmPassword.value !== password?.value) {
-            isValid = false;
-            if (confirmPassword.nextElementSibling) {
-                confirmPassword.nextElementSibling.textContent = 'Passwords do not match';
-            }
-        } else if (confirmPassword && confirmPassword.nextElementSibling) {
-            confirmPassword.nextElementSibling.textContent = '';
-        }
-
-        // If form is valid, submit it
-        if (isValid && typeof ReliefAPI !== 'undefined') {
-            if (formId === 'login-form') {
-                handleLogin(email.value, password.value);
-            } else if (formId === 'signup-form') {
-                const nameInput = form.querySelector('input[name="name"]');
-                const name = nameInput ? nameInput.value : '';
-                handleSignup(name, email.value, password.value);
-            }
-        }
-    });
-}
-
-// Handle login
-function handleLogin(email, password) {
-    if (typeof ReliefAPI === 'undefined') return;
-
-    ReliefAPI.login(email, password)
-        .then(user => {
-            window.ReliefSession?.createSession?.(user);
-            updateAuthUI(user);
-            window.location.href = 'dashboard.html';
-        })
-        .catch(error => {
-            alert(error.message || 'Login failed');
-        });
-}
-
-// Handle signup
-function handleSignup(name, email, password) {
-    if (typeof ReliefAPI === 'undefined') return;
-
-    const userData = {
-        name,
-        email,
-        password,
-        joined: new Date().toISOString()
-    };
-
-    ReliefAPI.signup(userData)
-        .then(user => {
-            window.ReliefSession?.createSession?.(user);
-            updateAuthUI(user);
-            window.location.href = 'dashboard.html';
-        })
-        .catch(error => {
-            alert(error.message || 'Signup failed');
-        });
-}
-
 // Handle logout
 function handleLogout() {
     const finalizeLogout = () => {
@@ -567,20 +475,6 @@ function handleLogout() {
             console.error('Logout failed:', error && error.name);
             finalizeLogout();
         });
-}
-
-// Initialize form validation when pages load
-if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', function() {
-        validateForm('login-form');
-        validateForm('signup-form');
-        validateForm('symptoms-form');
-
-        // Add logout event listeners
-        document.querySelectorAll('.btn-logout').forEach(btn => {
-            btn.addEventListener('click', handleLogout);
-        });
-    });
 }
 
 // Geolocation function
@@ -629,24 +523,6 @@ function initLocationServices() {
 
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', initLocationServices);
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Secondary safety check: ensure hamburger exists before accessing
-        const hamburger = document.querySelector('.hamburger');
-        if (!hamburger || hamburger.dataset.navInitialized === 'true') {
-            return;
-        }
-
-        const navLinks = document.querySelector('.nav-links');
-        if (navLinks) {
-            hamburger.addEventListener('click', function() {
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
-                this.classList.toggle('active');
-                navLinks.classList.toggle('active');
-            });
-        }
-    });
 }
 
 // Offline support: register the service worker and show an offline banner

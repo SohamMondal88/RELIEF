@@ -251,28 +251,6 @@ describe('GitHub Issue #25: Responsive Design & Accessibility Audit', () => {
             assert.strictEqual(dom.getState().isHamburgerActive, false, 'Menu must close upon outside click');
             assert.strictEqual(dom.getState().ariaExpanded, 'false');
         });
-
-        it('guards secondary scripts across pages against duplicate hamburger bindings', () => {
-            const scriptFiles = [
-                'assets/js/about.js',
-                'assets/js/ambulances.js',
-                'assets/js/appointments.js',
-                'assets/js/blog.js',
-                'assets/js/contact.js',
-                'assets/js/doctors.js',
-                'assets/js/firstaid.js',
-                'assets/js/hospitals.js',
-                'assets/js/pharmacies.js',
-                'assets/js/symptoms.js'
-            ];
-
-            scriptFiles.forEach(file => {
-                const content = readRepoFile(file);
-                const hasNavGuard = content.includes('hamburger.dataset.navInitialized') ||
-                                    content.includes('!hamburger');
-                assert.ok(hasNavGuard, `${file} must include null or navInitialized guard to prevent duplicate listeners`);
-            });
-        });
     });
 
     // =========================================================================
