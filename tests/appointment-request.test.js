@@ -335,3 +335,35 @@ describe('page wiring', () => {
         assert.ok(!/booked successfully|Appointment confirmed/i.test(script + html));
     });
 });
+
+describe('wording and per-field checks on the pages (Issue #182)', () => {
+    const read = (f) => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+    const doctors = read('assets/js/doctors.js');
+    const page = read('assets/js/appointments.js');
+
+    it('the doctors page asks for a request and does not show a booking pop-up', () => {
+        assert.ok(!/\balert\(/.test(doctors), 'no alert()');
+        assert.ok(!/Booking appointment with/.test(doctors));
+        assert.match(doctors, /class="btn-book"[^>]*>Request Appointment</);
+        assert.ok(!/>Book Appointment</.test(doctors));
+        // The chosen doctor is still handed to the request form.
+        assert.match(doctors, /localStorage\.setItem\('selectedDoctor'/);
+        assert.match(doctors, /appointments\.html/);
+    });
+
+    it('a single field is checked with the same validateRequest rules as Continue and Submit', () => {
+        const start = page.indexOf('function validateField');
+        assert.ok(start > -1, 'validateField exists');
+        const body = page.slice(start, page.indexOf('function fieldKeyFor'));
+        assert.match(body, /Request\.validateRequest\(readInput\(\)\)\.errors\[key\]/);
+        assert.match(page, /addEventListener\('focusout'/);
+        assert.match(page, /addEventListener\('change'/);
+        assert.match(page, /addEventListener\('input'/);
+    });
+
+    it('the date limits are refreshed on load and when the form gets focus', () => {
+        assert.match(page, /function refreshDateLimits/);
+        assert.match(page, /addEventListener\('focusin', refreshDateLimits\)/);
+        assert.ok(!/dateInput\.min = Request\.toDateString\(today\)/.test(page.replace(/function refreshDateLimits[\s\S]*?\n    }\n/, '')), 'min is only set in refreshDateLimits');
+    });
+});
