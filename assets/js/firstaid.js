@@ -123,6 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
 
+    // What the search looks at: the title and the readable text of the body (not its HTML tags or class
+    // names), normalized once here the same way the typed query is (see search-text.js).
+    const guideSearchIndex = firstAidGuides.map(guide => ({
+        guide,
+        index: ReliefSearchText.indexText([guide.title, ReliefSearchText.htmlToText(guide.content)])
+    }));
+
     // DOM elements
     const guidesAccordion = document.querySelector('.guides-accordion');
     const searchInput = document.querySelector('.search-guides input');
@@ -135,17 +142,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filter guides based on search
     function filterGuides() {
-        const searchTerm = searchInput.value.trim().toLowerCase();
+        const searchTerm = searchInput.value;
 
-        if (!searchTerm) {
+        // An empty or blank query (spaces, a no-break space, invisible characters) shows every guide
+        if (!ReliefSearchText.tokens(searchTerm).length) {
             displayGuides(firstAidGuides);
             return;
         }
 
-        const filteredGuides = firstAidGuides.filter(guide =>
-            guide.title.toLowerCase().includes(searchTerm) ||
-            guide.content.toLowerCase().includes(searchTerm)
-        );
+        const filteredGuides = guideSearchIndex
+            .filter(entry => ReliefSearchText.matchesIndex(entry.index, searchTerm))
+            .map(entry => entry.guide);
         displayGuides(filteredGuides);
     }
 

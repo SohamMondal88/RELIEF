@@ -83,16 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filter doctors based on search and filters
     function filterDoctors() {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value;
         const specialty = specialtyFilter.value.toLowerCase();
         const location = locationFilter.value.toLowerCase();
         const availability = availabilityFilter.value;
 
         const filteredDoctors = doctors.filter(doctor => {
-            const matchesSearch =
-                doctor.name.toLowerCase().includes(searchTerm) ||
-                doctor.specialty.toLowerCase().includes(searchTerm) ||
-                doctor.bio.toLowerCase().includes(searchTerm);
+            const matchesSearch = ReliefSearchText.matches([doctor.name, doctor.specialty, doctor.bio], searchTerm);
 
             const matchesSpecialty = !specialty || doctor.specialty.toLowerCase() === specialty;
             const matchesLocation = !location || doctor.location.toLowerCase().includes(location);

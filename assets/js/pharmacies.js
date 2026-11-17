@@ -181,15 +181,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filter pharmacies based on search and filters
     function filterPharmacies() {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value;
         const pharmacyType = pharmacyTypeFilter.value;
         const location = locationFilter.value;
         const services = servicesFilter.value;
 
         const filteredPharmacies = pharmacies.filter(pharmacy => {
-            const matchesSearch =
-                pharmacy.name.toLowerCase().includes(searchTerm) ||
-                pharmacy.location.toLowerCase().includes(searchTerm);
+            const matchesSearch = ReliefSearchText.matches([pharmacy.name, pharmacy.location], searchTerm);
 
             const matchesPharmacyType = !pharmacyType || pharmacy.type.toLowerCase() === pharmacyType.toLowerCase().replace('-', ' ');
             const matchesLocation = !location || pharmacy.location.toLowerCase().includes(location.toLowerCase());

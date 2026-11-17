@@ -116,7 +116,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchButton = searchBar.querySelector('button');
 
         searchButton.addEventListener('click', function() {
-            if (searchInput.value.trim() === '') {
+            // Blank means nothing visible: spaces, a no-break space or only invisible characters count as empty
+            if (ReliefSearchText.normalize(searchInput.value) === '') {
                 alert('Please enter a search term');
                 return;
             }
