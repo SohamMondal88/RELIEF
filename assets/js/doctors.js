@@ -231,29 +231,3 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize with filtered doctors
     filterDoctors();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Secondary safety check: ensure hamburger exists and is not already initialized
-    const hamburger = document.querySelector('.hamburger');
-    if (!hamburger || hamburger.dataset.navInitialized === 'true') {
-        return;
-    }
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks) {
-        hamburger.addEventListener('click', function() {
-            this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
-            navLinks.classList.toggle('active');
-        });
-    }
-});

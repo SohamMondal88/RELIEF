@@ -444,6 +444,12 @@ if (typeof document !== 'undefined') {
         const form = document.getElementById('symptoms-form');
         if (!form) return;
 
+        // The steps move with buttons, so pressing Enter in a field must not post the form and reload the page.
+        // This used to be done for every page by validateForm() in main.js.
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+
         const steps = document.querySelectorAll('.form-step');
         const stepIndicators = document.querySelectorAll('.checker-steps .step');
         const immediateEmergencyAlert = document.getElementById('immediate-emergency-alert');
@@ -709,37 +715,6 @@ if (typeof document !== 'undefined') {
             div.textContent = str || '';
             return div.innerHTML;
         }
-    });
-
-    // Mobile Menu & Navigation functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const hamburger = document.querySelector('.hamburger');
-        if (!hamburger || hamburger.dataset.navInitialized === 'true') {
-            return;
-        }
-
-        const navLinks = document.querySelector('.nav-links');
-        if (hamburger && navLinks) {
-            hamburger.dataset.navInitialized = 'true';
-            hamburger.addEventListener('click', function() {
-                const expanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-                navLinks.classList.toggle('active');
-            });
-        }
-
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-        dropdownToggles.forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992) {
-                    e.preventDefault();
-                    const dropdown = this.closest('.dropdown');
-                    if (dropdown) {
-                        dropdown.classList.toggle('active');
-                    }
-                }
-            });
-        });
     });
 }
 
