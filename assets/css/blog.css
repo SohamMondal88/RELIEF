@@ -542,7 +542,7 @@ a:hover {
 
 /* Health News Page Specific Styles */
 .health-hero {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/health-hero-bg.jpg') no-repeat center center/cover;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7));
     color: white;
     padding: 180px 0 100px;
     text-align: center;
@@ -1330,6 +1330,12 @@ a:hover {
 
 .footer-badges img:hover {
     opacity: 1;
+}
+
+/* The file is 807x448, not the 2:1 that the width and height in the pages say, so without this the badge is 80px
+   wide until it loads and 72px after, and the badge next to it moves. */
+.footer-badges img[src$="hipaa-badge.webp"] {
+    aspect-ratio: 807 / 448;
 }
 
 /* Responsive Design */

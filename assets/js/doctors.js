@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.8,
             reviews: 124,
             availability: "Available today",
-            image: "../assets/images/doctor1.jpg",
             bio: "Board-certified cardiologist with 10 years of experience specializing in heart health and preventive care."
         },
         {
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.6,
             reviews: 89,
             availability: "Available tomorrow",
-            image: "../assets/images/doctor2.jpg",
             bio: "Primary care physician focused on family medicine and holistic patient care."
         },
         {
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.9,
             reviews: 156,
             availability: "Available this week",
-            image: "../assets/images/doctor3.jpg",
             bio: "Pediatric specialist with expertise in child development and preventive care."
         },
         {
@@ -42,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.7,
             reviews: 72,
             availability: "Available next week",
-            image: "../assets/images/doctor4.jpg",
             bio: "Neurology expert with focus on migraine treatment and cognitive disorders."
         },
         {
@@ -53,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.5,
             reviews: 98,
             availability: "Available today",
-            image: "../assets/images/doctor5.jpg",
             bio: "Dermatology specialist with expertise in skin cancer prevention and cosmetic procedures."
         },
         {
@@ -64,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
             rating: 4.4,
             reviews: 65,
             availability: "Available tomorrow",
-            image: "../assets/images/doctor6.jpg",
             bio: "Psychiatrist specializing in anxiety, depression, and cognitive behavioral therapy."
         }
     ];
@@ -171,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const doctorCard = document.createElement('div');
             doctorCard.className = 'doctor-card';
             doctorCard.innerHTML = `
-                <div class="doctor-image" style="background-image: url('${doctor.image}')"></div>
+                <div class="doctor-image" aria-hidden="true"></div>
                 <div class="doctor-info">
                     <h4 class="doctor-name">${doctor.name}</h4>
                     <p class="doctor-specialty">${doctor.specialty}</p>

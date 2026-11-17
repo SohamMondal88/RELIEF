@@ -60,18 +60,23 @@ document.addEventListener('DOMContentLoaded', function() {
         return saved ? [saved.lat, saved.lng] : null;
     }
 
+    // The pins are drawn with CSS (.relief-marker in ambulances.css), so there is no image file that can go missing.
+    function markerIcon(kind) {
+        return L.divIcon({
+            className: 'relief-marker relief-marker--' + kind,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -12]
+        });
+    }
+
     function setUserMarker(location) {
         if (userMarker) {
             map.removeLayer(userMarker);
             userMarker = null;
         }
         if (location) {
-            const userIcon = L.icon({
-                iconUrl: '../assets/images/user-marker.png',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            });
+            const userIcon = markerIcon('user');
             userMarker = L.marker(location, { icon: userIcon }).addTo(map).bindPopup('Your Location');
         }
     }
@@ -126,12 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add new markers with ambulance icons
         ambulancesToShow.forEach(ambulance => {
-            const ambulanceIcon = L.icon({
-                iconUrl: '../assets/images/ambulance-marker.png',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            });
+            const ambulanceIcon = markerIcon('ambulance');
 
             const marker = L.marker([ambulance.lat, ambulance.lng], { icon: ambulanceIcon })
                 .addTo(map)

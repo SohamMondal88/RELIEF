@@ -101,7 +101,7 @@ test('with Leaflet the map is built and no note is shown', () => {
   const L = {
     map(id) { calls.push('map:' + id); return chain; },
     tileLayer() { return chain; },
-    icon() { return {}; },
+    divIcon() { return {}; },
     marker() { return chain; },
     featureGroup() { return chain; }
   };
@@ -109,4 +109,23 @@ test('with Leaflet the map is built and no note is shown', () => {
   assert.ok(calls.includes('map:map'), 'L.map was called for #map');
   assert.strictEqual(page.map.hidden, false);
   assert.strictEqual(page.container.children.filter((el) => el.className === 'map-unavailable').length, 0);
+});
+
+test('the map pins are drawn with CSS, not with image files that are not in the repository (issue #195)', () => {
+  const icons = [];
+  const chain = { setView() { return chain; }, addTo() { return chain; }, bindPopup() { return chain; }, fitBounds() {}, removeLayer() {}, getBounds() { return { pad: () => ({}) }; } };
+  const L = {
+    map() { return chain; },
+    tileLayer() { return chain; },
+    divIcon(options) { icons.push(options); return {}; },
+    marker() { return chain; },
+    featureGroup() { return chain; }
+  };
+  // A saved location, so the pin for the person is drawn as well as the four ambulance pins.
+  const window = { ReliefLocation: { loadLocation: () => ({ lat: 22.9, lng: 87.8 }), saveLocation() {} } };
+  run({ L, window });
+  const classes = icons.map((o) => o.className);
+  assert.strictEqual(classes.filter((c) => c === 'relief-marker relief-marker--ambulance').length, 4);
+  assert.strictEqual(classes.filter((c) => c === 'relief-marker relief-marker--user').length, 1);
+  assert.doesNotMatch(source, /iconUrl|user-marker|ambulance-marker/);
 });

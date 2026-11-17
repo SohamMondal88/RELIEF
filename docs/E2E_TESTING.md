@@ -27,6 +27,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | File | Journey |
 |---|---|
 | `e2e/navigation.spec.js` | Landing page, primary navigation, hamburger menu on a phone width (open, close, Escape, focus), Relief Assistant on the dashboard (greeting, routing, urgent escalation, medical advice refusal, clear chat) |
+| `e2e/media-loading.spec.js` | Image loading (Issue #195): no first-party image request fails on the pages that used to ask for missing files, doctor and pharmacy cards keep their size when a photo is missing, and the map pins are drawn without image files |
 | `e2e/admin-panel.spec.js` | Admin panel is labelled a demo with its sample buttons off, and the moderation queue in each state: demo host, normal host with no backend, signed out, not a moderator, moderator |
 | `e2e/auth.spec.js` | Demo signup, validation errors, duplicate email, login (right and wrong password), navbar Dashboard and Logout, logout clears the session, no plain text password in storage |
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |
@@ -69,7 +70,7 @@ For tests about a bad connection, use the helpers in `e2e/helpers.js` (call them
 - a request to our own site that came back 4xx or 5xx or never arrived (a missing script, stylesheet, image or data file)
 - a `console.error` from the page
 
-All problems of a route are listed together and each line names the route and the URL, for example `doctors (/pages/doctors.html): own file failed: /assets/images/doctor1.jpg (HTTP 404)`.
+All problems of a route are listed together and each line names the route and the URL, for example `doctors (/pages/doctors.html): own file failed: /assets/images/missing.jpg (HTTP 404)`.
 
 Outside services are handled the same way every run. `fixtures.js` blocks every request that leaves the site, so the browser's "Failed to load resource" console line for those is expected and not counted. Files that only Vercel serves (`/_vercel/...`, the analytics script) are answered with an empty script by the smoke spec, so a local server does not 404 on them.
 
@@ -79,8 +80,7 @@ Known problems the smoke check currently tolerates:
 
 | Where | What is wrong |
 |---|---|
-| `home` | `assets/css/style.css` line 1120 has `url('assets/images/pattern.png')`, which resolves to `/assets/css/assets/images/pattern.png`; the file does not exist in `assets/images/` either |
-| `doctors` | `assets/js/doctors.js` points at `../assets/images/doctor1.jpg` to `doctor6.jpg`, which are not in the repository |
+| `home` | One testimonial photo is loaded from `www.amity.edu`, which redirects to another host and is not in the Content Security Policy on purpose (`docs/SECURITY_HEADERS.md`), so the browser logs the refusal |
 | `ambulances` | `ambulances.js` throws "L is not defined" when the Leaflet script did not load (the same bug as the `test.fixme` in `sos.spec.js`) |
 
 ## When a test fails
