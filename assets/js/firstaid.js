@@ -159,49 +159,59 @@ document.addEventListener('DOMContentLoaded', function() {
         const filteredGuides = firstAidGuides.filter(guide =>
             guide.category === category
         );
-        displayGuides(filteredGuides);
+        displayGuides(filteredGuides, 'This guide is coming soon. In an emergency, call 112.');
     }
 
     // Display guides in the accordion
-    function displayGuides(guidesToDisplay) {
+    function setItemOpen(item, open) {
+        item.classList.toggle('active', open);
+        const header = item.querySelector('.guide-header');
+        if (header) header.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const icon = item.querySelector('.guide-header i');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-up', open);
+            icon.classList.toggle('fa-chevron-down', !open);
+        }
+    }
+
+    function displayGuides(guidesToDisplay, emptyMessage) {
         guidesAccordion.innerHTML = '';
 
         if (guidesToDisplay.length === 0) {
-            guidesAccordion.innerHTML = '<div class="guide-item"><div class="guide-header"><h4>No guides found matching your search</h4></div></div>';
+            const message = emptyMessage || 'No guides found matching your search';
+            guidesAccordion.innerHTML = '<div class="guide-item"><div class="guide-header"><h4>' + message + '</h4></div></div>';
             return;
         }
 
-        guidesToDisplay.forEach(guide => {
+        guidesToDisplay.forEach((guide, index) => {
+            const contentId = 'guide-content-' + index;
             const guideItem = document.createElement('div');
             guideItem.className = 'guide-item';
             guideItem.innerHTML = `
-                <div class="guide-header">
+                <div class="guide-header" role="button" tabindex="0" aria-expanded="false" aria-controls="${contentId}">
                     <h4>${guide.title}</h4>
-                    <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
                 </div>
-                <div class="guide-content">
+                <div class="guide-content" id="${contentId}">
                     ${guide.content}
                 </div>
             `;
             guidesAccordion.appendChild(guideItem);
 
-            // Add click event to toggle accordion
             const header = guideItem.querySelector('.guide-header');
-            header.addEventListener('click', function() {
+            function toggle() {
                 // Close all other open accordion items
                 document.querySelectorAll('.guide-item.active').forEach(openItem => {
-                    if (openItem !== guideItem) {
-                        openItem.classList.remove('active');
-                    }
+                    if (openItem !== guideItem) setItemOpen(openItem, false);
                 });
-
-                // Toggle current item
-                guideItem.classList.toggle('active');
-
-                // Rotate chevron icon
-                const icon = header.querySelector('i');
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
+                setItemOpen(guideItem, !guideItem.classList.contains('active'));
+            }
+            header.addEventListener('click', toggle);
+            header.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggle();
+                }
             });
         });
     }
@@ -225,16 +235,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const category = this.getAttribute('data-category');
             filterByCategory(category);
         });
+        card.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                filterByCategory(this.getAttribute('data-category'));
+            }
+        });
     });
 
     // Close accordion when clicking outside
     document.addEventListener('click', function(event) {
         if (!event.target.closest('.guide-header') && !event.target.closest('.guide-content')) {
-            document.querySelectorAll('.guide-item').forEach(item => {
-                item.classList.remove('active');
-                item.querySelector('.guide-header i').classList.remove('fa-chevron-up');
-                item.querySelector('.guide-header i').classList.add('fa-chevron-down');
-            });
+            document.querySelectorAll('.guide-item').forEach(item => setItemOpen(item, false));
         }
     });
 
