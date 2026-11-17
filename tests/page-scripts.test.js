@@ -23,3 +23,19 @@ test('hospitals page loads facility-utils.js before hospitals.js', () => {
   assert.ok(page !== -1, 'hospitals.js must be included');
   assert.ok(utils < page, 'facility-utils.js must come first');
 });
+
+test('blog.js initialises on a page without the mobile menu or navbar', () => {
+  const source = fs.readFileSync(path.join(root, 'assets', 'js', 'blog.js'), 'utf8');
+  let onReady;
+  const document = {
+    addEventListener: (type, fn) => { if (type === 'DOMContentLoaded') onReady = fn; },
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    getElementById: () => null,
+    body: { classList: { add() {}, remove() {} } },
+  };
+  const window = { addEventListener() {}, scrollY: 0 };
+  vm.runInNewContext(source, { document, window, console, setTimeout, IntersectionObserver: undefined });
+  assert.strictEqual(typeof onReady, 'function');
+  assert.doesNotThrow(() => onReady());
+});
