@@ -27,6 +27,7 @@ If Playwright cannot download its browser on your machine, point `RELIEF_CHROMIU
 | File | Journey |
 |---|---|
 | `e2e/navigation.spec.js` | Landing page, primary navigation, hamburger menu on a phone width (open, close, Escape, focus), Relief Assistant on the dashboard (greeting, routing, urgent escalation, medical advice refusal, clear chat) |
+| `e2e/search-normalize.spec.js` | The same search typed with capitals, extra spaces, a no-break space or a zero width space finds the same doctors, pharmacies, hospitals and first aid guides (Issue #175), a blank box lists everything, and the first aid search does not match the HTML tags of a guide |
 | `e2e/admin-panel.spec.js` | Admin panel is labelled a demo with its sample buttons off, and the moderation queue in each state: demo host, normal host with no backend, signed out, not a moderator, moderator |
 | `e2e/auth.spec.js` | Demo signup, validation errors, duplicate email, login (right and wrong password), navbar Dashboard and Logout, logout clears the session, no plain text password in storage |
 | `e2e/facility-search.spec.js` | Facility search, area, service and "Verified only" filters, empty state, Save, Directions, manual-location fallback (built-in town, mocked lookup, not found, bad entry, network failure), mocked device location, list load failure with Retry |

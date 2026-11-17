@@ -4,12 +4,15 @@
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory();
+    module.exports = factory(require('./search-text.js'));
   } else {
-    root.FacilityUtils = factory();
+    root.FacilityUtils = factory(root.ReliefSearchText);
   }
-})(typeof self !== 'undefined' ? self : this, function () {
+})(typeof self !== 'undefined' ? self : this, function (SearchText) {
   'use strict';
+
+  // search-text.js must be loaded first on every page that loads this file.
+  if (!SearchText) throw new Error('facility-utils.js needs search-text.js loaded before it');
 
   var FACILITY_TYPES = {
     hospital: 'Hospital',
@@ -256,10 +259,9 @@
   }
 
   function matchesSearch(facility, term) {
-    var q = String(term || '').trim().toLowerCase();
-    if (!q) return true;
-    var haystack = [facility.name, facility.district].concat(facility.services).join(' ').toLowerCase();
-    return q.split(/\s+/).every(function (word) { return haystack.indexOf(word) !== -1; });
+    // The query and the record go through the same normalization (case, spaces, Unicode form, invisible
+    // characters), see search-text.js. A blank query matches every record.
+    return SearchText.matches([facility.name, facility.district].concat(facility.services), term);
   }
 
   function filterFacilities(facilities, criteria) {
