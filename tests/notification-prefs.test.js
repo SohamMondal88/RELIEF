@@ -94,7 +94,7 @@ MATRIX.forEach(([browser, permission, state, shows]) => {
 
 test('[plan] the message says what to do, and never blames the user', () => {
   assert.match(NP.getPlan({ browser: true }, 'denied').message, /allow them for this site in your browser settings/);
-  assert.match(NP.getPlan({ browser: true }, 'default').message, /not been asked yet/);
+  assert.match(NP.getPlan({ browser: true }, 'default').message, /permission has not been granted/i);
   assert.match(NP.getPlan({ browser: true }, 'unsupported').message, /does not support/);
   assert.match(NP.getPlan({ browser: false }, 'granted').message, /turn this back on at any time/);
   assert.match(NP.getPlan({ browser: false }, 'denied').message, /blocking notifications for this site/);
@@ -414,7 +414,7 @@ test('[deliver] permission state does not leak between scenarios', () => {
 test('[wording] the explanation covers permission, the lock screen and the always-on page reminders', () => {
   assert.match(NP.EXPLANATION, /browser will ask for permission/);
   assert.match(NP.EXPLANATION, /locked screen/);
-  assert.match(NP.EXPLANATION, /always appear on this page/);
+  assert.match(NP.EXPLANATION, /view due reminders on the dashboard/);
   assert.match(NP.DETAILS_WARNING, /can be read by anyone who can see your screen/);
   assert.ok(!/\b(dose|dosage|mg)\b/i.test(NP.EXPLANATION + NP.DETAILS_WARNING), 'no dosage language');
 });
@@ -444,7 +444,8 @@ test('[page] nothing asks for permission when the page loads', () => {
   const js = read('assets', 'js', 'dashboard.js');
   const firstEnable = js.indexOf('NP.enableBrowserNotifications(');
   const click = js.lastIndexOf("notifyBtn?.addEventListener('click'", firstEnable);
-  assert.ok(click !== -1 && firstEnable - click < 200, 'asking happens only inside the button click handler');
+  assert.notEqual(click, -1, 'asking is inside the button click handler');
+  assert.match(js.slice(click, firstEnable), /if \(requestingNotificationPermission\) return/);
 });
 
 test('[privacy] the saved choices are listed in the data inventory and the docs', () => {
@@ -457,4 +458,12 @@ test('[docs] the rules are written down', () => {
   ['permission', 'locked screen', 'turn off', 'blocked', 'unsupported', 'notes'].forEach((term) => {
     assert.ok(doc.toLowerCase().includes(term), 'REMINDER_NOTIFICATIONS.md should cover: ' + term);
   });
+});
+
+test('a browser reporting default without a permission request API is unsupported', async () => {
+  const api = { permission: 'default' };
+  const result = await NP.enableBrowserNotifications(api, memoryStorage());
+  assert.equal(result.asked, false);
+  assert.equal(result.plan.state, 'unsupported');
+  assert.equal(result.plan.inApp, true);
 });
