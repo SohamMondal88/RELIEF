@@ -96,7 +96,13 @@ describe('no script reads or builds personal data in a URL', () => {
     it('no script reads location.search, location.hash or URLSearchParams', () => {
         const hits = [];
         for (const file of scripts) {
-            const src = stripComments(read(file));
+            let src = stripComments(read(file));
+            // The hospital directory reads one fragment containing only a public facility ID.
+            if (file === 'assets/js/hospitals.js') {
+                assert.match(src, /const detailPrefix = '#facility='/);
+                assert.match(src, /find\(item => detailHref\(item\.id\) === hash\)/);
+                src = src.replace('const hash = window.location.hash;', '');
+            }
             if (/location\.(search|hash)\b|URLSearchParams|document\.referrer/.test(src)) hits.push(file);
         }
         assert.deepStrictEqual(hits, [], 'These scripts read the URL or referrer. If that is on purpose, document it in docs/PRIVACY_AND_DATA.md and allow it here: ' + hits.join(', '));

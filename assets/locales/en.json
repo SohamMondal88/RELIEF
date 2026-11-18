@@ -1,4 +1,12 @@
 {
+  "hospitals.detail.back": "Back to facility search",
+  "hospitals.detail.heading": "Facility details",
+  "hospitals.detail.loading": "Loading facility details…",
+  "hospitals.detail.error": "Facility data could not be loaded. Return to search to try again.",
+  "hospitals.detail.missing": "This facility is not in the current directory.",
+  "hospitals.detail.source": "Source",
+  "hospitals.detail.checked": "Last checked",
+  "hospitals.detail.accessibility": "Accessibility",
   "lang.label": "Language",
   "sos.fab": "Emergency SOS",
   "nav.skip": "Skip to main content",

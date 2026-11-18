@@ -66,7 +66,15 @@
 
     <main id="main-content" tabindex="-1">
     <!-- Hospital Finder Section -->
-    <section class="hospital-finder">
+    <section class="hospital-finder" id="facility-detail" aria-labelledby="facility-detail-title" hidden>
+        <div class="container">
+            <p><a href="#facility-directory" data-i18n="hospitals.detail.back">Back to facility search</a></p>
+            <h1 id="facility-detail-title" tabindex="-1" data-i18n="hospitals.detail.heading">Facility details</h1>
+            <p id="facility-detail-status" role="status"></p>
+            <div id="facility-detail-record" hidden></div>
+        </div>
+    </section>
+    <section class="hospital-finder" id="facility-directory">
         <div class="container">
             <h1 data-i18n="hospitals.h1">Find Hospitals Near You</h1>
             <p data-i18n="hospitals.sub">Search for healthcare facilities in your area</p>
