@@ -33,9 +33,9 @@
   const DEFAULT_PREFS = Object.freeze({ browser: false, showDetails: false });
 
   /** What to tell the user before the browser asks. Shown on the page, not only after a click. */
-  const EXPLANATION = 'If you turn this on, your browser will ask for permission. RELIEF then shows a notification when a reminder is due, even if you are on another tab. ' +
+  const EXPLANATION = 'If you turn this on, your browser will ask for permission. While the dashboard is open, RELIEF can attempt a browser notification when a reminder is due. ' +
     'Notifications can appear on a locked screen, so by default they only say a reminder is due. ' +
-    'Reminders always appear on this page too, so you will not miss them if you leave this off.';
+    'You can view due reminders on the dashboard even when browser notifications are off.';
 
   const DETAILS_WARNING = 'Show medicine names in notifications. They can be read by anyone who can see your screen.';
 
@@ -44,6 +44,7 @@
   /** 'unsupported' | 'default' | 'granted' | 'denied'. Pass window.Notification. */
   function getPermission(NotificationApi) {
     if (!NotificationApi || typeof NotificationApi.permission !== 'string') return 'unsupported';
+    if (NotificationApi.permission === 'default' && typeof NotificationApi.requestPermission !== 'function') return 'unsupported';
     const value = NotificationApi.permission;
     return value === 'granted' || value === 'denied' || value === 'default' ? value : 'default';
   }
@@ -106,15 +107,15 @@
       return { state: 'blocked', browser: false, inApp: true, message: 'Your browser is blocking notifications, so reminders show on this page instead. To use notifications again, allow them for this site in your browser settings.' };
     }
     if (permission === 'default') {
-      return { state: 'needs-permission', browser: false, inApp: true, message: 'Notifications are turned on here, but your browser has not been asked yet. Reminders show on this page until you allow them.' };
+      return { state: 'needs-permission', browser: false, inApp: true, message: 'Browser permission has not been granted. You can still view reminders on this page.' };
     }
     return {
       state: 'active',
       browser: true,
       inApp: true,
       message: p.showDetails
-        ? 'Browser notifications are on and show medicine names. Reminders also show on this page.'
-        : 'Browser notifications are on and say only that a reminder is due. Reminders also show on this page.'
+        ? 'Browser notifications are allowed and may show medicine names while this dashboard is open.'
+        : 'Browser notifications are allowed while this dashboard is open. They omit medicine names.'
     };
   }
 

@@ -223,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         persist();
     }
 
+    let requestingNotificationPermission = false;
+
     // Shows what will actually happen: the user's choice combined with the browser's permission.
     function renderNotifyPanel() {
         const prefs = NP.loadPrefs(localStorage);
@@ -234,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Offer "turn on" unless the browser cannot or will not show them.
         notifyBtn.hidden = !(plan.state === 'off' || plan.state === 'needs-permission') || permission === 'denied';
+        notifyBtn.disabled = requestingNotificationPermission;
+        notifyBtn.setAttribute('aria-busy', String(requestingNotificationPermission));
         notifyBtn.textContent = plan.state === 'needs-permission' ? 'Ask my browser for permission' : 'Turn on browser notifications';
         notifyOffBtn.hidden = !(plan.state === 'active' || plan.state === 'blocked' || plan.state === 'needs-permission');
 
@@ -281,8 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     });
 
-    notifyBtn?.addEventListener('click', () => {
-        NP.enableBrowserNotifications(window.Notification, localStorage).then(renderNotifyPanel, renderNotifyPanel);
+    notifyBtn?.addEventListener('click', async () => {
+        if (requestingNotificationPermission) return;
+        requestingNotificationPermission = true;
+        renderNotifyPanel();
+        try {
+            await NP.enableBrowserNotifications(window.Notification, localStorage);
+        } finally {
+            requestingNotificationPermission = false;
+            renderNotifyPanel();
+        }
     });
 
     notifyOffBtn?.addEventListener('click', () => {
