@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="doctor-bio">${doctor.bio}</p>
                     <div class="doctor-availability">
                         <span class="availability-badge">${doctor.availability}</span>
-                        <button class="btn-book" data-id="${doctor.id}">Book Appointment</button>
+                        <button class="btn-book" data-id="${doctor.id}">Open demo request</button>
                     </div>
                 </div>
             `;
@@ -207,9 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function bookAppointment(doctorId) {
         const doctor = doctors.find(d => d.id == doctorId);
         if (!doctor) return;
-
-        // In a real app, this would redirect to a booking page or show a modal
-        alert(`Booking appointment with ${doctor.name}\nSpecialty: ${doctor.specialty}\nLocation: ${doctor.location}`);
 
         // For demo purposes, we'll store the selected doctor in localStorage
         localStorage.setItem('selectedDoctor', JSON.stringify(doctor));

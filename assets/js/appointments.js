@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sending = value;
         submitButton.disabled = value;
         submitButton.setAttribute('aria-busy', value ? 'true' : 'false');
-        submitButton.textContent = value ? 'Sending request...' : 'Submit Request';
+        submitButton.textContent = value ? 'Saving request...' : 'Save demo request';
     }
 
     function showSuccess(request) {
@@ -207,14 +207,13 @@ document.addEventListener('DOMContentLoaded', function() {
         box.hidden = false;
         box.textContent = '';
         var title = document.createElement('h3');
-        title.textContent = 'Request submitted, not yet confirmed';
+        title.textContent = 'Demo request saved on this device';
         title.tabIndex = -1;
         box.appendChild(title);
         addParagraph(box, 'request-success-text',
-            'Your request for ' + request.doctorName + ' has been submitted. It is not a confirmed appointment yet. ' +
-            'The provider will confirm the actual date and time with you by email or phone.');
+            'Your demo request for ' + request.doctorName + ' is stored in this browser. To schedule care, contact a provider directly.');
         addParagraph(box, 'request-success-text',
-            'Reference: ' + Status.displayReference(request.id) + '. Quote it if you contact the provider. You can follow this request, or cancel it, under "Your appointment requests" below. ' +
+            'Reference: ' + Status.displayReference(request.id) + '. You can review or cancel the saved demo request under "Your appointment requests" below. ' +
             'If this is an emergency, do not wait. Call your local emergency number.');
         title.focus();
     }
@@ -246,9 +245,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         setSending(false);
         if (saved.reason === 'duplicate') {
-            setStatus('You already have an open request for this doctor, date and time window. Wait for the provider to contact you or choose a different date.', true);
+            setStatus('You already have an open request for this doctor, date and time window. Review the saved demo request or choose a different date.', true);
         } else {
-            setStatus('Your request could not be saved because browser storage is unavailable or full. Nothing was submitted. Free up space or allow storage for this site, then try again.', true);
+            setStatus('Your request could not be saved because browser storage is unavailable or full. Nothing was saved. Free up space or allow storage for this site, then try again.', true);
         }
     }
 

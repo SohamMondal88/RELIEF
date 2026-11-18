@@ -340,9 +340,10 @@ test('[wiring] the page has a labelled list, a live status line and explains how
   const html = read('pages', 'appointments.html');
   assert.match(html, /<section[^>]*id="my-requests"[^>]*aria-labelledby="my-requests-title"/);
   assert.match(html, /id="my-requests-status"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(html, /A request is not a booking/);
-  assert.match(html, /doctors page/);
-  assert.match(html, /quote your reference/);
+  assert.match(html, /demo requests are saved in this browser/);
+  assert.match(html, /does not book or confirm an appointment/);
+  assert.match(html, /Contact a provider directly/);
+  assert.match(read('assets', 'js', 'appointment-status-ui.js'), /It did not contact a provider/);
 });
 
 test('[wiring] scripts load in dependency order', () => {
