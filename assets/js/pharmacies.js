@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setUserMarker(location) {
+        if (!map) return;
         if (userMarker) {
             map.removeLayer(userMarker);
             userMarker = null;
@@ -143,22 +144,45 @@ document.addEventListener('DOMContentLoaded', function() {
         map.setView(location || DEFAULT_CENTER, location ? 13 : 7);
     });
 
+    function showMapUnavailable(mapElement) {
+        mapElement.hidden = true;
+        if (!mapElement.parentNode) return;
+        const note = document.createElement('p');
+        note.className = 'map-unavailable';
+        note.setAttribute('role', 'status');
+        note.textContent = 'The map could not be loaded, so it is not shown. The pharmacy list still works.';
+        mapElement.parentNode.insertBefore(note, mapElement);
+    }
+
     function initMap() {
-        // Use the saved location if there is one, otherwise a West Bengal overview
-        const userLocation = getUserLocation();
-        const center = userLocation || DEFAULT_CENTER;
+        const mapElement = document.getElementById('map');
+        if (!mapElement) return;
+        if (typeof L === 'undefined') {
+            showMapUnavailable(mapElement);
+            return;
+        }
 
-        map = L.map('map').setView(center, userLocation ? 13 : 7);
+        try {
+            // Use the saved location if there is one, otherwise a West Bengal overview
+            const userLocation = getUserLocation();
+            const center = userLocation || DEFAULT_CENTER;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+            map = L.map('map').setView(center, userLocation ? 13 : 7);
 
-        // Add marker for user's location if available
-        setUserMarker(userLocation);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add marker for user's location if available
+            setUserMarker(userLocation);
+        } catch (error) {
+            map = null;
+            showMapUnavailable(mapElement);
+        }
     }
 
     function updateMapMarkers(pharmaciesToShow) {
+        if (!map) return;
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
