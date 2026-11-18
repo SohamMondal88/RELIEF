@@ -48,14 +48,17 @@
 
     var head = el('div', 'request-head');
     head.appendChild(el('strong', 'request-reference', item.reference));
-    head.appendChild(el('span', 'request-pill', item.statusLabel));
+    var savedLocally = item.status === 'submitted';
+    head.appendChild(el('span', 'request-pill', savedLocally ? 'Saved on this device' : item.statusLabel));
     li.appendChild(head);
 
     var line = item.doctorName + (item.specialty ? ' (' + item.specialty + ')' : '');
     li.appendChild(el('p', 'request-doctor', line));
     var when = formatDate(item.preferredDate) + (WINDOW_LABELS[item.preferredWindow] ? ', ' + WINDOW_LABELS[item.preferredWindow] : '');
     li.appendChild(el('p', 'request-when', 'Preferred: ' + when));
-    li.appendChild(el('p', 'request-description', item.statusDescription));
+    li.appendChild(el('p', 'request-description', savedLocally
+      ? 'This demo request was saved in this browser. It did not contact a provider.'
+      : item.statusDescription));
 
     if (item.canCancel) {
       if (confirming === item.id) {
@@ -93,7 +96,7 @@
     var items = Status.toDisplayList(Request.loadRequests(window.localStorage));
     list.textContent = '';
     if (items.length === 0) {
-      list.appendChild(el('li', 'request-empty', 'You have not sent any appointment requests from this device.'));
+      list.appendChild(el('li', 'request-empty', 'No appointment demo requests are saved in this browser.'));
       return;
     }
     items.forEach(function (item) { list.appendChild(renderItem(item)); });
@@ -128,7 +131,7 @@
     }
     confirming = null;
     render('[data-request-id="' + id + '"]');
-    announce('Request ' + Status.displayReference(id) + ' was cancelled. You can send a new request at any time.');
+    announce('Request ' + Status.displayReference(id) + ' was cancelled. You can save another demo request at any time.');
   }
 
   list.addEventListener('click', function (event) {

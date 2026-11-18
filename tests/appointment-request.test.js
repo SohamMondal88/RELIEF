@@ -301,7 +301,7 @@ describe('page wiring', () => {
     it('offers time windows, not made-up slots', () => {
         assert.ok(!/generateTimeSlots|time-slot/.test(script));
         ['morning', 'afternoon', 'evening'].forEach((w) => assert.ok(html.includes('value="' + w + '"'), w));
-        assert.match(html, /provider confirms/i);
+        assert.match(html, /does not contact the provider or schedule care/i);
     });
 
     it('has a consent checkbox that links to the privacy policy', () => {
@@ -331,7 +331,9 @@ describe('page wiring', () => {
     it('blocks double submit and words success as not confirmed', () => {
         assert.match(script, /if \(sending\) return/);
         assert.match(script, /submitButton\.disabled = value/);
-        assert.match(script, /Request submitted, not yet confirmed/);
+        assert.match(script, /Demo request saved on this device/);
+        assert.match(script, /is stored in this browser/);
+        assert.doesNotMatch(script, /The provider will confirm/);
         assert.ok(!/booked successfully|Appointment confirmed/i.test(script + html));
     });
 });
