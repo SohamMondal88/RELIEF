@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pharmacyTypeFilter = document.getElementById('pharmacy-type');
     const locationFilter = document.getElementById('location');
     const servicesFilter = document.getElementById('services');
-    const filterButton = document.querySelector('.btn-filter');
+    const filterButton = document.querySelector('.search-filters .btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
 
     // Initialize map
@@ -186,14 +186,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const location = locationFilter.value;
         const services = servicesFilter.value;
 
+        const typeLabels = { chain: 'chain pharmacy', hospital: 'hospital pharmacy', '24-hour': '24-hour', independent: 'independent' };
         const filteredPharmacies = pharmacies.filter(pharmacy => {
             const matchesSearch =
                 pharmacy.name.toLowerCase().includes(searchTerm) ||
                 pharmacy.location.toLowerCase().includes(searchTerm);
 
-            const matchesPharmacyType = !pharmacyType || pharmacy.type.toLowerCase() === pharmacyType.toLowerCase().replace('-', ' ');
-            const matchesLocation = !location || pharmacy.location.toLowerCase().includes(location.toLowerCase());
-            const matchesServices = !services || pharmacy.services.some(s =>
+            const matchesPharmacyType = !pharmacyType || pharmacy.type?.toLowerCase() === typeLabels[pharmacyType];
+            const matchesLocation = !location || pharmacy.location?.toLowerCase().includes(location.toLowerCase());
+            const matchesServices = !services || pharmacy.services?.some(s =>
                 s.toLowerCase().includes(services.toLowerCase().replace('-', ' ')));
 
             return matchesSearch && matchesPharmacyType && matchesLocation && matchesServices;
@@ -312,7 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     searchInput.addEventListener('input', filterPharmacies);
     filterButton.addEventListener('click', filterPharmacies);
-    sortSelect.addEventListener('change', () => {
+    sortSelect.addEventListener('change', filterPharmacies);
+    [pharmacyTypeFilter, locationFilter, servicesFilter].forEach(select => select.addEventListener('change', filterPharmacies));
+    document.getElementById('clear-directory-filters')?.addEventListener('click', () => {
+        [searchInput, pharmacyTypeFilter, locationFilter, servicesFilter].forEach(field => { field.value = ''; });
         filterPharmacies();
     });
 

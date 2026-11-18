@@ -75,11 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const specialtyFilter = document.getElementById('specialty');
     const locationFilter = document.getElementById('location');
     const availabilityFilter = document.getElementById('availability');
-    const filterButton = document.querySelector('.btn-filter');
+    const filterButton = document.querySelector('.search-filters .btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
-
-    // Display all doctors initially
-    displayDoctors(doctors);
 
     // Filter doctors based on search and filters
     function filterDoctors() {
@@ -94,14 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 doctor.specialty.toLowerCase().includes(searchTerm) ||
                 doctor.bio.toLowerCase().includes(searchTerm);
 
-            const matchesSpecialty = !specialty || doctor.specialty.toLowerCase() === specialty;
-            const matchesLocation = !location || doctor.location.toLowerCase().includes(location);
+            const matchesSpecialty = !specialty || doctor.specialty?.toLowerCase() === (specialty === 'gp' ? 'general practitioner' : specialty);
+            const matchesLocation = !location || doctor.location?.toLowerCase().includes(location);
+            const available = doctor.availability?.toLowerCase() || '';
             const matchesAvailability = !availability ||
-                (availability === 'today' && doctor.availability.toLowerCase().includes('today')) ||
-                (availability === 'tomorrow' && doctor.availability.toLowerCase().includes('tomorrow')) ||
-                (availability === 'week' && (doctor.availability.toLowerCase().includes('week') ||
-                                           doctor.availability.toLowerCase().includes('this week') ||
-                                           doctor.availability.toLowerCase().includes('next week')));
+                (availability === 'today' && available.includes('today')) ||
+                (availability === 'tomorrow' && available.includes('tomorrow')) ||
+                (availability === 'week' && available.includes('week'));
 
             return matchesSearch && matchesSpecialty && matchesLocation && matchesAvailability;
         });
@@ -221,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     searchInput.addEventListener('input', filterDoctors);
     filterButton.addEventListener('click', filterDoctors);
-    sortSelect.addEventListener('change', () => {
-        const currentDoctors = Array.from(document.querySelectorAll('.doctor-card')).length > 0 ?
-            doctors :
-            JSON.parse(JSON.stringify(doctors));
-        displayDoctors(currentDoctors);
+    sortSelect.addEventListener('change', filterDoctors);
+    [specialtyFilter, locationFilter, availabilityFilter].forEach(select => select.addEventListener('change', filterDoctors));
+    document.getElementById('clear-directory-filters')?.addEventListener('click', () => {
+        [searchInput, specialtyFilter, locationFilter, availabilityFilter].forEach(field => { field.value = ''; });
+        filterDoctors();
     });
 
     // Initialize with filtered doctors
