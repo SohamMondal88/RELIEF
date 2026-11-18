@@ -14,11 +14,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
+    const directory = document.getElementById('facility-directory');
+    const detailView = document.getElementById('facility-detail');
+    const detailTitle = document.getElementById('facility-detail-title');
+    const detailStatus = document.getElementById('facility-detail-status');
+    const detailRecord = document.getElementById('facility-detail-record');
+    const detailPrefix = '#facility=';
     const locateButton = document.getElementById('use-my-location');
 
     if (!hospitalsList || !U) return;
 
     let facilities = [];
+    let directoryState = "loading";
+    let lastDetailLink = null;
     let reviewPolicy = U.getReviewPolicy(null);
     let map = null;
     let markers = [];
@@ -218,7 +226,53 @@ document.addEventListener('DOMContentLoaded', function() {
         fillSelect(servicesFilter, 'All Services', options.services);
     }
 
-    function cardHtml(f) {
+    function detailHref(id) {
+        return detailPrefix + encodeURIComponent(String(id));
+    }
+
+    function detailCopy(key, fallback) {
+        return window.ReliefI18n?.t(key, fallback) || fallback;
+    }
+
+    function renderDetail(focus) {
+        if (!detailView) return;
+        const hash = window.location.hash;
+        const showing = hash.startsWith(detailPrefix);
+        const wasShowing = !detailView.hidden;
+        detailView.hidden = !showing;
+        directory.hidden = showing;
+        if (!showing) {
+            if (wasShowing) {
+                detailRecord.hidden = true;
+                detailRecord.replaceChildren();
+                detailRecord.classList.remove('hospital-card');
+            }
+            if (wasShowing && map) map.invalidateSize({ pan: false });
+            if (wasShowing && focus && lastDetailLink?.isConnected) lastDetailLink.focus();
+            return;
+        }
+
+        const facility = facilities.find(item => detailHref(item.id) === hash);
+        if (facility) detailTitle.removeAttribute('data-i18n');
+        else detailTitle.setAttribute('data-i18n', 'hospitals.detail.heading');
+        detailTitle.textContent = facility?.name || detailCopy('hospitals.detail.heading', 'Facility details');
+        detailRecord.hidden = !facility;
+        detailRecord.classList.toggle('hospital-card', Boolean(facility));
+        detailRecord.replaceChildren();
+        detailStatus.textContent = '';
+        if (facility) {
+            detailRecord.innerHTML = cardHtml(facility, true);
+        } else if (directoryState === 'loading') {
+            detailStatus.textContent = detailCopy('hospitals.detail.loading', 'Loading facility details…');
+        } else if (directoryState === 'error') {
+            detailStatus.textContent = detailCopy('hospitals.detail.error', 'Facility data could not be loaded. Return to search to try again.');
+        } else {
+            detailStatus.textContent = detailCopy('hospitals.detail.missing', 'This facility is not in the current directory.');
+        }
+        if (focus) detailTitle.focus();
+    }
+
+    function cardHtml(f, detail = false) {
         const notAvailable = '<span class="not-available">Not available</span>';
         const phoneHref = f.phone ? String(f.phone).replace(/[^\d+]/g, '') : '';
         const hasCoords = U.isValidCoord(f.lat, f.lng);
@@ -232,13 +286,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const label = U.reviewLabel(f, { policy: reviewPolicy });
         const badgeClass = 'badge-' + (label.state === 'pending' ? 'unverified' : label.state);
         const badgeText = label.badge;
-        const detail = label.detail;
+        const verificationDetail = label.detail;
         return '' +
             '<div class="hospital-info">' +
-                '<h4 class="hospital-name">' + U.escapeHtml(f.name) + '</h4>' +
+                (detail ? '' : '<h4 class="hospital-name"><a href="' + U.escapeHtml(detailHref(f.id)) + '">' + U.escapeHtml(f.name) + '</a></h4>') +
                 '<p class="hospital-type">' + U.escapeHtml(U.FACILITY_TYPES[f.type] || f.type || 'Not available') + '</p>' +
                 '<p><span class="verify-badge ' + badgeClass + '">' + badgeText + '</span> ' +
-                    '<span class="verify-detail">' + U.escapeHtml(detail) + '</span></p>' +
+                    '<span class="verify-detail">' + U.escapeHtml(verificationDetail) + '</span></p>' +
                 '<p class="hospital-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ' +
                     (f.district ? U.escapeHtml(f.district) : notAvailable) + '</p>' +
                 distance +
@@ -246,6 +300,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 '<p class="hospital-detail"><strong>Phone:</strong> ' + (f.phone ? U.escapeHtml(f.phone) : notAvailable) + '</p>' +
                 '<p class="hospital-detail"><strong>Hours:</strong> ' + (f.hours ? U.escapeHtml(f.hours) : notAvailable) + '</p>' +
                 '<div class="hospital-services">' + services + '</div>' +
+                (detail
+                    ? '<p class="hospital-detail"><strong>' + U.escapeHtml(detailCopy('hospitals.detail.source', 'Source')) + ':</strong> ' + (f.source ? U.escapeHtml(f.source) : notAvailable) + '</p>' +
+                      '<p class="hospital-detail"><strong>' + U.escapeHtml(detailCopy('hospitals.detail.checked', 'Last checked')) + ':</strong> ' + (f.lastChecked ? U.escapeHtml(f.lastChecked) : notAvailable) + '</p>' +
+                      '<p class="hospital-detail"><strong>' + U.escapeHtml(detailCopy('hospitals.detail.accessibility', 'Accessibility')) + ':</strong> ' + notAvailable + '</p>'
+                    : '') +
                 '<div class="hospital-actions">' +
                     (hasCoords
                         ? '<button type="button" class="btn-directions" data-lat="' + f.lat + '" data-lng="' + f.lng + '" aria-label="Directions to ' + U.escapeHtml(f.name) + '"><i class="fas fa-directions" aria-hidden="true"></i> Directions</button>'
@@ -253,8 +312,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     (phoneHref
                         ? '<a class="btn-call" href="tel:' + U.escapeHtml(phoneHref) + '" aria-label="Call ' + U.escapeHtml(f.name) + '"><i class="fas fa-phone" aria-hidden="true"></i> Call</a>'
                         : '') +
-                    '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' for offline use">Save</button>' +
-                    '<button type="button" class="btn-correct" data-id="' + U.escapeHtml(String(f.id)) + '" aria-label="Suggest a correction for ' + U.escapeHtml(f.name) + '">Suggest a correction</button>' +
+                    (detail ? '' : '<button type="button" class="btn-save" data-id="' + U.escapeHtml(String(f.id)) + '" aria-pressed="false" aria-label="Save ' + U.escapeHtml(f.name) + ' for offline use">Save</button>' +
+                    '<button type="button" class="btn-correct" data-id="' + U.escapeHtml(String(f.id)) + '" aria-label="Suggest a correction for ' + U.escapeHtml(f.name) + '">Suggest a correction</button>') +
                 '</div>' +
             '</div>';
     }
@@ -399,7 +458,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadFacilities() {
+        directoryState = 'loading';
         showLoading();
+        renderDetail();
         // Reading a static file is safe to repeat, so transient failures are retried quietly first.
         const load = R
             ? R.retry(fetchFacilities, {
@@ -418,18 +479,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 facilities = U.normalizeFacilities(checked ? checked.accepted : data);
                 reviewPolicy = U.getReviewPolicy(data);
+                directoryState = 'ready';
                 populateFilters();
                 applyFilters();
+                renderDetail();
                 // The correction form (facility-corrections-ui.js) fills its list from this.
                 document.dispatchEvent(new CustomEvent('relief:facilities-loaded', { detail: { facilities: facilities } }));
             })
             .catch(error => {
                 if (R) R.logError('hospitals load', error, { url: R.safeUrl(DATA_URL) });
+                directoryState = 'error';
                 showError(error);
+                renderDetail();
             });
     }
 
-    hospitalsList.addEventListener('click', function(e) {
+    function handleDirectoryClick(e) {
+        const detailLink = e.target.closest('.hospital-name a');
+        if (detailLink) {
+            lastDetailLink = detailLink;
+            return;
+        }
         const saveBtn = e.target.closest('.btn-save');
         if (saveBtn) {
             toggleSaved(saveBtn.getAttribute('data-id'));
@@ -442,7 +512,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (U.isValidCoord(lat, lng)) {
             window.open('https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng, '_blank', 'noopener');
         }
-    });
+    }
+
+    hospitalsList.addEventListener('click', handleDirectoryClick);
+    detailRecord?.addEventListener('click', handleDirectoryClick);
+    window.addEventListener('hashchange', () => renderDetail(true));
+    document.addEventListener('relief:languagechange', () => renderDetail());
 
     // The location panel fires this when the user types a place, uses GPS or clears it
     document.addEventListener('relief:location-changed', function() {

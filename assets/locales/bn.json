@@ -1,4 +1,12 @@
 {
+  "hospitals.detail.back": "প্রতিষ্ঠান অনুসন্ধানে ফিরুন",
+  "hospitals.detail.heading": "প্রতিষ্ঠানের বিবরণ",
+  "hospitals.detail.loading": "প্রতিষ্ঠানের বিবরণ লোড হচ্ছে…",
+  "hospitals.detail.error": "প্রতিষ্ঠানের তথ্য লোড করা যায়নি। আবার চেষ্টা করতে অনুসন্ধানে ফিরুন।",
+  "hospitals.detail.missing": "এই প্রতিষ্ঠানটি বর্তমান তালিকায় নেই।",
+  "hospitals.detail.source": "উৎস",
+  "hospitals.detail.checked": "শেষ যাচাই",
+  "hospitals.detail.accessibility": "প্রবেশগম্যতা",
   "lang.label": "ভাষা",
   "sos.fab": "জরুরি এসওএস",
   "nav.skip": "মূল বিষয়বস্তুতে যান",

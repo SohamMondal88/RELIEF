@@ -199,3 +199,7 @@ Run once per release, and after adding a form, a link or a `console` call.
 ## 10. For contributors
 
 When a script needs a new `localStorage` key: add it to `INVENTORY` in `assets/js/privacy-data.js`, add a row to the table in section 2, and run `node --test tests/privacy-data.test.js`. Keys that start with `relief_` are deleted automatically even if you forget the inventory, but the test will still fail so the docs stay accurate. When a page starts contacting a new host, add it to section 4.
+
+### Facility detail links
+
+The hospital directory reads a `#facility=` fragment to match a public catalogue ID. It uses the same directory data for the detail view. User location, search terms, appointment details and other personal data are excluded from the link.
