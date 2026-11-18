@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const districtFilter = document.getElementById('location');
     const servicesFilter = document.getElementById('services');
     const verifiedOnly = document.getElementById('verified-only');
-    const filterButton = document.querySelector('.btn-filter');
+    const filterButton = document.querySelector('.search-filters .btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
     const locateButton = document.getElementById('use-my-location');
@@ -455,6 +455,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (filterButton) filterButton.addEventListener('click', applyFilters);
     [facilityTypeFilter, districtFilter, servicesFilter, verifiedOnly, sortSelect].forEach(el => {
         if (el) el.addEventListener('change', applyFilters);
+    });
+    document.getElementById('clear-directory-filters')?.addEventListener('click', () => {
+        [searchInput, facilityTypeFilter, districtFilter, servicesFilter].filter(Boolean).forEach(field => { field.value = ''; });
+        if (verifiedOnly) verifiedOnly.checked = false;
+        applyFilters();
     });
     if (locateButton) locateButton.addEventListener('click', locateUser);
 
