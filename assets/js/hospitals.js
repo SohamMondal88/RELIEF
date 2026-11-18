@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.btn-filter');
     const sortSelect = document.querySelector('.sort-options select');
     const statusEl = document.getElementById('directory-status');
-    const locateButton = document.getElementById('use-my-location');
 
     if (!hospitalsList || !U) return;
 
@@ -300,45 +299,6 @@ document.addEventListener('DOMContentLoaded', function() {
         render(sorted, note);
     }
 
-    function locateUser() {
-        if (!navigator.geolocation) {
-            setStatus('Location is not supported by this browser. Sorting by name instead.');
-            return;
-        }
-        setStatus('Finding your location...');
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            const coords = pos && pos.coords;
-            if (!coords || !U.isValidCoord(coords.latitude, coords.longitude)) {
-                setStatus('Your device gave an unusable position, so it was ignored. Showing facilities sorted by name.');
-                return;
-            }
-            if (window.ReliefLocation) {
-                window.ReliefLocation.saveLocation({
-                    lat: coords.latitude,
-                    lng: coords.longitude,
-                    source: 'gps'
-                });
-            } else {
-                try {
-                    localStorage.setItem('userLocation', JSON.stringify({
-                        lat: coords.latitude,
-                        lng: coords.longitude
-                    }));
-                } catch (e) { /* storage unavailable; the location is used only for this visit */ }
-            }
-            setUserMarker(readSavedLocation());
-            if (sortSelect) sortSelect.value = 'distance';
-            applyFilters();
-        }, function(err) {
-            const reasons = {
-                1: 'Location permission was denied.',
-                2: 'Your position is unavailable.',
-                3: 'Finding your location took too long.'
-            };
-            setStatus((reasons[err && err.code] || 'Could not get your location.') + ' Showing facilities sorted by name.');
-        }, { timeout: 10000, maximumAge: 300000 });
-    }
-
     function showLoading(message) {
         const text = message || 'Loading facilities...';
         if (R) R.renderState(hospitalsList, { state: 'loading', message: text });
@@ -445,7 +405,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // The location panel fires this when the user types a place, uses GPS or clears it
-    document.addEventListener('relief:location-changed', function() {
+    document.addEventListener('relief:location-changed', function(event) {
+        if (sortSelect && event.detail?.source === 'gps') sortSelect.value = 'distance';
         setUserMarker(readSavedLocation());
         if (facilities.length) applyFilters();
     });
@@ -456,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
     [facilityTypeFilter, districtFilter, servicesFilter, verifiedOnly, sortSelect].forEach(el => {
         if (el) el.addEventListener('change', applyFilters);
     });
-    if (locateButton) locateButton.addEventListener('click', locateUser);
 
     renderSavedFacilities();
     initMap();
