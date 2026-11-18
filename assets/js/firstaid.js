@@ -220,6 +220,13 @@ document.addEventListener('DOMContentLoaded', function() {
         resetButton.addEventListener('click', resetSearch);
     }
 
+    const printButton = document.getElementById('print-guides');
+    if (printButton) {
+        printButton.addEventListener('click', function() {
+            if (typeof window.print === 'function') window.print();
+        });
+    }
+
     categoryCards.forEach(card => {
         card.addEventListener('click', function() {
             const category = this.getAttribute('data-category');
