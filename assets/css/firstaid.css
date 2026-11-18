@@ -1300,3 +1300,74 @@ a:hover {
         font-size: 0.9rem;
     }
 }
+
+/* Print and save as PDF: only the guides, every one open, with the safety warnings kept */
+.print-only-note {
+    display: none;
+}
+
+.btn-print-guides {
+    margin: 0 0 1rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+@media print {
+    .healthcare-quote,
+    .skip-link,
+    .navbar,
+    .footer,
+    .search-guides,
+    .guide-categories,
+    .btn-print-guides,
+    .guide-header i {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+        color: #000;
+    }
+
+    .emergency-banner {
+        display: block;
+        border: 2px solid #000;
+        padding: 0.5rem 1rem;
+        background: #fff;
+        color: #000;
+    }
+
+    .print-only-note {
+        display: block;
+        margin: 0 0 1rem;
+        font-weight: bold;
+    }
+
+    .guide-item {
+        break-inside: avoid;
+        border: 1px solid #000;
+        margin-bottom: 1rem;
+        box-shadow: none;
+    }
+
+    .guide-content {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 1.5rem 1.5rem !important;
+    }
+
+    .guide-warning {
+        border: 2px solid #000;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    a[href^="http"]::after {
+        content: " (" attr(href) ")";
+    }
+}
