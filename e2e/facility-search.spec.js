@@ -102,7 +102,8 @@ test.describe('manual-location fallback', () => {
 
   test('"Use my location" with permission denied says so and keeps the A to Z list', async ({ page }) => {
     await page.locator('#use-my-location').click();
-    await expect(status(page)).toContainText('Location permission was denied. Showing facilities sorted by name.');
+    await expect(page.locator('#location-error')).toContainText('Location permission was denied');
+    await expect(page.locator('#sort-by')).toHaveValue('name');
     await expect(cards(page)).toHaveCount(FACILITIES.length);
     expect(await storedJson(page, 'userLocation')).toBeNull();
   });
@@ -219,4 +220,26 @@ test.describe('when the facility list cannot load', () => {
     await expect(page.locator('.state-error')).toBeVisible();
     expect(calls).toBe(1);
   });
+});
+
+test('a pending GPS request cannot overwrite a manually chosen place', async ({ page }) => {
+  await page.goto('/pages/hospitals.html');
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { getCurrentPosition: (success) => { window.finishGps = success; } },
+    });
+  });
+  const legacy = page.locator('#use-my-location');
+  const primary = page.getByRole('button', { name: 'Use my current location' });
+  await legacy.click();
+  await expect(primary).toBeDisabled();
+  await page.locator('#location-input').fill('Kolkata');
+  await page.getByRole('button', { name: 'Set location' }).click();
+  await expect(page.locator('#location-current')).toContainText('Kolkata');
+
+  await page.evaluate(() => window.finishGps({ coords: { latitude: 22, longitude: 88 } }));
+  await expect(primary).toBeEnabled();
+  await expect(page.locator('#location-current')).toContainText('Kolkata');
+  expect(await storedJson(page, 'userLocation')).toMatchObject({ source: 'manual', label: 'Kolkata' });
 });

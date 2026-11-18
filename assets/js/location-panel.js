@@ -36,6 +36,10 @@
     var form = host.querySelector('#location-form');
     var input = host.querySelector('#location-input');
     var list = host.querySelector('#location-places');
+    var directoryGpsBtn = document.getElementById('use-my-location');
+    var gpsButtons = [gpsBtn, directoryGpsBtn].filter(Boolean);
+    var gpsBusy = false;
+    var locationAttempt = 0;
 
     RL.KNOWN_PLACES.forEach(function (p) {
       var opt = document.createElement('option');
@@ -61,37 +65,51 @@
     }
 
     function setBusy(busy) {
-      gpsBtn.disabled = busy;
-      gpsBtn.setAttribute('aria-busy', busy ? 'true' : 'false');
+      gpsBusy = busy;
+      gpsButtons.forEach(function (button) {
+        button.disabled = busy;
+        button.setAttribute('aria-busy', String(busy));
+      });
     }
 
-    gpsBtn.addEventListener('click', function () {
+    function locate() {
+      if (gpsBusy) return;
+      var attempt = ++locationAttempt;
       errorEl.textContent = '';
       current.textContent = 'Finding your location...';
       setBusy(true);
-      RL.getPositionWithRetry({ retries: 1, timeout: 10000 }).then(function (pos) {
+      RL.getPosition().then(function (pos) {
+        if (attempt !== locationAttempt) return;
         var saved = RL.saveLocation(pos);
-        setBusy(false);
         refresh();
         announce(saved);
       }).catch(function (err) {
-        setBusy(false);
+        if (attempt !== locationAttempt) return;
         refresh();
         errorEl.textContent = err && err.reason ? err.message : RL.messageFor('unavailable');
         input.focus();
+      }).finally(function () {
+        setBusy(false);
       });
+    }
+
+    gpsButtons.forEach(function (button) {
+      button.addEventListener('click', locate);
     });
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      var attempt = ++locationAttempt;
       errorEl.textContent = '';
       current.textContent = 'Looking up that place...';
       RL.resolveManualLocation(input.value).then(function (loc) {
+        if (attempt !== locationAttempt) return;
         var saved = RL.saveLocation(loc);
         input.value = '';
         refresh();
         announce(saved);
       }).catch(function (err) {
+        if (attempt !== locationAttempt) return;
         refresh();
         errorEl.textContent = err && err.reason ? err.message : RL.messageFor('notfound');
         input.focus();
@@ -99,6 +117,7 @@
     });
 
     clearBtn.addEventListener('click', function () {
+      locationAttempt++;
       RL.clearLocation();
       errorEl.textContent = '';
       refresh();
